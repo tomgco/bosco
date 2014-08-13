@@ -11,9 +11,9 @@ var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
 
 module.exports = {
-	name:'go',
-	description:'Initialises your entire working environment in one step.',
-	example: 'bosco go | bosco go pull',
+	name:'fly',
+	description:'Initialises your entire working environment in one step',
+	example: 'bosco fly | bosco fly pull',
 	help: getHelp(),
 	cmd:cmd
 }
@@ -22,7 +22,7 @@ function cmd(bosco, args) {
 
 	var options = {
 	    headers: {
-	        'User-Agent': 'TSL-Repos-List-App'
+	        'User-Agent': 'Bosco-Fly-You-Fool'
 	    },
 	    auth: {
 	        user: bosco.config.get('github:authToken') + ':x-oauth-basic'
@@ -37,7 +37,11 @@ function cmd(bosco, args) {
     function fetchTeamProfile(err, res, teamJson) {
 
     	if(teamJson.message) {
-    		return bosco.error(teamJson.message);
+    		bosco.error("There was a problem talking to the Github: " + teamJson.message);
+    		if(teamJson.message == 'Bad credentials') {
+    			bosco.warn("To create a token visit here: https://github.com/blog/1509-personal-api-tokens")
+    		}
+    		return;
     	}
 
         if (err) {

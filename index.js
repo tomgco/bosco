@@ -26,6 +26,8 @@ function Bosco(options) {
  self.prompt = prompt;
  self.progress = progress;
 
+ console.log("\r"); 
+
  self._init(function(err) {
  	if(err) return;
 
@@ -35,10 +37,14 @@ function Bosco(options) {
 	} catch(ex) {
 		console.log("Failed to load quotes: " + quotePath);
 	} 
-	if(quotes) self.log(quotes[Math.floor(Math.random() * quotes.length)].blue);
+	if(quotes) {
+		self.log(quotes[Math.floor(Math.random() * quotes.length)].blue);
+	}
 
  	self.log("Initialised using [" + self.options.configFile.magenta + "]");
  	self._cmd();
+ 	
+ 	console.log("\r"); 
 
  });
 
@@ -139,7 +145,7 @@ Bosco.prototype._initialiseConfig = function(next) {
 	        description: "Enter the name of the github organization you want to use?".white
 	      },
 	      auth: {
-	        description: "Enter the auth token that allows read access to the organization above and its private repos?".white
+	        description: "Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens)?".white
 	      },
 	      team: {
 	        description: "Enter the team name that will be used to filter the repository list (optional - defaults to Owners)?".white
@@ -150,6 +156,7 @@ Bosco.prototype._initialiseConfig = function(next) {
 	  	self.config.set('github:authToken',result.auth);
 	  	self.config.set('github:team',result.team || "Owners");
 	  	self.config.set('github:ignoredRepos',[]);
+	  	console.log("\r");
 	  	self.config.save(next);
   	 });
 };
@@ -180,7 +187,7 @@ Bosco.prototype._commands = function() {
 		table.push([cmd.name, cmd.description || "",cmd.example || ""]);
 	}
 	
-	console.log("\n");
+	console.log("\r");
 	self.warn("Hey, to use bosco, you need to enter one of the following commands:")
 
 	fs.readdir(cmdPath, function (err, files) {
@@ -193,7 +200,7 @@ Bosco.prototype._commands = function() {
 	        showCommand(require(file))
 	    });
 	    console.log(table.toString());
-	    console.log("\n");
+	    console.log("\r");
 	});
 
 }
