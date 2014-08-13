@@ -15,9 +15,9 @@ Run this command in a folder where you want all of your projects to live.  It wi
 
 It will ask initially for:
 
-Github Organization:  The organization it will query for repos, e.g. TSLEducation.
-Github Auth Key:  A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).
-Github Team:  This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners.
+- Github Organization:  The organization it will query for repos, e.g. TSLEducation.
+- Github Auth Key:  A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).
+- Github Team:  This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners.
 
 This is then saved in your configuration file, so all subsequent commands use it.
 
