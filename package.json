@@ -1,0 +1,34 @@
+{
+  "name": "bosco",
+  "version": "0.0.1",
+  "description": "Bosco will take care of your microservices, just don't try and use him on a plane.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/*"
+  },
+  "keywords": [
+    "micro",
+    "service",
+    "build",
+    "automation"
+  ],
+  "bin": {
+    "bosco": "./bin/bosco.js"
+  },
+  "author": "clifton.cunningham@tes.co.uk",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^0.9.0",
+    "cli-table": "^0.3.0",
+    "commander": "^2.3.0",
+    "gulp": "^3.8.7",
+    "gulp-git": "^0.5.0",
+    "lodash": "^2.4.1",
+    "mkdirp": "^0.5.0",
+    "multimeter": "^0.1.1",
+    "nconf": "^0.6.9",
+    "progress": "^1.1.8",
+    "prompt": "^0.2.13",
+    "request": "^2.40.0"
+  }
+}
