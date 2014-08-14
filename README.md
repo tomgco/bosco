@@ -83,7 +83,7 @@ This command requires that you have configured your AWS details for S3.  Best to
 
 To then access the html fragments for PC, it follows a simple convention:
 
-- <cdn>/<environment>/<tag>.<type>.html
+- cdn/environment/tag.type.html
 
 For example:
 
@@ -131,7 +131,7 @@ e.g.
 
 To then access the html fragments for PC, it follows a simple convention:
 
-- http://localhost:7334/html/<tag>.<type>.html
+- http://localhost:7334/html/tag.type.html
 
 For example:
 
