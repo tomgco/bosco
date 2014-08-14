@@ -244,7 +244,7 @@ Bosco.prototype.getOrg = function() {
 }
 
 Bosco.prototype.getOrgPath = function() {
-	return [__dirname,this.getOrg()].join("/");
+	return [path.resolve("."),this.getOrg()].join("/");
 }
 
 Bosco.prototype.getRepoPath = function(repo) {
