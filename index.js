@@ -21,7 +21,7 @@ function Bosco(options) {
  var self = this;
 
  self._defaults = {
- 	_defaultConfig: [__dirname,'defaults/bosco.json'].join("/"),
+ 	_defaultConfig: [__dirname,'config/bosco.json'].join("/"),
  	configPath:"./.bosco/",
  	configFile:"./.bosco/bosco.json",
  	environment: (process.env.NODE_ENV || "development"),
