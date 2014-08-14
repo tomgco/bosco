@@ -43,7 +43,7 @@ function Bosco(options) {
 
  	self.log("Initialised using [" + self.options.configFile.magenta + "]");
  	self._cmd();
- 	
+
  	console.log("\r"); 
 
  });
@@ -94,7 +94,12 @@ Bosco.prototype._init = function(next) {
   	  		next();
   	  	});
   	  } else {
-  	  	next();
+  	  	if(!self.config.get('github:organization')) {
+  	  		self.error("It looks like you are in a micro service folder or something is wrong with your config?\n");
+  	  		next("error");
+  	  	} else {
+  	  		next();	
+  	  	}  	  	
   	  }
 	
   });
@@ -204,3 +209,20 @@ Bosco.prototype._commands = function() {
 	});
 
 }
+
+Bosco.prototype.getOrg = function() {
+	return this.config.get('github:organization');
+}
+
+Bosco.prototype.getOrgPath = function() {
+	return [__dirname,this.getOrg()].join("/");
+}
+
+Bosco.prototype.getRepoPath = function(repo) {
+	return [this.getOrgPath(),repo].join("/");
+}
+
+Bosco.prototype.getRepoUrl = function(repo) {
+	return ['git@github.com:',this.getOrg(),"/",repo,'.git'].join(""); 
+}
+

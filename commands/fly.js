@@ -90,13 +90,18 @@ function fetch(bosco, repos, args) {
 	var org = bosco.config.get('github:organization'), orgPath;
 
 	var checkOrg = function(cb) {
-		orgPath = ["./",bosco.config.get('github:organization')].join("");
+		orgPath = bosco.getOrgPath();
 		if(!bosco.exists(orgPath)) {
 			bosco.log("Creating organization folder " + orgPath.magenta);
 			mkdirp(orgPath, cb);
 		} else {
 			cb();
 		}
+	}
+
+	var saveRepos = function(cb) {
+		bosco.config.set("github:repos",repos);
+		bosco.config.save(cb);
 	}
 
 	var getRepos = function(cb) {
@@ -116,8 +121,8 @@ function fetch(bosco, repos, args) {
 
     	  if(progressbar) bar.tick();
 
-		  var repoPath = ["./",org,"/",repo].join(""); 
-		  var repoUrl = ['git@github.com:',org,"/",repo,'.git'].join(""); 
+		  var repoPath = bosco.getRepoPath(repo); 
+		  var repoUrl = bosco.getRepoUrl(repo);
 
 		  if(bosco.exists(repoPath)) {
 		  	if(args[0] == 'pull') {
@@ -131,7 +136,7 @@ function fetch(bosco, repos, args) {
 		  }
 		}, function(err) {
 			if(err) bosco.error(err.message);
-			if(pullFlag) bosco.warn("Some repositories already existed, to pull changes use 'bosco go pull'");
+			if(pullFlag) bosco.warn("Some repositories already existed, to pull changes use 'bosco fly pull'");
 			cb();
 		})
 		
@@ -153,7 +158,7 @@ function fetch(bosco, repos, args) {
 
     	  if(progressbar) bar.tick();
 
-		  var repoPath = ["./",org,"/",repo].join(""); 
+		  var repoPath = bosco.getRepoPath(); 
 		  install(bosco, progressbar, repoPath, repoCb);
 
 		}, function(err) {
@@ -163,8 +168,7 @@ function fetch(bosco, repos, args) {
 
 	}
 
-
-	async.series([checkOrg, getRepos, installRepos], function(err) {
+	async.series([checkOrg, saveRepos, getRepos, installRepos], function(err) {
 		bosco.log("Complete");
 	});
 
