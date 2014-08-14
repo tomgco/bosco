@@ -35,16 +35,18 @@ function cmd(bosco, args) {
 	}
 
 	var process = function(repoPath, repo, assets) {
+		var assetKey;
 		if(assets.js) {
 			_.forOwn(assets.js, function(value, key) {
 				if(value) {
-					value.forEach(function(asset) {
-						if(staticAssets[asset]) bosco.error("Duplicate static asset: " + asset + " in Repo " + repo);
-						staticAssets[asset] = staticAssets[asset] || {};
-						staticAssets[asset].path = [repoPath,asset].join("/");
-						staticAssets[asset].key = key;
-						staticAssets[asset].type = 'js';
-						staticAssets[asset].content = fs.readFileSync(staticAssets[asset].path);
+					value.forEach(function(asset) {						
+						assetKey = repo + "/" + asset;					
+						staticAssets[assetKey] = staticAssets[assetKey] || {};
+						staticAssets[assetKey].path = [repoPath,asset].join("/");
+						staticAssets[assetKey].key = key;
+						staticAssets[assetKey].repo = repo;
+						staticAssets[assetKey].type = 'js';
+						staticAssets[assetKey].content = fs.readFileSync(staticAssets[assetKey].path);
 					});
 				}
 			});
@@ -53,12 +55,13 @@ function cmd(bosco, args) {
 			_.forOwn(assets.css, function(value, key) {
 				if(value) {
 					value.forEach(function(asset) {
-						if(staticAssets[asset]) bosco.error("Duplicate static asset: " + asset + " in Repo " + repo);
-						staticAssets[asset] = staticAssets[asset] || {};
-						staticAssets[asset].path = [repoPath,asset].join("/");
-						staticAssets[asset].key = key;
-						staticAssets[asset].type = 'css';
-						staticAssets[asset].content = fs.readFileSync(staticAssets[asset].path);
+						assetKey = repo + "/" + asset;					
+						staticAssets[assetKey] = staticAssets[assetKey] || {};
+						staticAssets[assetKey].path = [repoPath,asset].join("/");
+						staticAssets[assetKey].key = key;
+						staticAssets[assetKey].repo = repo;
+						staticAssets[assetKey].type = 'css';
+						staticAssets[assetKey].content = fs.readFileSync(staticAssets[assetKey].path);
 					});
 				}
 			});
@@ -73,16 +76,17 @@ function cmd(bosco, args) {
 		_.forOwn(staticAssets, function(value, key) {			
 			var html, htmlFile = 'html/' + value.key + '.' + value.type + '.html', cdn = 'http://localhost:' + port + '/';
 			htmlAssets[htmlFile] = htmlAssets[htmlFile] || {
-				content: ""	
+				content: "",
+				type:"html"
 			};
 			if(value.type == 'js') {
-				htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', { 'url': cdn + key });	
+				htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', { 'url': cdn + value.repo + "/" + key });	
 			} else {
-				htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', { 'url': cdn + key });						
+				htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', { 'url': cdn + value.repo + "/" + key });						
 			}
 		});
 
-		staticAssets = _.merge(staticAssets, htmlAssets);
+		staticAssets = _.merge(htmlAssets, staticAssets);
 	}
 
 	var startServer = function(serverPort) {
@@ -92,13 +96,13 @@ function cmd(bosco, args) {
 		var server = http.createServer(function(request, response) {
 		  var url = request.url.replace("/","");		 
 		  if(staticAssets[url]) {
-			response.writeHead(200, {"Content-Type": "text/html"});
+			response.writeHead(200, {"Content-Type": "text/" + staticAssets[url].type});
 			response.write(staticAssets[url].content);
 		  } else {
 		  	response.writeHead(404, {"Content-Type": "text/html"});
-		  	response.write("<h2>" + url + " not found, try:</h2>");
-		  	response.write("<br/>" + _.map(staticAssets, function(asset, key) {
-		  		return key + " >> " + asset.path + "<br/>";
+		  	response.write("<h2>Couldn't find that, why not try:</h2>");
+		  	response.write(_.map(staticAssets, function(asset, key) {
+		  		return "<a href='" + key + "''>" + key + "</a><br/>";
 		  	}).join("\n"));
 		  }
 		  response.end();
