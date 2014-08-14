@@ -11,13 +11,13 @@ var _ = require('lodash');
 program
   .version('0.0.1')
   .usage('[options] <command>')
-  .option('-a, --app [app]', 'Use specific application')
   .option('-c, --configFile [file]', 'Use specific config file')
+  .option('-n, --noprompt', 'Do not prompt for confirmation')
   .parse(process.argv);
 
 var options = {
-	app: program.app,
 	configFile: program.configFile,
+	noprompt: program.noprompt,
 	args: program.args
 };
 

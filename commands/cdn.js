@@ -9,9 +9,13 @@ module.exports = {
 	cmd:cmd
 }
 
+var port = 7334;
+
 function cmd(bosco, args) {
 	
-	bosco.log("Starting pseudo CDN " + args);
+	port = args.length ? +args[0] : port;
+
+	bosco.log("Starting pseudo CDN on port: " + (port+"").blue);
 
 	var repos = bosco.config.get('github:repos'),
 		staticAssets = {};
@@ -67,7 +71,7 @@ function cmd(bosco, args) {
 		var htmlAssets = {};
 
 		_.forOwn(staticAssets, function(value, key) {			
-			var html, htmlFile = 'html/' + value.key + '.' + value.type + '.html', cdn = 'http://localhost:7334/';
+			var html, htmlFile = 'html/' + value.key + '.' + value.type + '.html', cdn = 'http://localhost:' + port + '/';
 			htmlAssets[htmlFile] = htmlAssets[htmlFile] || {
 				content: ""	
 			};
@@ -81,7 +85,7 @@ function cmd(bosco, args) {
 		staticAssets = _.merge(staticAssets, htmlAssets);
 	}
 
-	var startServer = function(port) {
+	var startServer = function(serverPort) {
 
 		var http = require("http");
 
@@ -99,13 +103,13 @@ function cmd(bosco, args) {
 		  }
 		  response.end();
 		});		
-		server.listen(port);
-		bosco.log("Server is listening on " + port);
+		server.listen(serverPort);
+		bosco.log("Server is listening on " + serverPort);
 	}
 
 	async.mapSeries(repos, loadRepo, function(err) {
 		createHtml();
-		startServer(7334);
+		startServer(port);
 	})
 
 }

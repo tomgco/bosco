@@ -8,15 +8,21 @@ var _ = require('lodash'),
 	cleanCSS = require("clean-css");
 
 module.exports = {
-	name:'face',
-	description:'Builds all of the front end assets for each microservice',
-	example:'bosco face | bosco face watch',
+	name:'s3push',
+	description:'Builds all of the front end assets for each microservice and pushes them to S3 for the current environment',
+	example:'bosco s3push | bosco s3push top',
 	cmd:cmd
 }
 
+var tag = "", noprompt = false;
+
 function cmd(bosco, args) {
 	
-	bosco.log("Compile front end assets across services.");
+	if(args.length > 0) tag = args[0];
+
+	noprompt = bosco.options.noprompt;
+ 
+	bosco.log("Compile front end assets across services " + (tag ? "for tag: " + tag.blue : ""));
 
 	var repos = bosco.config.get('github:repos'),
 		jsAssets = {},
@@ -59,6 +65,7 @@ function cmd(bosco, args) {
 		
 		var compiledJs = [];
 		_.forOwn(jsAssets, function(files, key) {
+			if(tag && tag !== key) return;			
 			var compiled = UglifyJS.minify(files);
 			compiled.key = key;
 			compiled.hash = crypto.createHash("sha1").update(compiled.code).digest("hex");
@@ -68,7 +75,6 @@ function cmd(bosco, args) {
 		async.map(compiledJs, function(js, next) {
 			pushToS3(js.code, js.hash, bosco.options.environment, 'js', js.key, next);
 		}, function(err, result) {
-			if(!err && result.length > 0) bosco.log("Javascript pushed to S3");
 			async.map(result, function(s3file, cb) { 
 				createHtml('js',bosco.config.get('aws:cdn'),s3file.file, s3file.key,cb);
 			},next);
@@ -80,6 +86,7 @@ function cmd(bosco, args) {
 
 		var compiledCss = [];
 		_.forOwn(cssAssets, function(files, key) {
+			if(tag && tag !== key) return;
 			var compiled = {code:""};
 			compiled.code += _.map(files, function(file){ return fs.readFileSync(file) });
 			compiled.key = key;
@@ -90,7 +97,6 @@ function cmd(bosco, args) {
 		async.map(compiledCss, function(css, next) {
 			pushToS3(css.code, css.hash, bosco.options.environment, 'css', css.key, next);
 		}, function(err, result) {			
-			if(!err && result.length > 0) bosco.log("CSS pushed to S3");			
 			async.map(result, function(s3file, cb) { 
 				createHtml('css',bosco.config.get('aws:cdn'), s3file.file, s3file.key, cb);
 			},next);
@@ -115,18 +121,47 @@ function cmd(bosco, args) {
 		var buffer = new Buffer(content);
 		var s3file = '/' + environment + '/' + type + '/' + key + (hash ? '.' + hash : '') +'.' + type;
 		var headers = {
-		  'Content-Type': 'text/plain'
+		  'Content-Type': 'text/' + type
 		};
 		bosco.knox.putBuffer(buffer, s3file, headers, function(err, res){		  
-	      if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode}; 
+	      if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
+	      bosco.log('Pushed to S3: ' +  bosco.config.get('aws:cdn') + s3file);
 		  next(err, {file: s3file, key:key});
 		});
 	}
 
-	async.mapSeries(repos, loadRepo, function(err) {
-		async.parallel([compileJs,compileCss],function(err) {
-			bosco.log("Files pushed to : " + bosco.config.get('aws:cdn'));	
-		});		
-	})
+	var confirm = function(next) {
+		 bosco.prompt.start();
+	  	 bosco.prompt.get({
+		    properties: {
+		      confirm: {
+		        description: "Are you sure you want to publish ".white + (tag ? "all " + tag.blue + " assets in " : "ALL".red + " assets in ").white + bosco.options.environment.blue + " (y/N)?".white
+		      }
+		    }
+		  }, function (err, result) {
+		  	if(result.confirm == 'Y' || result.confirm == 'y') {
+	  	 		next()
+	  	 	} else {
+	  	 		next({message:'Did not confirm'});
+	  	 	}
+	  	 });
+	}
+
+	var go = function() {
+		bosco.log("Compiling front end assets ...");
+		async.mapSeries(repos, loadRepo, function(err) {
+			async.parallel([compileJs,compileCss],function(err) {
+				bosco.log("Complete pushing files to : " + bosco.config.get('aws:cdn'));	
+			});		
+		})
+	}
+
+	if(!noprompt) {
+		confirm(function(err) {
+			if(!err) go();
+		})
+	} else {
+		go();
+	}
 
 }

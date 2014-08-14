@@ -58,15 +58,38 @@ This will clone all the repositories in your team, and then run npm install on a
 bosco fly pull
 ```
 
-### Face
+### S3 Push
 
 This will create bundles for front end assets (JS, CSS, Templates).
 
 ```
-bosco face
+bosco s3push
 ```
-Not yet fully implemented.
 
+This command requires that you have configured your AWS details for S3.  Best to put these into your .bosco folder in a per environment config, e.g. .bosco/development.json.
+
+```
+{
+	"aws":{
+		"key": "XXXXXX",
+        "secret": "XXXXXX",
+        "bucket": "bucket-name",
+        "region": "eu-west-1",
+        "cdn":"https://dudu89lpwit3y.cloudfront.net"
+	}
+}
+
+```
+
+To then access the html fragments for PC, it follows a simple convention:
+
+- <cdn>/<environment>/<tag>.<type>.html
+
+For example:
+
+- [https://dudu89lpwit3y.cloudfront.net/development/html/bottom.js.html](https://dudu89lpwit3y.cloudfront.net/development/html/bottom.js.html)
+
+This would contain a fragment that has script tag for all of the minified JS tagged in the bottom group.
 
 ### CDN
 
@@ -106,4 +129,15 @@ e.g.
 }
 ```
 
-More info coming.
+To then access the html fragments for PC, it follows a simple convention:
+
+- http://localhost:7334/html/<tag>.<type>.html
+
+For example:
+
+- [http://localhost:7334/html/bottom.js.html](http://localhost:7334/html/bottom.js.html)
+
+This would contain a fragment that has script tags for all of the JS tagged in the bottom group.
+
+
+
