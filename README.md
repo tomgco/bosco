@@ -37,5 +37,52 @@ This will clone all the repositories in your team, and then run npm install on a
 bosco fly pull
 ```
 
+### Face
+
+This will create bundles for front end assets (JS, CSS, Templates).
+
+```
+bosco face
+```
+Not yet fully implemented.
 
 
+### CDN
+
+This will aggregate and serve all of the static assets (those compiled by Face) on a single pseudo CDN url.  
+
+```
+bosco cdn
+```
+
+## Service Configuration
+
+### bosco-service.json
+
+If services want to take part in the static asset part, they need a bosco-service.json config file.
+
+e.g.
+
+```
+{
+    "assets": {
+        "basePath": "/src/public",
+        "js": {
+            "bottom": [
+                "js/lib/base64.min.js",
+                "js/lib/bind.shim.min.js",
+                "js/lib/cookies.min.js",
+                "js/lib/lean-modal.min.js",
+                "js/report-review.js",
+                "js/resources.js"
+            ],
+            "top": [
+                "js/event-tracking.js"
+            ]
+        },
+        "css": {}
+    }
+}
+```
+
+More info coming.
