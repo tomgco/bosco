@@ -158,7 +158,7 @@ function fetch(bosco, repos, args) {
 
     	  if(progressbar) bar.tick();
 
-		  var repoPath = bosco.getRepoPath(); 
+		  var repoPath = bosco.getRepoPath(repo); 
 		  install(bosco, progressbar, repoPath, repoCb);
 
 		}, function(err) {
@@ -206,7 +206,8 @@ function pull(bosco, progressbar, repoPath, next) {
 
 function install(bosco, progressbar, repoPath, next) {
 
-	if(!bosco.exists([repoPath,"/package.json"].join(""))) return next();
+	var packageJson = [repoPath,"package.json"].join("/");
+	if(!bosco.exists(packageJson)) return next();
 	if(!progressbar) bosco.log("Running NPM install for " + repoPath);
 
 	exec('npm install', {

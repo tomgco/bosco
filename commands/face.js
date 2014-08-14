@@ -16,6 +16,8 @@ function cmd(bosco, args) {
 		jsAssets = {},
 		cssAssets = {};
 
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+
 	var loadRepo = function(repo, next) {	
 		var repoBosco, basePath, repoPath = bosco.getRepoPath(repo), repoBoscoConfig = [repoPath,"bosco-service.json"].join("/");
 		if(bosco.exists(repoBoscoConfig)) {

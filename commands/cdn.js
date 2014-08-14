@@ -16,6 +16,8 @@ function cmd(bosco, args) {
 	var repos = bosco.config.get('github:repos'),
 		staticAssets = {};
 
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+
 	var loadRepo = function(repo, next) {	
 		var repoBosco, basePath, repoPath = bosco.getRepoPath(repo), repoBoscoConfig = [repoPath,"bosco-service.json"].join("/");
 		if(bosco.exists(repoBoscoConfig)) {
@@ -29,16 +31,30 @@ function cmd(bosco, args) {
 	}
 
 	var process = function(repoPath, repo, assets) {
-		_.forOwn(assets.js, function(value, key) {
-			if(value) {
-				value.forEach(function(asset) {
-					if(staticAssets[asset]) bosco.error("Duplicate static asset: " + asset + " in Repo " + repo);
-					staticAssets[asset] = staticAssets[asset] || {};
-					staticAssets[asset].path = [repoPath,asset].join("/");
-					staticAssets[asset].content = fs.readFileSync(staticAssets[asset].path);
-				});
-			}
-		});
+		if(assets.js) {
+			_.forOwn(assets.js, function(value, key) {
+				if(value) {
+					value.forEach(function(asset) {
+						if(staticAssets[asset]) bosco.error("Duplicate static asset: " + asset + " in Repo " + repo);
+						staticAssets[asset] = staticAssets[asset] || {};
+						staticAssets[asset].path = [repoPath,asset].join("/");
+						staticAssets[asset].content = fs.readFileSync(staticAssets[asset].path);
+					});
+				}
+			});
+		}
+		if(assets.css) {
+			_.forOwn(assets.css, function(value, key) {
+				if(value) {
+					value.forEach(function(asset) {
+						if(staticAssets[asset]) bosco.error("Duplicate static asset: " + asset + " in Repo " + repo);
+						staticAssets[asset] = staticAssets[asset] || {};
+						staticAssets[asset].path = [repoPath,asset].join("/");
+						staticAssets[asset].content = fs.readFileSync(staticAssets[asset].path);
+					});
+				}
+			});
+		}
 	}
 
 	var startServer = function(port) {
