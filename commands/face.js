@@ -1,5 +1,10 @@
-var _ = require('lodash');
-var async = require('async');
+var _ = require('lodash'),
+	 async = require('async'),
+	fs = require("fs"), 
+	path = require("path"),
+	UglifyJS = require("uglify-js"),
+	sass = require("node-sass"),
+	cleanCSS = require("clean-css");
 
 module.exports = {
 	name:'face',
@@ -52,11 +57,22 @@ function cmd(bosco, args) {
 	}
 
 	var compileJs = function() {
-		console.dir(jsAssets);
+		var compiledJs = {};
+		_.forOwn(jsAssets, function(files, key) {
+			console.dir(key + ' ' + files)
+			compiledJs[key] = UglifyJS.minify(files);
+		});
+		console.dir(compiledJs);
+		// Write to disk or push somewhere with version / md5 hash
 	}
 
 	var compileCss = function() {
-		console.dir(cssAssets);
+		var compiledCss = {};
+		_.forOwn(cssAssets, function(files, key) {
+			compiledCss[key] += _.map(files, function(file){ return fs.readFileSync(file) });
+		});
+		console.dir(compiledCss);
+		// Write to disk or push somewhere with version / md5 hash
 	}
 
 	async.mapSeries(repos, loadRepo, function(err) {
