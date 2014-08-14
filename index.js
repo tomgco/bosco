@@ -10,6 +10,10 @@ var path = require('path');
 var progress = require('progress');
 var Table = require('cli-table');
 var prompt = require('prompt');
+var async = require('async');
+var mkdirp = require('mkdirp');
+var knox = require('knox');
+
 prompt.message = "Bosco".green;
 
 function Bosco(options) {
@@ -18,7 +22,10 @@ function Bosco(options) {
 
  self._defaults = {
  	_defaultConfig: [__dirname,'defaults/bosco.json'].join("/"),
- 	configFile:"./bosco.json"
+ 	configPath:"./.bosco/",
+ 	configFile:"./.bosco/bosco.json",
+ 	environment: (process.env.NODE_ENV || "development"),
+ 	envConfigFile:"./.bosco/" + (process.env.NODE_ENV || "development") + ".json"
  }
 
  self.options = _.defaults(options, self._defaults);
@@ -39,6 +46,16 @@ function Bosco(options) {
 	} 
 	if(quotes) {
 		self.log(quotes[Math.floor(Math.random() * quotes.length)].blue);
+	}
+
+	var aws = self.config.get('aws');
+	if(aws) {
+		self.knox = knox.createClient({
+		  key: aws.key,
+		  secret: aws.secret,
+		  bucket: aws.bucket,
+		  region: aws.region
+		});
 	}
 
  	self.log("Initialised using [" + self.options.configFile.magenta + "]");
@@ -79,7 +96,8 @@ Bosco.prototype._init = function(next) {
 
   var loadConfig = function() {
   	self.config.env()
-	  	       .file({ file: self.options.configFile });
+	  	       .file({ file: self.options.configFile })
+	  	       .file('environment',{ file: self.options.envConfigFile });
   }
 
   self._checkConfig(function(err, initialise) {
@@ -109,33 +127,44 @@ Bosco.prototype._init = function(next) {
 Bosco.prototype._checkConfig = function(next) {
 
   var self = this,
-  	  defaultConfig = self.options._defaultConfig;
+  	  defaultConfig = self.options._defaultConfig,
+  	  configPath = self.options.configPath,
   	  configFile = self.options.configFile;
 
-  if(!self.exists(configFile)) {
-  	  
-  	 prompt.start();
-
-  	 prompt.get({
-	    properties: {
-	      confirm: {
-	        description: "Do you want to create a new configuration file in the current folder (y/N)?".white
-	      }
-	    }
-	  }, function (err, result) {
-
-	  	if(result.confirm == 'Y' || result.confirm == 'y') {
-  	 		var content = fs.readFileSync(defaultConfig);
-  	 		fs.writeFileSync(configFile, content);
-  	 		next(null, true);
-  	 	} else {
-  	 		next({message:'Did not confirm'});
-  	 	}
-  	 });
-
-  } else {
-  	next();
+  var checkConfigPath = function(cb) {
+	  if(!self.exists(configPath)) {
+	  	mkdirp(configPath,cb);
+	  } else {
+	  	cb();
+	  };
   }
+
+  var checkConfig = function(cb) {
+  	if(!self.exists(configFile)) {  	  
+	  	 prompt.start();
+	  	 prompt.get({
+		    properties: {
+		      confirm: {
+		        description: "Do you want to create a new configuration file in the current folder (y/N)?".white
+		      }
+		    }
+		  }, function (err, result) {
+		  	if(result.confirm == 'Y' || result.confirm == 'y') {
+	  	 		var content = fs.readFileSync(defaultConfig);
+	  	 		fs.writeFileSync(configFile, content);
+	  	 		cb(null, true);
+	  	 	} else {
+	  	 		cb({message:'Did not confirm'});
+	  	 	}
+	  	 });
+	  } else {
+	  	cb();
+	  }
+	} 
+
+	async.series([checkConfigPath,checkConfig], function(err, result) {
+		next(err, result[1]);
+	});
 
 }
 

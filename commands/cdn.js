@@ -38,6 +38,8 @@ function cmd(bosco, args) {
 						if(staticAssets[asset]) bosco.error("Duplicate static asset: " + asset + " in Repo " + repo);
 						staticAssets[asset] = staticAssets[asset] || {};
 						staticAssets[asset].path = [repoPath,asset].join("/");
+						staticAssets[asset].key = key;
+						staticAssets[asset].type = 'js';
 						staticAssets[asset].content = fs.readFileSync(staticAssets[asset].path);
 					});
 				}
@@ -50,17 +52,41 @@ function cmd(bosco, args) {
 						if(staticAssets[asset]) bosco.error("Duplicate static asset: " + asset + " in Repo " + repo);
 						staticAssets[asset] = staticAssets[asset] || {};
 						staticAssets[asset].path = [repoPath,asset].join("/");
+						staticAssets[asset].key = key;
+						staticAssets[asset].type = 'css';
 						staticAssets[asset].content = fs.readFileSync(staticAssets[asset].path);
 					});
 				}
 			});
-		}
+		}	
+
+	}
+
+	var createHtml = function() {
+		
+		var htmlAssets = {};
+
+		_.forOwn(staticAssets, function(value, key) {			
+			var html, htmlFile = 'html/' + value.key + '.' + value.type + '.html', cdn = 'http://localhost:7334/';
+			htmlAssets[htmlFile] = htmlAssets[htmlFile] || {
+				content: ""	
+			};
+			if(value.type == 'js') {
+				htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', { 'url': cdn + key });	
+			} else {
+				htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', { 'url': cdn + key });						
+			}
+		});
+
+		staticAssets = _.merge(staticAssets, htmlAssets);
 	}
 
 	var startServer = function(port) {
+
 		var http = require("http");
+
 		var server = http.createServer(function(request, response) {
-		  var url = request.url.replace("/","");
+		  var url = request.url.replace("/","");		 
 		  if(staticAssets[url]) {
 			response.writeHead(200, {"Content-Type": "text/html"});
 			response.write(staticAssets[url].content);
@@ -78,6 +104,7 @@ function cmd(bosco, args) {
 	}
 
 	async.mapSeries(repos, loadRepo, function(err) {
+		createHtml();
 		startServer(7334);
 	})
 

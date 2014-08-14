@@ -19,7 +19,28 @@ It will ask initially for:
 - Github Auth Key:  A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).
 - Github Team:  This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners.
 
-This is then saved in your configuration file, so all subsequent commands use it.
+This is then saved in a configuration file, default is in .bosco/bosco.json, so all subsequent commands use it.
+
+```
+{
+  "github": {
+    "organization": "TSLEducation",
+    "authToken": "2266b8xxxxxxxxxxxxxxxxxxxxxa84a5f9",
+    "team": "southampton-buildings",
+    "repos": [
+      "infra-ansible-configuration",
+      "infra-aws",
+      "infra-bootstrap",
+      "infra-cabot",
+      "infra-defcon-agent",
+      "infra-dns",
+      "infra-dockerfiles"
+    ]
+  }
+}
+```
+
+Bosco will also include any configuration in a file in the .bosco folder with the same environment as NODE_ENV.  This allows you to manage things like AWS keys for publication of assets into different environments.
 
 ## Commands
 

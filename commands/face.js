@@ -4,6 +4,7 @@ var _ = require('lodash'),
 	path = require("path"),
 	UglifyJS = require("uglify-js"),
 	sass = require("node-sass"),
+	crypto = require("crypto"), 
 	cleanCSS = require("clean-css");
 
 module.exports = {
@@ -15,7 +16,7 @@ module.exports = {
 
 function cmd(bosco, args) {
 	
-	bosco.log("Compile front end assets across services: " + args);
+	bosco.log("Compile front end assets across services.");
 
 	var repos = bosco.config.get('github:repos'),
 		jsAssets = {},
@@ -29,11 +30,9 @@ function cmd(bosco, args) {
 			repoBosco = require(repoBoscoConfig);
 			if(repoBosco.assets) {
 				basePath = repoBosco.assets.basePath || "";
-				process(repoPath + basePath, repoBosco.assets);
-				compileJs();
-				compileCss();
-			}
-		}
+				process(repoPath + basePath, repoBosco.assets);		
+			} 
+		} 
 		next();
 	}
 
@@ -56,27 +55,78 @@ function cmd(bosco, args) {
 		})
 	}
 
-	var compileJs = function() {
-		var compiledJs = {};
+	var compileJs = function(next) {
+		
+		var compiledJs = [];
 		_.forOwn(jsAssets, function(files, key) {
-			console.dir(key + ' ' + files)
-			compiledJs[key] = UglifyJS.minify(files);
+			var compiled = UglifyJS.minify(files);
+			compiled.key = key;
+			compiled.hash = crypto.createHash("sha1").update(compiled.code).digest("hex");
+			compiledJs.push(compiled);
 		});
-		console.dir(compiledJs);
-		// Write to disk or push somewhere with version / md5 hash
+
+		async.map(compiledJs, function(js, next) {
+			pushToS3(js.code, js.hash, bosco.options.environment, 'js', js.key, next);
+		}, function(err, result) {
+			if(!err && result.length > 0) bosco.log("Javascript pushed to S3");
+			async.map(result, function(s3file, cb) { 
+				createHtml('js',bosco.config.get('aws:cdn'),s3file.file, s3file.key,cb);
+			},next);
+		});
+
 	}
 
-	var compileCss = function() {
-		var compiledCss = {};
+	var compileCss = function(next) {
+
+		var compiledCss = [];
 		_.forOwn(cssAssets, function(files, key) {
-			compiledCss[key] += _.map(files, function(file){ return fs.readFileSync(file) });
+			var compiled = {code:""};
+			compiled.code += _.map(files, function(file){ return fs.readFileSync(file) });
+			compiled.key = key;
+			compiled.hash = crypto.createHash("sha1").update(compiled.code).digest("hex");
+			compiledCss.push(compiled);
 		});
-		console.dir(compiledCss);
-		// Write to disk or push somewhere with version / md5 hash
+
+		async.map(compiledCss, function(css, next) {
+			pushToS3(css.code, css.hash, bosco.options.environment, 'css', css.key, next);
+		}, function(err, result) {			
+			if(!err && result.length > 0) bosco.log("CSS pushed to S3");			
+			async.map(result, function(s3file, cb) { 
+				createHtml('css',bosco.config.get('aws:cdn'), s3file.file, s3file.key, cb);
+			},next);
+		});
+		
+	}
+
+	var createHtml = function(type, cdn, file, key, next) {
+		var html;
+		if(type == 'js') {
+			html = _.template('<script src="<%= url %>"></script>', { 'url': cdn + file });	
+		} else {
+			html = _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />', { 'url': cdn + file });						
+		}
+		pushToS3(html, type, bosco.options.environment, 'html', key, next);
+	}
+
+	var pushToS3 = function(content, hash, environment, type, key, next) {
+
+		if(!bosco.knox) return bosco.warn("Knox AWS not configured - so not pushing " + key + "." + type + " to S3.");
+
+		var buffer = new Buffer(content);
+		var s3file = '/' + environment + '/' + type + '/' + key + (hash ? '.' + hash : '') +'.' + type;
+		var headers = {
+		  'Content-Type': 'text/plain'
+		};
+		bosco.knox.putBuffer(buffer, s3file, headers, function(err, res){		  
+	      if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode}; 
+		  next(err, {file: s3file, key:key});
+		});
 	}
 
 	async.mapSeries(repos, loadRepo, function(err) {
-		bosco.log("Done " + args);
+		async.parallel([compileJs,compileCss],function(err) {
+			bosco.log("Files pushed to : " + bosco.config.get('aws:cdn'));	
+		});		
 	})
 
 }
