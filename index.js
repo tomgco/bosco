@@ -170,7 +170,7 @@ Bosco.prototype._cmd = function() {
 	var self = this,
 		commands = self.options.args,
 		command = commands.shift(),
-		commandModule = './commands/' + command + '.js';
+		commandModule = [__dirname,"/","commands","/",command,'.js'].join("");
 
 	if(self.exists(commandModule)) {
 		require(commandModule).cmd(self, commands);
