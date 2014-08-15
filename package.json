@@ -34,6 +34,7 @@
     "progress": "^1.1.8",
     "prompt": "^0.2.13",
     "request": "^2.40.0",
-    "uglify-js": "^2.4.15"
+    "uglify-js": "^2.4.15",
+    "watch": "git+ssh://git@github.com:TSLEducation/watch.git"
   }
 }

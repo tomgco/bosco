@@ -2,6 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
 var http = require('http');
+var watch = require('watch');
 
 module.exports = {
 	name:'cdn',
@@ -91,6 +92,21 @@ function cmd(bosco, args) {
 
 	}
 
+	var startMonitor = function() {
+
+	  watch.createMonitor(bosco.getOrgPath(), {ignoreDirectoryPattern: /node_modules/, interval: 50}, function (monitor) {
+	    monitor.on("changed", function (f, curr, prev) {
+	      _.forOwn(staticAssets, function(asset, key) {
+	      	if(asset.path == f) {
+	      		staticAssets[key].content = fs.readFileSync(staticAssets[key].path);
+	      		bosco.log("Reloaded " + key);
+	      	}
+	      });
+	    })
+	  })
+
+	}
+
 	var startServer = function(serverPort) {
 		
 		var server = http.createServer(function(request, response) {
@@ -114,6 +130,7 @@ function cmd(bosco, args) {
 	async.mapSeries(repos, loadRepo, function(err) {
 		createHtml();
 		startServer(port);
+		startMonitor();
 	})
 
 }
