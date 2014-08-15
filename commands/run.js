@@ -63,15 +63,15 @@ function cmd(bosco, args) {
 		});
 
 		runningServices[repo].interval = setInterval(function() {
-			if(runningServices[repo]._prevstderr !== runningServices[repo].stderr) {
-				runningServices[repo]._prevstderr = runningServices[repo].stderr;
+			if(runningServices[repo].stderr) {
 				console.log(runningServices[repo].stderr);
+				runningServices[repo].stderr = "";
 			};
-			if(runningServices[repo]._prevstdout !== runningServices[repo].stdout) {
-				runningServices[repo]._prevstdout = runningServices[repo].stdout;
+			if(runningServices[repo].stdout) {
 				console.log(runningServices[repo].stdout);
+				runningServices[repo].stdout = "";
 			};
-		},3000);
+		},5000);
 	
 	}
 
