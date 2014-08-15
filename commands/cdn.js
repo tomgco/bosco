@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
+var http = require('http');
 
 module.exports = {
 	name:'cdn',
@@ -80,19 +81,18 @@ function cmd(bosco, args) {
 				type:"html"
 			};
 			if(value.type == 'js') {
-				htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', { 'url': cdn + value.repo + "/" + key });	
+				htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', { 'url': cdn + "/" + key });	
 			} else {
-				htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', { 'url': cdn + value.repo + "/" + key });						
+				htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', { 'url': cdn + "/" + key });						
 			}
 		});
 
 		staticAssets = _.merge(htmlAssets, staticAssets);
+
 	}
 
 	var startServer = function(serverPort) {
-
-		var http = require("http");
-
+		
 		var server = http.createServer(function(request, response) {
 		  var url = request.url.replace("/","");		 
 		  if(staticAssets[url]) {
@@ -102,7 +102,7 @@ function cmd(bosco, args) {
 		  	response.writeHead(404, {"Content-Type": "text/html"});
 		  	response.write("<h2>Couldn't find that, why not try:</h2>");
 		  	response.write(_.map(staticAssets, function(asset, key) {
-		  		return "<a href='" + key + "''>" + key + "</a><br/>";
+		  		return "<a href='/" + key + "''>" + key + "</a><br/>";
 		  	}).join("\n"));
 		  }
 		  response.end();
