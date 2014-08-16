@@ -6,5 +6,5 @@ module.exports = {
 }
 
 function cmd(bosco, args) {
-	bosco.log("SHOW HELP " + args);
+	bosco.log("SHOW HELP FOR " + args);
 }

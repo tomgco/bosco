@@ -32,6 +32,7 @@ function cmd(bosco, args) {
 	var pushAllToS3 = function(staticAssets, next) {
 		var toPush = [];
 		_.forOwn(staticAssets, function(asset, key) {			
+			if(tag && tag !== asset.key) return;
 			toPush.push({content:asset.content, path:key, type:asset.type});
 		});
 		async.mapSeries(toPush, pushToS3, next);
