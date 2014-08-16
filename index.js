@@ -23,12 +23,12 @@ function Bosco(options) {
  self._defaults = {
  	_defaultConfig: [__dirname,'config/bosco.json'].join("/"),
  	configPath:"./.bosco/",
- 	configFile:"./.bosco/bosco.json",
- 	environment: (process.env.NODE_ENV || "development"),
- 	envConfigFile:"./.bosco/" + (process.env.NODE_ENV || "development") + ".json"
+ 	configFile:"./.bosco/bosco.json"
  }
 
  self.options = _.defaults(options, self._defaults);
+ self.options.envConfigFile = "./.bosco/" + options.environment + ".json"
+
  self.config = require('nconf');
  self.prompt = prompt;
  self.progress = progress;
@@ -58,7 +58,7 @@ function Bosco(options) {
 		});
 	}
 
- 	self.log("Initialised using [" + self.options.configFile.magenta + "]");
+ 	self.log("Initialised using [" + self.options.configFile.magenta + "] in environment [" + self.options.environment.green + "]");
  	self._cmd();
 
  	console.log("\r"); 
@@ -149,6 +149,7 @@ Bosco.prototype._checkConfig = function(next) {
 		      }
 		    }
 		  }, function (err, result) {
+		  	if(!result) return cb({message:'Did not confirm'});
 		  	if(result.confirm == 'Y' || result.confirm == 'y') {
 	  	 		var content = fs.readFileSync(defaultConfig);
 	  	 		fs.writeFileSync(configFile, content);

@@ -12,12 +12,15 @@ program
   .version('0.0.1')
   .usage('[options] <command>')
   .option('-c, --configFile [file]', 'Use specific config file')
+  .option('-e, --environment [environment]', 'Set environment to use')
   .option('-n, --noprompt', 'Do not prompt for confirmation')
   .parse(process.argv);
+
 
 var options = {
 	configFile: program.configFile,
 	noprompt: program.noprompt,
+	environment: program.environment || "local",
 	args: program.args
 };
 
