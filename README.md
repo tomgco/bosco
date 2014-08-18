@@ -63,7 +63,7 @@ bosco fly pull
 This will create bundles for front end assets (JS, CSS, Templates).
 
 ```
-bosco s3push
+bosco s3push <tagname optional>
 ```
 
 This command requires that you have configured your AWS details for S3.  Best to put these into your .bosco folder in a per environment config, e.g. .bosco/development.json.
@@ -96,8 +96,10 @@ This would contain a fragment that has script tag for all of the minified JS tag
 This will aggregate and serve all of the static assets (those compiled by Face) on a single pseudo CDN url.  
 
 ```
-bosco cdn
+bosco cdn <minify>
 ```
+
+If passed the minify parameter it will minify the JS, but serve locally as above.
 
 ## Service Configuration
 
