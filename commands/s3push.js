@@ -34,6 +34,7 @@ function cmd(bosco, args) {
 	var pushAllToS3 = function(staticAssets, confirmation, next) {
 		var toPush = [];
 		_.forOwn(staticAssets, function(asset, key) {			
+			
 			if(tag && tag !== asset.key) return;
 			
 			if(asset.type == 'js' && !confirmation[asset.key][asset.type]) return;
@@ -81,10 +82,9 @@ function cmd(bosco, args) {
 
 	var checkManifests = function(staticAssets, next) {
 		
-		var manifestFiles = [];
-
 		if(!bosco.knox) return next();
 
+		var manifestFiles = [];
 		_.forOwn(staticAssets, function(value, key) {
 			if(value.extname == '.manifest') {
 				value.file = key;
@@ -93,31 +93,38 @@ function cmd(bosco, args) {
 		});
 
 		async.mapSeries(manifestFiles, function(file, cb) {
+			bosco.log("Pulling previous version of " + file.file.blue + " from S3");
 			bosco.knox.getFile(file.file, function(err, res){
-				var currFile = "";
+				var currFile = "", isError;
+				if(!err && res.statusCode == 404) return cb(null, true);
+				if(err || res.statusCode !== 200) {
+					bosco.error("There was an error talking to S3 to retrieve the file:")
+					isError = true;
+				}
 				res.on('data', function(chunk) { currFile += chunk; });
 				res.on('end', function() { 	
+					if(isError) {
+						bosco.error(currFile);
+						return cb(null, false);
+					}
 					if(currFile == file.content) {
-						bosco.warn("No change in file: " + file.file);
+						bosco.log("No changes".green + " found in " + file.file.blue + ".");	
 						return cb(null, false);			
 					}
+					bosco.log("Changes found in " + file.file.blue + ", diff:");
 					showDiff(currFile, file.content, cb);
 				});
 			});
-		}, function(err, result) {
-			
+		}, function(err, result) {			
 			var results = {};
 			result.forEach(function(confirm, index) {
 				var mkey = manifestFiles[index].key, atype = manifestFiles[index].assetType;
 				results[mkey] = results[mkey] || {};
 				results[mkey][atype] = confirm;		
 			});
-
 			next(err, results);
-
 		});
 		
-
 	}
 
 	var showDiff = function(original, changed, next) {		
