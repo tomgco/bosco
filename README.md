@@ -91,6 +91,32 @@ For example:
 
 This would contain a fragment that has script tag for all of the minified JS tagged in the bottom group.
 
+## Manifest Files
+
+To ensure that we always know what was in a specific release, the minification process creates a manifest file 
+for each bundle that includes each file, along with the last commit that was made to that file.
+
+Before you push, it will do a diff between the last manifest file created, and the one for the bundle you are about to push, and ask you to confirm that all of the files changed are ones that you expected to be changed.  e.g. it will try to avoid you pushing someone elses change unexpectedly.
+
+```
+service-hub-beta/js/lib/html5shiv-min.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/lib/jquery-1.11.0-min.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/lib/jquery-mobile-1.4.3-min.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/lib/modernizr-2.7.1-min.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/dom.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/measure.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/page.js, Last commit: 2353274 @doodlemoonch @csabapalfi fix broken browse section height
+service-hub-beta/js/resource.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/sequence.js, Last commit: 09b61e7 refactor
+service-hub-beta/js/upload.js, Last commit: 09b61e7 refactor
+service-resource/js/lib/base64.min.js, Last commit: 29bba10 @antony @tepafoo Moved own resource logic to front-end
+service-resource/js/lib/bind.shim.min.js, Last commit: e1b212b @antony User cannot review their own resource.
+service-resource/js/lib/cookies.min.js, Last commit: 29bba10 @antony @tepafoo Moved own resource logic to front-end
+service-resource/js/lib/lean-modal.min.js, Last commit: 8ba20d1 @antony Fire a modal when reporting a review
+service-resource/js/report-review.js, Last commit: e0c5af0 @antony @carolineBda Feedback / Report review form
+service-resource/js/resources.js, Last commit: bf28fc9 @cressie176 fixing server side use of authentication state
+```
+
 ### CDN
 
 This will aggregate and serve all of the static assets (those compiled by Face) on a single pseudo CDN url.  
@@ -130,8 +156,7 @@ e.g.
     }
 }
 ```
-
-To then access the html fragments for PC, it follows a simple convention:
+When using the CDN mode, you can then access the html fragments for PC, it follows a simple convention:
 
 - http://localhost:7334/html/tag.type.html
 
