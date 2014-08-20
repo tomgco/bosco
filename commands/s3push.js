@@ -82,7 +82,7 @@ function cmd(bosco, args) {
 
 	var checkManifests = function(staticAssets, next) {
 		
-		if(!bosco.knox) return next();
+		if(!bosco.knox) return next({message: "You don't appear to have any S3 config for this environment?"});
 
 		var manifestFiles = [];
 		_.forOwn(staticAssets, function(value, key) {
@@ -147,11 +147,12 @@ function cmd(bosco, args) {
 
 		utils.getStaticAssets(repos, true, function(err, staticAssets) {
 			checkManifests(staticAssets, function(err, confirmation) {
-				//if(err) return bosco.error(err.message);
+				if(err) return bosco.error(err.message);
 				pushAllToS3(staticAssets, confirmation, function(err) {
 					if(err) return bosco.error("There was an error: " + err.message);
 					bosco.log("Done");
 				});	
+
 			})
 			
 		});
