@@ -191,7 +191,7 @@ function pull(bosco, progressbar, repoPath, next) {
 	
 	if(!progressbar) bosco.log("Pulling " + repoPath.blue)
 
-	exec('git pull --rebase', {
+	exec('git pull --rebase origin master', {
 	  cwd: repoPath
 	}, function(err, stdout, stderr) {
 		if(err) {
