@@ -117,7 +117,7 @@ function fetch(bosco, repos, args) {
 			total: total
 		}) : null;
 
-    	async.mapLimit(repos, 5, function repoGet(repo, repoCb) {	  
+    	async.mapSeries(repos, function repoGet(repo, repoCb) {	  
 
     	  if(progressbar) bar.tick();
 
@@ -135,9 +135,8 @@ function fetch(bosco, repos, args) {
 		  	clone(bosco,  progressbar, repoUrl, orgPath, repoCb);
 		  }
 		}, function(err) {
-			if(err) bosco.error(err.message);
 			if(pullFlag) bosco.warn("Some repositories already existed, to pull changes use 'bosco fly pull'");
-			cb();
+			cb(err);
 		})
 		
 	}
@@ -162,8 +161,7 @@ function fetch(bosco, repos, args) {
 		  install(bosco, progressbar, repoPath, repoCb);
 
 		}, function(err) {
-			if(err) bosco.error(err.message);
-			cb();
+			cb(err);
 		});
 
 	}
@@ -180,7 +178,8 @@ function clone(bosco, progressbar, repoUrl, orgPath, next) {
 	  cwd: orgPath
 	}, function(err, stdout, stderr) {
 		if(err) {
-			bosco.error(stderr);
+			if(progressbar) console.log("");
+			bosco.error(repoUrl.blue + " >> " + stderr);
 		} else {
 			if(!progressbar && stdout) bosco.log(repoUrl.blue + " >> " + stdout);
 		}
@@ -196,7 +195,8 @@ function pull(bosco, progressbar, repoPath, next) {
 	  cwd: repoPath
 	}, function(err, stdout, stderr) {
 		if(err) {
-			bosco.error(stderr);
+			if(progressbar) console.log("");
+			bosco.error(repoPath.blue + " >> " + stderr);
 		} else {
 			if(!progressbar && stdout) bosco.log(repoPath.blue + " >> " + stdout);
 		}
@@ -214,7 +214,8 @@ function install(bosco, progressbar, repoPath, next) {
 	  cwd: repoPath
 	}, function(err, stdout, stderr) {
 		if(err) {
-			bosco.error(stderr);
+			if(progressbar) console.log("");
+			bosco.error(repoPath.blue + " >> " + stderr);
 		} else {
 			if(!progressbar && stdout) bosco.log(stdout);
 		}
