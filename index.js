@@ -58,6 +58,8 @@ function Bosco(options) {
 		});
 	}
 
+	if(!self.options.build) self.options.build = self.config.get('github:user');
+
  	self.log("Initialised using [" + self.options.configFile.magenta + "] in environment [" + self.options.environment.green + "]");
  	self._cmd();
 
@@ -176,17 +178,21 @@ Bosco.prototype._initialiseConfig = function(next) {
 
   	prompt.get({
 	    properties: {
+	      githubUser: {
+	        description: "Enter your github user name:".white
+	      },
 	      github: {
-	        description: "Enter the name of the github organization you want to use?".white
+	        description: "Enter the name of the github organization you want to use:".white
 	      },
 	      auth: {
-	        description: "Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens)?".white
+	        description: "Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens):".white
 	      },
 	      team: {
-	        description: "Enter the team name that will be used to filter the repository list (optional - defaults to Owners)?".white
+	        description: "Enter the team name that will be used to filter the repository list (optional - defaults to Owners):".white
 	      }
 	    }
 	  }, function (err, result) {
+	  	self.config.set('github:user',result.githubUser);
 	  	self.config.set('github:organization',result.github);
 	  	self.config.set('github:authToken',result.auth);
 	  	self.config.set('github:team',result.team || "Owners");

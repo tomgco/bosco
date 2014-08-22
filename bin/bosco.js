@@ -13,6 +13,7 @@ program
   .usage('[options] <command>')
   .option('-c, --configFile [file]', 'Use specific config file')
   .option('-e, --environment [environment]', 'Set environment to use')
+  .option('-b, --build [build]', 'Set build identifier to use')
   .option('-n, --noprompt', 'Do not prompt for confirmation')
   .parse(process.argv);
 
@@ -20,6 +21,7 @@ program
 var options = {
 	configFile: program.configFile,
 	noprompt: program.noprompt,
+  build: program.build,
 	environment: program.environment || "local",
 	args: program.args
 };

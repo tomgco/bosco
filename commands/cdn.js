@@ -16,9 +16,9 @@ module.exports = {
 
 function cmd(bosco, args) {
 	
-	utils = require('../lib/repoUtils')(bosco);
+	utils = require('../lib/StaticUtils')(bosco);
 	
-	var minify = args.length ? args[0] == "minify" : false;
+	var minify = _.contains(args,'minify');
 	var port = bosco.config.get('cdn:port') || 7334;
 
 	bosco.log("Starting pseudo CDN on port: " + (port+"").blue);
