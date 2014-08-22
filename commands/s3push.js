@@ -37,6 +37,7 @@ function cmd(bosco, args) {
 			
 			if(tag && tag !== asset.key) return;
 			
+			// Check confirmation by type and key
 			if(asset.type == 'js' && !confirmation[asset.key][asset.type]) return;
 			if(asset.type == 'css' && !confirmation[asset.key][asset.type]) return;
 			if(asset.type == 'html' && !confirmation[asset.key][asset.assetType]) return;
