@@ -41,7 +41,7 @@ function cmd(bosco, args) {
     	  if(progressbar) bar.tick();
 		  var repoPath = bosco.getRepoPath(repo); 
 		  stash(bosco, progressbar, repoPath, repoCb);
-
+		  
 		}, function(err) {
 			cb();
 		});
@@ -55,7 +55,13 @@ function cmd(bosco, args) {
 }
 
 function stash(bosco, progressbar, orgPath, next) {
+    
     if(!progressbar) bosco.log("Stashing "+ orgPath.blue);
+    if(!bosco.exists([orgPath,".git"].join("/"))) {
+    	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
+    	return next();
+    }
+
 	exec('git stash', {
 	  cwd: orgPath
 	}, function(err, stdout, stderr) {
