@@ -11,9 +11,9 @@ var exec = require('child_process').exec;
 var utils;
 
 module.exports = {
-	name:'upstream',
-	description:'Runs a git fetch and tells you what has changed upstream for all your repos',
-	example:'bosco upstream',
+	name:'status',
+	description:'Checks git status across all services',
+	example:'bosco status',
 	cmd:cmd
 }
 
@@ -22,36 +22,47 @@ function cmd(bosco, args) {
 	var repos = bosco.config.get('github:repos');
 	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
 
-	var changedRepos = function(cb) { 	
+	bosco.log("Running git status across all repos ...");
+
+	var stashRepos = function(cb) {
+	    		
+
 		async.mapSeries(repos, function repoStash(repo, repoCb) {	  
+
 		  var repoPath = bosco.getRepoPath(repo); 
-		  upstream(bosco, repoPath, repoCb);
+		  status(bosco, repoPath, repoCb);
+		  
 		}, function(err) {
 			cb();
 		});
+
 	}
 
-	bosco.log("Checking upstream origin for changes, this may take a while ...")
-
-	changedRepos(function() {
+	stashRepos(function() {
 		bosco.log("Complete");
 	});
 
 }
 
-function upstream(bosco, orgPath, next) {
+function status(bosco, orgPath, next) {
     
-	exec('git fetch; git log HEAD..origin/master --oneline', {
+    if(!bosco.exists([orgPath,".git"].join("/"))) {
+    	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
+    	return next();
+    }
+
+	exec('git status', {
 	  cwd: orgPath
 	}, function(err, stdout, stderr) {
 		if(err) {
-			bosco.error(stderr);
+			bosco.error(orgPath.blue + " >> " + stderr);
 		} else {
 			if(stdout) {
-				bosco.log("Changes in " + orgPath.blue);
-				console.log(stdout);
-			} else {
-				bosco.log(orgPath.blue + ": " + "No Change".green);
+				if(stdout.indexOf("Your branch is up-to-date") > 0) {
+					bosco.log(orgPath.blue + ": " + "OK".green);					
+				} else {
+					bosco.log(orgPath.blue + ":\n" + stdout);
+				}
 			}
 		}
 		next(err);
