@@ -166,5 +166,11 @@ For example:
 
 This would contain a fragment that has script tags for all of the JS tagged in the bottom group.
 
+## Duplicate Files and Libraries
+
+Bosco will attempt to detect duplicate files (via a checksum), as well as duplicate libraries (e.g. multiple versions of jQuery).  If it spots a duplicate, it will not add it to a minified bundle after warning you that it found it.  Because of this the first version of a library it finds will 'win'. 
+
+It is strongly recommended that you pull all 'core' libraries like jQuery into a central single project to avoid duplication, but Bosco will try and help you if you don't.
+
 
 
