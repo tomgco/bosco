@@ -58,7 +58,7 @@ function Bosco(options) {
 		});
 	}
 
-	if(!self.options.build) self.options.build = self.config.get('github:user');
+	//if(!self.options.build) self.options.build = self.config.get('github:user');
 
  	self.log("Initialised using [" + self.options.configFile.magenta + "] in environment [" + self.options.environment.green + "]");
  	self._cmd();

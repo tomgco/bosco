@@ -5,6 +5,7 @@ var http = require('http');
 var watch = require('watch');
 var sass = require("node-sass");
 var path = require('path');
+var hb = require('handlebars');
 var utils;
 
 module.exports = {
@@ -42,10 +43,7 @@ function cmd(bosco, args) {
 			})
 		  } else {
 		  	response.writeHead(404, {"Content-Type": "text/html"});
-		  	response.write("<h2>Couldn't find that, why not try:</h2>");
-		  	response.write(_.map(staticAssets, function(asset, key) {
-		  		return "<a href='/" + key + "''>" + key + "</a><br/>";
-		  	}).join("\n"));
+		  	response.write(formattedAssets(staticAssets));
 		  }
 		  response.end();
 		});		
@@ -54,17 +52,69 @@ function cmd(bosco, args) {
 	
 	}
 
+	var formattedAssets = function(staticAssets) {
+		
+		var assets = {html: [], js: [], css: [], plain: []},
+			templateContent = fs.readFileSync(__dirname + '/../templates/assetList.html'),
+			template = hb.compile(templateContent.toString());
+
+		_.map(staticAssets, function(asset, key) {
+			assets[asset.type].push(key);	  		
+	  	});
+
+		return template(assets);
+	  	
+	}
+
 	var startMonitor = function(staticAssets) {
+
+	  var watchSet = {};
+	  _.forOwn(staticAssets, function(asset, key) {
+	  	
+	  	if(!minify) return watchSet[asset.path] = key;
+
+	  	if(asset.extname == ".manifest") {
+	  		var manifestKey = key, 
+	  			manifestFile,
+	  			manifestFiles = asset.content.split("\n");
+	  			manifestFiles.forEach(function(file) {	  			
+	  				if(file) {
+	  					manifestFile = [bosco.getOrgPath(), file.split(",")[0]].join("/");	  				
+	  					if(manifestFile) watchSet[manifestFile] = asset.tag;
+	  				}
+	  			});
+	  	}
+	  });
+
 	  watch.createMonitor(bosco.getOrgPath(), {ignoreDirectoryPattern: /node_modules/, interval: 50}, function (monitor) {
-	    monitor.on("changed", function (f, curr, prev) {
-	      _.forOwn(staticAssets, function(asset, key) {
-	      	if(asset.path == f) {
-	      		staticAssets[key].content = fs.readFileSync(staticAssets[key].path);
-	      		bosco.log("Reloaded " + key);
+
+	    monitor.on("changed", function (f, curr, prev) {	      
+	      var fileKey = watchSet[f];	      
+	      console.dir(f + " >> " + fileKey);
+	      if(!minify) {		      	      	
+	      	if(fileKey) {
+		      	staticAssets[fileKey].content = fs.readFileSync(staticAssets[fileKey].path);
+		      	bosco.log("Reloaded " + fileKey);	
 	      	}
-	      });
+		  } else {
+		  	if(fileKey) {
+		  		bosco.log('Recompiling tag ' + fileKey.blue + ' due to change in ' + f.blue);
+		  		utils.getStaticAssets(repos, minify, fileKey, function(err, updatedAssets) {
+		  			// Clear old for tag
+		  			_.forOwn(staticAssets, function(value, key) {
+		  				if(value.tag == fileKey) delete staticAssets[key];
+		  			});
+		  			// Add new
+		  			_.forOwn(updatedAssets, function(value, key) {
+		  				staticAssets[key] = value;
+		  			});
+		  			bosco.log("Reloaded minified assets for tag " + fileKey.blue);	
+		  		});
+		  	}
+		  }
 	    })
-	  })
+	  });
+
 	}
 
 	var getContent = function(asset, next) {
@@ -76,8 +126,7 @@ function cmd(bosco, args) {
 	}
 
 	if(minify) bosco.log("Minifying front end assets, this can take some time ...");
-	if(minify) bosco.warn("Live reload doesn't work (yet) in this mode!");
-	utils.getStaticAssets(repos, minify, function(err, staticAssets) {
+	utils.getStaticAssets(repos, minify, null, function(err, staticAssets) {
 		startServer(staticAssets, port);
 		startMonitor(staticAssets);
 	});

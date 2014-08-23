@@ -1,0 +1,62 @@
+<!-- Simple asset list -->
+<link href='http://fonts.googleapis.com/css?family=Stardos+Stencil' rel='stylesheet' type='text/css'>
+<style>
+ .col {
+ 	float: left;
+ 	width: 24%;
+ }
+.h1 {
+	font-size: 18px;	
+}
+.h2 {
+	font-size: 15px;
+	color: #008855;
+}
+a {
+	font-family: arial;
+	font-size: 14px;
+}
+html {
+	margin: 10px;
+	font-family: 'Stardos Stencil', cursive;
+	color: #006633;
+}
+ul
+{
+    list-style-type: none;
+    padding-left: 5px;
+}
+</style>
+<h1>Bosco couldn't find that, how about you try one of these?</h1>
+<div class='col'>
+	<h2>HTML Fragments</h2>
+	<ul>
+	{{#each html}}
+	  <li><a href="{{this}}">{{this}}</a></li>
+	{{/each}}
+	</ul>
+</div>
+<div class='col'>
+	<h2>Manifest Files</h2>
+	<ul>
+	{{#each plain}}
+	  <li><a href="{{this}}">{{this}}</a></li>
+	{{/each}}
+	</ul>
+</div>
+<div class='col'>
+	<h2>Javascript Files</h2>
+	<ul>
+	{{#each js}}
+	  <li><a href="{{this}}">{{this}}</a></li>
+	{{/each}}
+	</ul>
+</div>
+<div class='col'>
+	<h2>CSS Files</h2>
+	<ul>
+	{{#each css}}
+	  <li><a href="{{this}}">{{this}}</a></li>
+	{{/each}}
+	</ul>
+</div>
