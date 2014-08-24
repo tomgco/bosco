@@ -1,6 +1,6 @@
 # Bosco
 
-[![Build Status](https://travis-ci.org/TSLEducation/bosco.svg?branch=master)](https://travis-ci.org/TSLEducation/bosco)
+[![Build Status](https://travis-ci.org/TSLEducation/bosco.svg?branch=master)](https://travis-ci.org/TSLEducation/bosco)  [![Coverage Status](https://img.shields.io/coveralls/TSLEducation/bosco.svg)](https://coveralls.io/r/TSLEducation/bosco?branch=master)
 
 Bosco is an attempt to build a utility knife to help manage the complexity that using microservices, which results in a large number of code repositories, brings with it.  Inspired by the Github 'setup', e.g. can a developer run one simple command and get up and running?
 
