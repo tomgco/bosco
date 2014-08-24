@@ -4,7 +4,7 @@
   "description": "Bosco will take care of your microservices, just don't try and use him on a plane.",
   "main": "index.js",
   "scripts": {
-    "test": "echo 'No tests yet'"
+    "test": "mocha tests/*"
   },
   "keywords": [
     "micro",
@@ -42,5 +42,9 @@
     "request": "^2.40.0",
     "uglify-js": "^2.4.15",
     "watch": "git+ssh://git@github.com:TSLEducation/watch.git"
+  },
+  "devDependencies": {
+    "assert": "^1.1.1",
+    "mocha": "^1.21.4"    
   }
 }
