@@ -13,6 +13,7 @@ var prompt = require('prompt');
 var async = require('async');
 var mkdirp = require('mkdirp');
 var knox = require('knox');
+var colors = require('colors');			
 
 prompt.message = "Bosco".green;
 
@@ -36,7 +37,7 @@ function Bosco(options) {
  console.log("\r"); 
 
  self._init(function(err) {
- 	if(err) return;
+ 	if(err) return console.log(err);
 
 	var quotes, quotePath = self.config.get("quotes") || './quotes.json';
 	try {
@@ -57,8 +58,6 @@ function Bosco(options) {
 		  region: aws.region
 		});
 	}
-
-	//if(!self.options.build) self.options.build = self.config.get('github:user');
 
  	self.log("Initialised using [" + self.options.configFile.magenta + "] in environment [" + self.options.environment.green + "]");
  	self._cmd();
@@ -98,13 +97,13 @@ Bosco.prototype._init = function(next) {
 
   var loadConfig = function() {
   	self.config.env()
-	  	       .file({ file: self.options.configFile })
-	  	       .file('environment',{ file: self.options.envConfigFile });
+	  	 .file({ file: self.options.configFile })
+	  	 .file('environment',{ file: self.options.envConfigFile });
   }
 
   self._checkConfig(function(err, initialise) {
 
-  	  if(err) return next(err);
+  	  if(err) return;
 
 	  loadConfig();
 
