@@ -151,8 +151,8 @@ function cmd(bosco, args) {
 	var go = function() {
 		
 		bosco.log("Compiling front end assets, this can take a while ...");
-
-		utils.getStaticAssets(repos, true, tag, cdnUrl, function(err, staticAssets) {
+		var reloadOnly = false;
+		utils.getStaticAssets(repos, true, tag, reloadOnly, function(err, staticAssets) {
 			checkManifests(staticAssets, function(err, confirmation) {
 				if(err) return bosco.error(err.message);
 				pushAllToS3(staticAssets, confirmation, function(err) {

@@ -21,6 +21,7 @@ function cmd(bosco, args) {
 	
 	var minify = _.contains(args,'minify');
 	var port = bosco.config.get('cdn:port') || 7334;
+	var serverUrl = "http://localhost:" + port + "/";
 
 	bosco.log("Starting pseudo CDN on port: " + (port+"").blue);
 
@@ -97,7 +98,8 @@ function cmd(bosco, args) {
 		  } else {
 		  	if(fileKey) {
 		  		bosco.log('Recompiling tag ' + fileKey.blue + ' due to change in ' + f.blue);
-		  		utils.getStaticAssets(repos, minify, fileKey, function(err, updatedAssets) {
+		  		var reloadOnly = true;
+		  		utils.getStaticAssets(repos, minify, fileKey, reloadOnly, function(err, updatedAssets) {
 		  			// Clear old for tag
 		  			_.forOwn(staticAssets, function(value, key) {
 		  				if(value.tag == fileKey) delete staticAssets[key];
@@ -123,10 +125,9 @@ function cmd(bosco, args) {
 		}
 	}
 
-	var serverUrl = "http://localhost:" + port + "/";
-
 	if(minify) bosco.log("Minifying front end assets, this can take some time ...");
-	utils.getStaticAssets(repos, minify, null, serverUrl, function(err, staticAssets) {
+	var reloadOnly = false;
+	utils.getStaticAssets(repos, minify, null, reloadOnly, function(err, staticAssets) {
 		startServer(staticAssets, port);
 		startMonitor(staticAssets);
 	});
