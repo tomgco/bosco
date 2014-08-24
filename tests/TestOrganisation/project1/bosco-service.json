@@ -1,0 +1,14 @@
+{
+    "assets": {
+        "basePath": "/public",
+        "js": {
+            "bottom": [
+                "js/bottom1.js"
+            ],
+            "top": [
+                "js/top1.js"
+            ]
+        },
+        "css": {}
+    }
+}
