@@ -63,7 +63,7 @@ bosco fly pull
 This will create bundles for front end assets (JS, CSS, Templates).
 
 ```
-bosco s3push <tagname optional>
+bosco s3push -e <environment optional> <tagname optional>
 ```
 
 This command requires that you have configured your AWS details for S3.  Best to put these into your .bosco folder in a per environment config, e.g. .bosco/development.json.
@@ -90,6 +90,15 @@ For example:
 - [https://dudu89lpwit3y.cloudfront.net/development/html/bottom.js.html](https://dudu89lpwit3y.cloudfront.net/development/html/bottom.js.html)
 
 This would contain a fragment that has script tag for all of the minified JS tagged in the bottom group.
+
+Note that you can also add a temporary (or permanent) build tag via the -e parameter, e.g.
+
+
+```
+bosco s3push -e development -b mybuild21 <tagname optional>
+```
+
+- [https://dudu89lpwit3y.cloudfront.net/development/mybuild21/html/bottom.js.html](https://dudu89lpwit3y.cloudfront.net/development/mybuild21/html/bottom.js.html)
 
 ## Manifest Files
 
