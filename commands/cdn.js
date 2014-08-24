@@ -74,14 +74,13 @@ function cmd(bosco, args) {
 	  	if(!minify) return watchSet[asset.path] = key;
 
 	  	if(asset.extname == ".manifest") {
+
 	  		var manifestKey = key, 
 	  			manifestFile,
-	  			manifestFiles = asset.content.split("\n");
+	  			manifestFiles = asset.files;
+
 	  			manifestFiles.forEach(function(file) {	  			
-	  				if(file) {
-	  					manifestFile = [bosco.getOrgPath(), file.split(",")[0]].join("/");	  				
-	  					if(manifestFile) watchSet[manifestFile] = asset.tag;
-	  				}
+	  				if(file) watchSet[file.path] = asset.tag;
 	  			});
 	  	}
 	  });
@@ -90,7 +89,6 @@ function cmd(bosco, args) {
 
 	    monitor.on("changed", function (f, curr, prev) {	      
 	      var fileKey = watchSet[f];	      
-	      console.dir(f + " >> " + fileKey);
 	      if(!minify) {		      	      	
 	      	if(fileKey) {
 		      	staticAssets[fileKey].content = fs.readFileSync(staticAssets[fileKey].path);
@@ -125,8 +123,10 @@ function cmd(bosco, args) {
 		}
 	}
 
+	var serverUrl = "http://localhost:" + port + "/";
+
 	if(minify) bosco.log("Minifying front end assets, this can take some time ...");
-	utils.getStaticAssets(repos, minify, null, function(err, staticAssets) {
+	utils.getStaticAssets(repos, minify, null, serverUrl, function(err, staticAssets) {
 		startServer(staticAssets, port);
 		startMonitor(staticAssets);
 	});

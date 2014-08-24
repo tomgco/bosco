@@ -22,8 +22,11 @@ var tag = "", noprompt = false;
 function cmd(bosco, args) {
 	
 	utils = require('../lib/StaticUtils')(bosco);
-	if(args.length > 0) tag = args[0];
+	
+	if(args.length > 0) tag = args[0];	
 
+	cdnUrl = bosco.config.get('aws:cdn') + "/";
+	force = bosco.options.force;
 	noprompt = bosco.options.noprompt;
  
 	bosco.log("Compile front end assets across services " + (tag ? "for tag: " + tag.blue : ""));
@@ -32,19 +35,22 @@ function cmd(bosco, args) {
 	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
 
 	var pushAllToS3 = function(staticAssets, confirmation, next) {
+		
 		var toPush = [];
 		_.forOwn(staticAssets, function(asset, key) {			
 			
-			if(tag && tag !== asset.key) return;
-			
+			if(tag && tag !== asset.tag) return;
+
 			// Check confirmation by type and key
-			if(asset.type == 'js' && !confirmation[asset.key][asset.type]) return;
-			if(asset.type == 'css' && !confirmation[asset.key][asset.type]) return;
-			if(asset.type == 'html' && !confirmation[asset.key][asset.assetType]) return;
-			if(asset.type == 'plain' && !confirmation[asset.key][asset.assetType]) return;
+			if(asset.type == 'js' && !confirmation[asset.tag][asset.type]) return;
+			if(asset.type == 'css' && !confirmation[asset.tag][asset.type]) return;
+			if(asset.type == 'html' && !confirmation[asset.tag][asset.assetType]) return;
+			if(asset.type == 'plain' && !confirmation[asset.tag][asset.assetType]) return;
 
 			toPush.push({content:asset.content, path:key, type:asset.type});
+
 		});
+
 		async.mapSeries(toPush, pushToS3, next);
 	}
 
@@ -58,7 +64,7 @@ function cmd(bosco, args) {
 		};
 		bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){		  
 	      if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
-	      bosco.log('Pushed to S3: ' +  bosco.config.get('aws:cdn') + "/" + file.path);
+	      bosco.log('Pushed to S3: ' +  cdnUrl + file.path);
 		  next(err, {file: file});
 		});
 	}
@@ -109,8 +115,8 @@ function cmd(bosco, args) {
 						return cb(null, false);
 					}
 					if(currFile == file.content) {
-						bosco.log("No changes".green + " found in " + file.file.blue + ".");	
-						return cb(null, false);			
+						bosco.log("No changes".green + " found in " + file.file.blue + "." + (force ? " Forcing push anyway." : ""));	
+						return cb(null, force);			
 					}
 					bosco.log("Changes found in " + file.file.blue + ", diff:");
 					showDiff(currFile, file.content, cb);
@@ -119,9 +125,9 @@ function cmd(bosco, args) {
 		}, function(err, result) {			
 			var results = {};
 			result.forEach(function(confirm, index) {
-				var mkey = manifestFiles[index].key, atype = manifestFiles[index].assetType;
+				var mkey = manifestFiles[index].tag, atype = manifestFiles[index].assetType;
 				results[mkey] = results[mkey] || {};
-				results[mkey][atype] = confirm;		
+				results[mkey][atype] = confirm;
 			});
 			next(err, results);
 		});
@@ -146,7 +152,7 @@ function cmd(bosco, args) {
 		
 		bosco.log("Compiling front end assets, this can take a while ...");
 
-		utils.getStaticAssets(repos, true, tag, function(err, staticAssets) {
+		utils.getStaticAssets(repos, true, tag, cdnUrl, function(err, staticAssets) {
 			checkManifests(staticAssets, function(err, confirmation) {
 				if(err) return bosco.error(err.message);
 				pushAllToS3(staticAssets, confirmation, function(err) {
