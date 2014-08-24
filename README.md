@@ -21,7 +21,7 @@ It will ask initially for:
 
 This is then saved in a configuration file, default is in .bosco/bosco.json, so all subsequent commands use it.
 
-```
+```json
 {
   "github": {
     "organization": "TSLEducation",
@@ -68,7 +68,7 @@ bosco s3push <tagname optional>
 
 This command requires that you have configured your AWS details for S3.  Best to put these into your .bosco folder in a per environment config, e.g. .bosco/development.json.
 
-```
+```json
 {
 	"aws":{
 		"key": "XXXXXX",
@@ -135,7 +135,7 @@ If services want to take part in the static asset part, they need a bosco-servic
 
 e.g.
 
-```
+```json
 {
     "assets": {
         "basePath": "/src/public",
@@ -166,11 +166,53 @@ For example:
 
 This would contain a fragment that has script tags for all of the JS tagged in the bottom group.
 
+## Using project specific build tools
+
+Some projects will want (or need) something more sophisticated than a simple concatenation / minification step for assets.  To support this, Bosco allows you to define a build configuration on a per project basis in the bosco-service.json file.
+
+For example, a project that uses Gulp to create assets as well as watch for change, can use a configuration like that below in the bosco-service.json:
+
+```json
+{
+    "assets": {
+        "basePath":"/dist",
+        "build":{
+            "command":"gulp build",            
+            "output":{
+                "js": {
+                    "upload": [
+                        "js/tsl-uploader.js"
+                    ]
+                },
+                "css": {
+                     "upload": [
+                        "css/tsl-uploader.css"
+                    ]   
+                },
+                "images": {
+                    "upload" :[
+                        "img"
+                    ]
+                }
+            },
+            "watch":{
+                "command":"gulp build --watch",
+                "finished":"Finished 'build'"
+            }
+        }
+    }
+}
+```
+
+In this mode, instead of directly defining the JS and CSS assets, simply define a abuild configuration that includes the command to run, the files created as a result of the build step and optionally a watch command that will allow bosco to understand how to put the project into watch mode when using 'bosco cdn'.
+
 ## Duplicate Files and Libraries
 
 Bosco will attempt to detect duplicate files (via a checksum), as well as duplicate libraries (e.g. multiple versions of jQuery).  If it spots a duplicate, it will not add it to a minified bundle after warning you that it found it.  Because of this the first version of a library it finds will 'win'. 
 
 It is strongly recommended that you pull all 'core' libraries like jQuery into a central single project to avoid duplication, but Bosco will try and help you if you don't.
+
+Note that if you use the external build option then the files inside this project don't get included in the duplicate check.
 
 
 
