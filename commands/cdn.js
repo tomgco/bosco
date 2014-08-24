@@ -17,7 +17,7 @@ module.exports = {
 
 function cmd(bosco, args) {
 	
-	utils = require('../lib/StaticUtils')(bosco);
+	utils = require('../src/StaticUtils')(bosco);
 	
 	var minify = _.contains(args,'minify');
 	var port = bosco.config.get('cdn:port') || 7334;

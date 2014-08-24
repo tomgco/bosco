@@ -4,7 +4,7 @@ var expect = require("expect.js");
 var async = require('async');
 var fs = require('fs');
 var _ = require('lodash');
-var StaticUtils = require('../lib/StaticUtils');
+var StaticUtils = require('../src/StaticUtils');
 
 var repos = ["project1","project2"];
 

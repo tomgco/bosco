@@ -2,3 +2,4 @@ node_modules
 TSLEducation
 ./bosco.json
 .bosco
+npm-debug.log

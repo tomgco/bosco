@@ -21,7 +21,7 @@ var tag = "", noprompt = false;
 
 function cmd(bosco, args) {
 	
-	utils = require('../lib/StaticUtils')(bosco);
+	utils = require('../src/StaticUtils')(bosco);
 	
 	if(args.length > 0) tag = args[0];	
 

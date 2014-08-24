@@ -1,0 +1,29 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/Users/cliftonc/.nvm/v0.10.28/bin/node',
+1 verbose cli   '/Users/cliftonc/.nvm/v0.10.28/bin/npm',
+1 verbose cli   'run',
+1 verbose cli   'coveralls' ]
+2 info using npm@1.4.9
+3 info using node@v0.10.28
+4 verbose run-script [ 'precoveralls', 'coveralls', 'postcoveralls' ]
+5 info precoveralls bosco@0.0.9
+6 info coveralls bosco@0.0.9
+7 verbose unsafe-perm in lifecycle true
+8 info bosco@0.0.9 Failed to exec coveralls script
+9 error bosco@0.0.9 coveralls: `NODE_ENV=test mocha --require blanket --reporter mocha-lcov-reporter tests/* | ./node_modules/coveralls/bin/coveralls.js`
+9 error Exit status 8
+10 error Failed at the bosco@0.0.9 coveralls script.
+10 error This is most likely a problem with the bosco package,
+10 error not with npm itself.
+10 error Tell the author that this fails on your system:
+10 error     NODE_ENV=test mocha --require blanket --reporter mocha-lcov-reporter tests/* | ./node_modules/coveralls/bin/coveralls.js
+10 error You can get their info via:
+10 error     npm owner ls bosco
+10 error There is likely additional logging output above.
+11 error System Darwin 13.2.0
+12 error command "/Users/cliftonc/.nvm/v0.10.28/bin/node" "/Users/cliftonc/.nvm/v0.10.28/bin/npm" "run" "coveralls"
+13 error cwd /Users/cliftonc/work/bosco
+14 error node -v v0.10.28
+15 error npm -v 1.4.9
+16 error code ELIFECYCLE
+17 verbose exit [ 1, true ]
