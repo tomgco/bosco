@@ -98,8 +98,14 @@ function cmd(bosco, args) {
 		  } else {
 		  	if(fileKey) {
 		  		bosco.log('Recompiling tag ' + fileKey.blue + ' due to change in ' + f.blue);
-		  		var reloadOnly = true;
-		  		utils.getStaticAssets(repos, minify, fileKey, reloadOnly, function(err, updatedAssets) {
+		  		var options = {
+					repos: repos, 
+					minify: minify,
+					tagFilter: fileKey,
+					watchBuilds: false,
+					reloadOnly: true
+				}
+		  		utils.getStaticAssets(options, function(err, updatedAssets) {
 		  			// Clear old for tag
 		  			_.forOwn(staticAssets, function(value, key) {
 		  				if(value.tag == fileKey) delete staticAssets[key];
@@ -126,8 +132,14 @@ function cmd(bosco, args) {
 	}
 
 	if(minify) bosco.log("Minifying front end assets, this can take some time ...");
-	var reloadOnly = false;
-	utils.getStaticAssets(repos, minify, null, reloadOnly, function(err, staticAssets) {
+	var options = {
+		repos: repos, 
+		minify: minify,
+		tagFilter: null,
+		watchBuilds: true,
+		reloadOnly: false
+	}
+	utils.getStaticAssets(options, function(err, staticAssets) {
 		startServer(staticAssets, port);
 		startMonitor(staticAssets);
 	});
