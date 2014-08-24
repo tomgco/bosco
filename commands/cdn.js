@@ -33,7 +33,12 @@ function cmd(bosco, args) {
 		var server = http.createServer(function(request, response) {
 		  var url = request.url.replace("/","");		 
 		  if(staticAssets[url]) {
-			response.writeHead(200, {"Content-Type": "text/" + staticAssets[url].type});
+			response.writeHead(200, {
+				"Content-Type": "text/" + staticAssets[url].type, 
+				"Cache-Control": "no-cache, must-revalidate", 
+				"Pragma": "no-cache",
+				"Expires": "Sat, 21 May 1952 00:00:00 GMT"
+			});
 			getContent(staticAssets[url], function(err, content) {
 				if(err) {
 					response.writeHead(500, {"Content-Type": "text/html"});
