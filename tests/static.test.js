@@ -199,6 +199,28 @@ describe("Bosco Static Asset Handling", function() {
 
     });
 
+  it('should create a source map when minifying javascript', function(done) {
+    
+        var options = {
+            repos: ["project1","project2"], 
+            minify: true,
+            tagFilter: 'top',
+            watchBuilds: false,
+            reloadOnly: false
+        }
+
+        var utils = StaticUtils(boscoMock());
+
+        utils.getStaticAssets(options, function(err, assets) {
+
+            expect(assets).to.have.keys('test/js/top.js.map');
+            expect(assets['test/js/top.5892df4693.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');            
+            done();
+
+        });
+
+    });
+
 
 });
 
