@@ -14,6 +14,7 @@ module.exports = function(bosco) {
         var checkDuplicate = function(a, b) {
                 var duplicate = false;
                 if (a.checksum == b.checksum) {
+                    if(_.contains(duplicates,b.assetKey) || _.contains(duplicates,a.assetKey)) return;
                     bosco.warn("Skipping duplicate file: " + a.assetKey + " <> " + b.assetKey);
                     duplicate = true;
                 }
@@ -23,9 +24,10 @@ module.exports = function(bosco) {
                 var aLib = checkLibrary(a),
                     duplicate = false;
                 if (aLib) {
-                    var oLib = checkLibrary(b);
-                    if (oLib && oLib.name == aLib.name) {
-                        if (oLib.version == aLib.version) {
+                    var bLib = checkLibrary(b);
+                    if (bLib && bLib.name == aLib.name) {
+                        if(_.contains(duplicates, b.assetKey) || _.contains(duplicates, a.assetKey)) return;
+                        if (bLib.version == aLib.version) {
                             bosco.warn("Duplicate library version: " + a.assetKey + " <> " + b.assetKey);
                         } else {
                             bosco.warn("Duplicate library with different version: " + a.assetKey + " <> " + b.assetKey);
