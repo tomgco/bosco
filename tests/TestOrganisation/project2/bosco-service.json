@@ -3,7 +3,8 @@
         "basePath": "/public",
         "js": {
             "bottom": [
-                "js/bottom2.js"
+                "js/bottom2.js",
+                "js/bottom2dupe.js"
             ],
             "top": [
                 "js/top2.js"

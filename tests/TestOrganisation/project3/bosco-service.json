@@ -1,0 +1,19 @@
+{
+    "assets": {
+        "basePath":"/dist",
+        "build":{
+            "command":"echo 'This is the pseudo output of a build command.'",            
+            "output":{
+                "js": {
+                    "compiled": [
+                        "js/compiled.js"
+                    ]
+                }
+            },
+            "watch":{
+                "command":"echo \"COMPLETA\"",
+                "finished":"COMPLETA"
+            }
+        }
+    }
+}
