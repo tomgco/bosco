@@ -23,16 +23,17 @@ module.exports = function(bosco) {
 	            bosco.error(stderr);
 	        }
 
-	        console.log(stdout);
+	        console.log(stdout);	        
 
 	        var assetKey, staticAssets = {},
 	            assetHelper = AssetHelper.getAssetHelper(build, tagFilter);
 
 	        // Now go and get the static assets
 	        if (build.output && build.output.js) {
+	        	
 	            _.forOwn(build.output.js, function(value, tag) {
-	                if (value) {
-	                    value.forEach(function(asset) {
+	                if (value) {	                	
+	                    value.forEach(function(asset) {	                    	
 	                        assetKey = build.name + "/" + asset;
 	                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, 'js');
 	                    });
@@ -64,10 +65,10 @@ module.exports = function(bosco) {
 	        var wc = spawn(command, cmdArray, {
 	            cwd: build.repoPath
 	        });
-	        var finishedText = build.watch.finished || 'finished';
+	        var readyText = build.watch.ready || 'finished';
 	        var stdout = "", stderr = "",
 	            calledReady = false;
-	        var checkDelay = 2000; // Seems reasonable for build check cycle	
+	        var checkDelay = 500; // Seems reasonable for build check cycle	
 
 	        wc.stdout.on('data', function(data) {
 	            stdout += data.toString();
@@ -78,11 +79,9 @@ module.exports = function(bosco) {
 	        });
 
 	        var checkFinished = function() {
-	            if (stdout.indexOf(finishedText) >= 0 && !calledReady) {
-	                calledReady = true;
-	                setTimeout(function() {
-	                    buildFinished(null, stdout, null);
-	                }, checkDelay);
+	            if (stdout.indexOf(readyText) >= 0 && !calledReady) {
+	                calledReady = true;	  
+	                buildFinished(null, stdout, null);	             		               	              
 	            } else if (stderr.indexOf('Error:') >= 0 && !calledReady) {
 	            	calledReady = true;
 	                buildFinished(stderr);
