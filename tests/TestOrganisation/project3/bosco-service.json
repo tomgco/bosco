@@ -17,7 +17,7 @@
             },
             "watch":{
                 "command":"echo \"COMPLETA\"",
-                "finished":"COMPLETA"
+                "ready":"COMPLETA"
             }
         }
     }
