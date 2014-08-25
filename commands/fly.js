@@ -13,7 +13,7 @@ var red = '\u001b[41m \u001b[0m';
 module.exports = {
 	name:'fly',
 	description:'Initialises your entire working environment in one step',
-	example: 'bosco fly | bosco fly pull',
+	example: 'bosco fly <pull> <install>',
 	help: getHelp(),
 	cmd:cmd
 }
@@ -22,7 +22,7 @@ function cmd(bosco, args) {
 
 	var options = {
 	    headers: {
-	        'User-Agent': 'Bosco-Fly-You-Fool'
+	        'User-Agent': 'Bosco-You-Fool'
 	    },
 	    auth: {
 	        user: bosco.config.get('github:authToken') + ':x-oauth-basic'
@@ -67,9 +67,8 @@ function cmd(bosco, args) {
             var repos = [];
 
             function obtainRepositoryName(repo) {
-                if (ignoredRepos.indexOf(repo.name) < 0) {
-                    repos.push(repo.name);
-                }
+                if(_.contains(ignoredRepos,repo.name)) return;
+                repos.push(repo.name);                
             }
 
             reposJson.forEach(obtainRepositoryName);
@@ -125,7 +124,7 @@ function fetch(bosco, repos, args) {
 		  var repoUrl = bosco.getRepoUrl(repo);
 
 		  if(bosco.exists(repoPath)) {
-		  	if(args[0] == 'pull') {
+		  	if(_.contains(args,'pull')) {
 		  		pull(bosco, progressbar, repoPath, repoCb);
 		  	} else {	
 		  		pullFlag = true;	  		
@@ -142,7 +141,9 @@ function fetch(bosco, repos, args) {
 	}
 
 	var installRepos = function(cb) {
-	    	
+	   
+	   	if(!_.contains(args,'install')) return cb();
+
 		var progressbar = bosco.config.get('progress') == 'bar', 
 			total = repos.length;
 
