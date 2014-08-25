@@ -14,7 +14,7 @@ function cmd(bosco, args) {
 	if(!bosco.knox) bosco.error("You don't appear to have any S3 config for this environment?");
 	var pushed = bosco.config.get('S3:published') || [];	
 
-	bosco.log("S3 Pushed Assets for this configuration:")
+	bosco.log("S3 Pushed Assets for this " + bosco.options.environment.blue)
 	pushed.forEach(function(push) {
 		bosco.log(push.green);
 	});

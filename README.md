@@ -108,6 +108,18 @@ bosco s3push -e development -b mybuild21 <tagname optional>
 
 - [https://dudu89lpwit3y.cloudfront.net/development/mybuild21/html/bottom.js.html](https://dudu89lpwit3y.cloudfront.net/development/mybuild21/html/bottom.js.html)
 
+### Managing Pushes to S3
+
+Every time you do a push to S3 Bosco will keep track of it, allowing you to clean up after yourself.
+
+```
+bosco -e development s3list
+```
+
+```
+bosco -e development s3delete mybuild21
+```
+
 ## Manifest Files
 
 To ensure that we always know what was in a specific release, the minification process creates a manifest file 

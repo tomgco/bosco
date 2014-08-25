@@ -21,7 +21,7 @@ function cmd(bosco, args) {
 		return bosco.error("Unable to delete:" + toDelete.blue + " as it is not in your push list.")	
 	}
 
-	bosco.knox.list({ prefix: toDelete }, function(err, data){
+	bosco.knox.list({ prefix: bosco.options.environment + '/' + toDelete }, function(err, data) {
 		
 		var files = _.pluck(data.Contents, 'Key');
 		if(files.length == 0) return bosco.error("There doesn't appear to be any files matching that push.")
