@@ -5,14 +5,14 @@ var crypto = require("crypto");
 var exec = require('child_process').exec;
 var async = require('async');
 
-var AssetHelper = require('./AssetHelper');
-var minify = require('./Minify').minify;
-var removeDuplicates = require('./Duplicates').removeDuplicates;
-var doBuild = require('./ExternalBuild').doBuild;
-var getLastCommitForAssets = require('./Git').getLastCommitForAssets;
-var createHtmlFiles = require('./Html').createHtmlFiles;
-
 module.exports = function(bosco) {
+
+	var AssetHelper = require('./AssetHelper')(bosco);
+	var minify = require('./Minify')(bosco).minify;
+	var removeDuplicates = require('./Duplicates')(bosco).removeDuplicates;
+	var doBuild = require('./ExternalBuild')(bosco).doBuild;
+	var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
+	var createHtmlFiles = require('./Html')(bosco).createHtmlFiles;
 
     return {
         getStaticAssets: getStaticAssets
@@ -56,7 +56,7 @@ module.exports = function(bosco) {
                 // Build any external projects
                 async.mapSeries(builds, function(build, cb) {
 
-                    doBuild(bosco, build, options.watchBuilds, options.reloadOnly, options.tagFilter, cb);
+                    doBuild(build, options.watchBuilds, options.reloadOnly, options.tagFilter, cb);
 
                 }, function(err, assets) {
 
@@ -68,16 +68,16 @@ module.exports = function(bosco) {
                     });
 
                     // Dedupe
-                    removeDuplicates(bosco, staticAssets, function(err, staticAssets) {
+                    removeDuplicates(staticAssets, function(err, staticAssets) {
                         // Now go and minify
                         if (options.minify) {
-                            getLastCommitForAssets(bosco, staticAssets, function(err, staticAssets) {
-                                minify(bosco, staticAssets, function(err, staticAssets) {
-                                    createHtmlFiles(bosco, staticAssets, next);
+                            getLastCommitForAssets(staticAssets, function(err, staticAssets) {
+                                minify(staticAssets, function(err, staticAssets) {
+                                    createHtmlFiles(staticAssets, next);
                                 });
                             });
                         } else {
-                        	createHtmlFiles(bosco, staticAssets, next);	
+                        	createHtmlFiles(staticAssets, next);	
                         }
                     });
                 });
@@ -90,7 +90,7 @@ module.exports = function(bosco) {
 
         var assetKey, staticAssets = {},
             staticBuild = {},
-            assetHelper = AssetHelper.getAssetHelper(bosco, boscoRepo, tagFilter);
+            assetHelper = AssetHelper.getAssetHelper(boscoRepo, tagFilter);
 
         if (boscoRepo.assets && boscoRepo.assets.js) {
             _.forOwn(boscoRepo.assets.js, function(value, tag) {
