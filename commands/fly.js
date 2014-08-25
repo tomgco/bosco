@@ -32,7 +32,6 @@ function cmd(bosco, args) {
 	};
 
     var ignoredRepos = bosco.config.get('github:ignoredRepos') || [];
-    ignoredRepos.push('bosco');
 
     function fetchTeamProfile(err, res, teamJson) {
 
