@@ -254,7 +254,7 @@ module.exports = function(bosco) {
                 var duplicate = checkDuplicate(avalue, bvalue);
                 var duplicateLibrary = checkDuplicateLibrary(avalue, bvalue);
                 if (duplicate || duplicateLibrary) {
-                    if (!_.contains(duplicates, bvalue.assetKey)) {
+                    if (!_.contains(duplicates, avalue.assetKey)) {
                         duplicates.push(bvalue.assetKey);
                     }
                 }

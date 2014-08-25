@@ -8,28 +8,36 @@ var StaticUtils = require('../src/StaticUtils');
 
 var repos = ["project1","project2"];
 
-var boscoMock = {
-    log: function(msg) { this._log = this._log || []; this._log.push(msg) },
-    error: function(msg) { this._error = this._error || []; this._error.push(msg) },
-    warn: function(msg) { this._warn = this._warn || []; this._warn.push(msg) },
-    options: {
-        environment:'test'
-    },
-    getRepoPath: function(repo) {
-        return __dirname + "/TestOrganisation/" + repo
-    },
-    exists: function(file) {
-        return fs.existsSync(file);
-    },
-    config: {
-        get: function(key) {
-            return key;
-        }
-    }
+
+var boscoMock = function() {
+
+  return {
+      log: function(msg) { this._log = this._log || []; this._log.push(msg) },
+      error: function(msg) { this._error = this._error || []; this._error.push(msg) },
+      warn: function(msg) { this._warn = this._warn || []; this._warn.push(msg) },
+      options: {
+          environment:'test'
+      },
+      getRepoPath: function(repo) {
+          return __dirname + "/TestOrganisation/" + repo
+      },
+      exists: function(file) {
+          return fs.existsSync(file);
+      },
+      config: {
+          get: function(key) {
+              return key;
+          }
+      }
+  }
+
 }
+
 
 describe("Bosco Static Asset Handling", function() {
 
+    this.timeout(5000);
+    this.slow(5000);
 
     it('should load static assets in un-minified cdn mode, deduping where necessary', function(done) {
     
@@ -41,9 +49,13 @@ describe("Bosco Static Asset Handling", function() {
             reloadOnly: false
         }
 
-        var utils = StaticUtils(boscoMock);
+        var localBosco = boscoMock()
+        var utils = StaticUtils(localBosco);
 
         utils.getStaticAssets(options, function(err, assets) {            
+
+            expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
+            expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
             expect(assets).to.have.keys('test/html/top.js.html',
                                     'test/html/bottom.js.html',
@@ -67,10 +79,13 @@ describe("Bosco Static Asset Handling", function() {
             watchBuilds: false,
             reloadOnly: false
         }
-
-        var utils = StaticUtils(boscoMock);
+        var localBosco = boscoMock()
+        var utils = StaticUtils(localBosco);
 
         utils.getStaticAssets(options, function(err, assets) {
+
+            expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
+            expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
             expect(assets).to.have.keys('test/html/top.js.html',
                                       'test/html/bottom.js.html',
@@ -78,7 +93,7 @@ describe("Bosco Static Asset Handling", function() {
                                       'test/js/top.js.map',
                                       'test/js/top.9788b8bac1.js',
                                       'test/js/bottom.js.map',
-                                      'test/js/bottom.73c6205470.js',
+                                      'test/js/bottom.8007be235b.js',
                                       'test/css/top.ca7986a9bb.css',
                                       'test/manifest/top.js.txt',
                                       'test/manifest/bottom.js.txt',
@@ -99,14 +114,14 @@ describe("Bosco Static Asset Handling", function() {
             reloadOnly: false
         }
 
-        var utils = StaticUtils(boscoMock);
+        var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
 
             expect(assets).to.have.keys('test/html/top.js.html',
                                       'test/html/top.css.html',
                                       'test/js/top.js.map',
-                                      'test/js/top.9788b8bac1.js',
+                                      'test/js/top.5892df4693.js',
                                       'test/css/top.ca7986a9bb.css',
                                       'test/manifest/top.js.txt',
                                       'test/manifest/top.css.txt' );
@@ -126,7 +141,7 @@ describe("Bosco Static Asset Handling", function() {
             reloadOnly: false
         }
 
-        var utils = StaticUtils(boscoMock);
+        var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
 
@@ -148,7 +163,7 @@ describe("Bosco Static Asset Handling", function() {
             reloadOnly: false
         }
 
-        var utils = StaticUtils(boscoMock);
+        var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
 
@@ -165,6 +180,7 @@ describe("Bosco Static Asset Handling", function() {
 describe("Bosco Static Asset Handling - Custom Building", function() {
 
   this.timeout(5000);
+  this.slow(5000);
 
   it('should execute bespoke build commands and use output', function(done) {
     
@@ -176,7 +192,7 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
             reloadOnly: false
         }
 
-        var utils = StaticUtils(boscoMock);
+        var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
 
@@ -203,7 +219,7 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
             reloadOnly: false
         }
 
-        var utils = StaticUtils(boscoMock);
+        var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
 
@@ -232,7 +248,7 @@ it('should execute bespoke build commands and use output, and execute the watch 
             reloadOnly: false
         }
 
-        var utils = StaticUtils(boscoMock);
+        var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
 
