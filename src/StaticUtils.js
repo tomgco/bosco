@@ -28,44 +28,21 @@ module.exports = function(bosco) {
             });
 
             async.mapSeries(services, function(service, cb) {
+                
                 createAssetList(service, options.minify, options.tagFilter, cb);
-            }, function(err, assetList, builds) {
 
-                // Pull tags together from across projects
+            }, function(err, assetList) {
+
                 var staticAssets = {};
+
                 assetList.forEach(function(asset) {
                     _.forOwn(asset, function(value, key) {
-                        if (value.type == 'build') return;
-                        if (staticAssets[key]) {
-                            staticAssets[key].content += value.content;
-                        } else {
-                            staticAssets[key] = value;
-                        }
+                        if (value.type == 'build') return;                       
+                        staticAssets[key] = value;                        
                     });
                 });
-
-                // Check for externally built projects
-                var builds = [];
-                assetList.forEach(function(asset) {
-                    _.forOwn(asset, function(value, key) {
-                        if (value.type !== 'build') return;
-                        builds.push(value);
-                    });
-                });
-
-                // Build any external projects
-                async.mapSeries(builds, function(build, cb) {
-
-                    doBuild(build, options.watchBuilds, options.reloadOnly, options.tagFilter, cb);
-
-                }, function(err, assets) {
-
-                    // join build assets into staticAssets
-                    assets.forEach(function(asset) {
-                        _.forOwn(asset, function(value, key) {
-                            staticAssets[key] = value;
-                        });
-                    });
+               
+                buildExternal(assetList, options, staticAssets, function(err, staticAssets) {
 
                     // Dedupe
                     removeDuplicates(staticAssets, function(err, staticAssets) {
@@ -80,10 +57,42 @@ module.exports = function(bosco) {
                         	createHtmlFiles(staticAssets, next);	
                         }
                     });
+
                 });
 
             });
         });
+    }
+
+    function buildExternal(assetList, options, staticAssets, next) {
+
+    	// Check for externally built projects
+        var builds = [];
+        assetList.forEach(function(asset) {
+            _.forOwn(asset, function(value, key) {
+                if (value.type !== 'build') return;
+                builds.push(value);
+            });
+        });
+
+    	 // Build any external projects
+        async.mapSeries(builds, function(build, cb) {
+
+            doBuild(build, options.watchBuilds, options.reloadOnly, options.tagFilter, cb);
+
+        }, function(err, assets) {
+
+            // join build assets into staticAssets
+            assets.forEach(function(asset) {
+                _.forOwn(asset, function(value, key) {
+                    staticAssets[key] = value;
+                });
+            });
+
+            next(err, staticAssets);
+
+        });
+
     }
 
     function createAssetList(boscoRepo, minified, tagFilter, next) {
@@ -114,6 +123,7 @@ module.exports = function(bosco) {
             });
         }
 
+        // Create build entry
         if (boscoRepo.assets && boscoRepo.assets.build) {
             staticBuild = boscoRepo.assets.build;
             staticBuild.name = boscoRepo.name;
@@ -131,6 +141,7 @@ module.exports = function(bosco) {
     function loadService(repo, next) {
         var boscoRepo, basePath, repoPath = bosco.getRepoPath(repo),
             boscoRepoConfig = [repoPath, "bosco-service.json"].join("/");
+
         if (bosco.exists(boscoRepoConfig)) {
 
             boscoRepo = JSON.parse(fs.readFileSync(boscoRepoConfig)) || {};
