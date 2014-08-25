@@ -15,7 +15,8 @@ module.exports = function(bosco) {
         getStaticAssets: getStaticAssets,
         createHtmlFiles: createHtmlFiles,
         createKey: createKey,
-        loadService: loadService
+        loadService: loadService,
+        sassRender: sassRender
     }
 
     function getStaticAssets(options, next) {
@@ -69,7 +70,6 @@ module.exports = function(bosco) {
 
                     // Dedupe
                     removeDuplicates(staticAssets, function(err, staticAssets) {
-
                         // Now go and minify
                         if (options.minify) {
                             getLastCommitForAssets(staticAssets, function(err, staticAssets) {
@@ -78,7 +78,7 @@ module.exports = function(bosco) {
                                 });
                             });
                         } else {
-                            createHtmlFiles(staticAssets, next);
+                        	createHtmlFiles(staticAssets, next);	
                         }
                     });
                 });
@@ -140,7 +140,7 @@ module.exports = function(bosco) {
                 cwd: build.repoPath
             });
             var finishedText = build.watch.finished || 'finished';
-            var stdout = "",
+            var stdout = "", stderr = "",
                 calledReady = false;
             var checkDelay = 2000; // Seems reasonable for build check cycle	
 
@@ -148,13 +148,19 @@ module.exports = function(bosco) {
                 stdout += data.toString();
             });
 
-            var checkFinished = function() {
+            wc.stderr.on('data', function(data) {
+                stderr += data.toString();
+            });
 
+            var checkFinished = function() {
                 if (stdout.indexOf(finishedText) >= 0 && !calledReady) {
                     calledReady = true;
                     setTimeout(function() {
                         buildFinished(null, stdout, null);
                     }, checkDelay);
+                } else if (stderr.indexOf('Error:') >= 0 && !calledReady) {
+                	calledReady = true;
+                    buildFinished(stderr);
                 } else {
                     setTimeout(checkFinished, checkDelay);
                 }
@@ -191,7 +197,7 @@ module.exports = function(bosco) {
                 newAsset.tag = tag;
                 newAsset.repo = boscoRepo.name;
                 newAsset.type = type;
-                newAsset.content = fs.readFileSync(newAsset.path);
+                newAsset.content = fs.readFileSync(newAsset.path).toString();
                 newAsset.checksum = checksum(newAsset.content, 'sha1', 'hex');
 
                 staticAssets[assetKey] = newAsset;
@@ -455,27 +461,17 @@ module.exports = function(bosco) {
             compiledCss.push(compiled);
         });
 
-        var sassRender = function(scss, css, callback) {
-
-            // Now sassify it.
-            sass.render(scss, function(err, compressed) {
-                if (err) return callback(err);
-                compressed += "\r\n" + css;
-                //if(compressed) compressed = new(bosco.config.get('cleancss')).minify(compressed);
-                return callback(null, compressed);
-            });
-
-        }
-
         async.map(compiledCss, function(css, next) {
 
-            sassRender(css.scss, css.css, function(err, code) {
+            sassRender({key: css.assetKey, content: css.scss}, function(err, code) {
 
-                if (err || code.length == 0) return next({
+            	var cssContent = css.css + code.content;
+
+                if (err || cssContent.length == 0) return next({
                     message: 'No css for tag ' + css.tag
                 });
 
-                var hash = createHash(code);
+                var hash = createHash(cssContent);
                 var assetKey = createKey(css.tag, hash, 'css', 'css');
                 compiledAssets[assetKey] = compiledAssets[assetKey] || {};
                 compiledAssets[assetKey].path = "";
@@ -483,7 +479,7 @@ module.exports = function(bosco) {
                 compiledAssets[assetKey].tag = css.tag;
                 compiledAssets[assetKey].type = 'css';
                 compiledAssets[assetKey].hash = hash;
-                compiledAssets[assetKey].content = code;
+                compiledAssets[assetKey].content = cssContent;
 
                 next();
             });
@@ -493,6 +489,14 @@ module.exports = function(bosco) {
             next(null, compiledAssets);
         });
 
+    }
+
+ 	function  sassRender(scss, callback) {
+        // Now sassify it.
+        sass.render(scss.content, function(err, compressed) {
+            if (err) return callback(err);
+            return callback(null, {key: scss.key, content: compressed});
+        });
     }
 
     function createHash(code) {

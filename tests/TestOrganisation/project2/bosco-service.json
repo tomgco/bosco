@@ -12,7 +12,7 @@
         },
         "css": {
             "top":[
-                "css/top2.css"
+                "css/top2.scss"
             ]
         }
     }

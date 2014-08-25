@@ -8,6 +8,11 @@
                     "compiled": [
                         "js/compiled.js"
                     ]
+                },
+                "css": {
+                    "compiled": [
+                        "css/compiled.css"
+                    ]
                 }
             },
             "watch":{
