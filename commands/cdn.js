@@ -31,7 +31,9 @@ function cmd(bosco, args) {
 	var startServer = function(staticAssets, serverPort) {
 		
 		var server = http.createServer(function(request, response) {
-		  var url = request.url.replace("/","");		 
+		  
+		  var url = request.url.replace("/","");
+
 		  if(staticAssets[url]) {
 			response.writeHead(200, {
 				"Content-Type": "text/" + staticAssets[url].type, 
@@ -42,17 +44,17 @@ function cmd(bosco, args) {
 			getContent(staticAssets[url], function(err, content) {
 				if(err) {
 					response.writeHead(500, {"Content-Type": "text/html"});
-					response.write("<h2>There was an error: " + err.message + "</h2>");
+					response.end("<h2>There was an error: " + err.message + "</h2>");				
 				} else {
-					response.write(content);
+					response.end(content);
 				}
 			})
 		  } else {
 		  	response.writeHead(404, {"Content-Type": "text/html"});
-		  	response.write(formattedAssets(staticAssets));
-		  }
-		  response.end();
+		  	response.end(formattedAssets(staticAssets));
+		  }		  
 		});		
+
 		server.listen(serverPort);
 		bosco.log("Server is listening on " + serverPort);
 	
