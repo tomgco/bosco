@@ -20,6 +20,7 @@ It will ask initially for:
 - Github Organization:  The organization it will query for repos, e.g. TSLEducation.
 - Github Auth Key:  A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).
 - Github Team:  This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners.
+- Github name: Your username.
 
 This is then saved in a configuration file, default is in .bosco/bosco.json, so all subsequent commands use it.
 
@@ -29,6 +30,7 @@ This is then saved in a configuration file, default is in .bosco/bosco.json, so 
     "organization": "TSLEducation",
     "authToken": "2266b8xxxxxxxxxxxxxxxxxxxxxa84a5f9",
     "team": "southampton-buildings",
+    "user": "cliftonc",
     "repos": [
       "infra-ansible-configuration",
       "infra-aws",
@@ -51,13 +53,17 @@ Bosco will also include any configuration in a file in the .bosco folder with th
 The default command, this sets you up.
 
 ```
-bosco fly
+bosco fly <pull> <install>
 ```
 
-This will clone all the repositories in your team, and then run npm install on all of them.  If the repository already exists locally it will skip it.  To have it update the repository with changes, just add 'pull' to the command, and it will issue a 'git pull --rebase' on all the projects before npm install.
+This will clone all the repositories in your team, and then run npm install on all of them.  If the repository already exists locally it will skip it.  
+
+To have it update the repository with changes, just add 'pull' to the command, and it will issue a 'git pull --rebase' on all the projects.
+
+To have it run 'npm install' against all repos, just add 'install'.
 
 ```
-bosco fly pull
+bosco fly pull install
 ```
 
 ### S3 Push
@@ -208,7 +214,7 @@ For example, a project that uses Gulp to create assets as well as watch for chan
             },
             "watch":{
                 "command":"gulp build --watch",
-                "finished":"Finished 'build'"
+                "ready":"Finished 'build'"
             }
         }
     }
