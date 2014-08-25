@@ -22,7 +22,7 @@ program
 var options = {
 	configFile: program.configFile,
 	noprompt: program.noprompt,
-  build: program.build,
+  build: program.build || 'default',
 	environment: program.environment || "local",
 	args: program.args,
   force: program.force
