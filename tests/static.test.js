@@ -175,6 +175,31 @@ describe("Bosco Static Asset Handling", function() {
 
     });
 
+  it('should create a manifest when minified that will have all of the files', function(done) {
+    
+        var options = {
+            repos: ["project1","project2"], 
+            minify: true,
+            tagFilter: 'top',
+            watchBuilds: false,
+            reloadOnly: false
+        }
+
+        var utils = StaticUtils(boscoMock());
+
+        utils.getStaticAssets(options, function(err, assets) {
+
+            expect(assets).to.have.keys('test/manifest/top.js.txt');
+            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project1/public/js/top1.js');
+            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/top2.js');
+            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/jquery-1.12.0-min.js');            
+            done();
+
+        });
+
+    });
+
+
 });
 
 describe("Bosco Static Asset Handling - Custom Building", function() {
@@ -203,6 +228,7 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
                                     'test/css/compiled.09414dff4c.css',
                                     'test/manifest/compiled.js.txt',
                                     'test/manifest/compiled.css.txt');
+
             done();
 
         });
