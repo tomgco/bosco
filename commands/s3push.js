@@ -51,7 +51,23 @@ function cmd(bosco, args) {
 
 		});
 
+		saveS3record(toPush);
+
 		async.mapSeries(toPush, pushToS3, next);
+	}
+
+	var saveS3record = function(toPush) {
+		// Get the environment + build tag to save in your config file
+		if(toPush.length > 0) {			
+			var envBuild = toPush[0].path.split("/")[0] + "/" + toPush[0].path.split("/")[1];			
+			var myRepos = bosco.config.get('S3:published') || [];
+			if(!_.contains(myRepos,envBuild)) {
+				myRepos.push(envBuild);
+				var envConfig = bosco.config.stores.environment;	
+				envConfig.store.S3 = {published: myRepos};				
+				bosco.config.save();
+			};
+		}
 	}
 
 	var pushToS3 = function(file, next) {
