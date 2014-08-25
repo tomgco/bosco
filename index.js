@@ -13,7 +13,8 @@ var prompt = require('prompt');
 var async = require('async');
 var mkdirp = require('mkdirp');
 var knox = require('knox');
-var colors = require('colors');			
+var colors = require('colors');		
+var dateformat = require('dateformat');	
 
 prompt.message = "Bosco".green;
 
@@ -73,22 +74,6 @@ function Bosco(options) {
 util.inherits(Bosco, events.EventEmitter);
 
 module.exports = Bosco;
-
-Bosco.prototype.warn = function(msg) {
-	console.log("Bosco".yellow + ": " + msg);
-}
-
-Bosco.prototype.log = function(msg) {
-	console.log("Bosco".cyan + ": " + msg);
-}
-
-Bosco.prototype.error = function(msg) {
-	console.log("Bosco".red + ": " + msg);
-}
-
-Bosco.prototype.exists = function(path) {
-	return fs.existsSync(path);
-}
 
 Bosco.prototype._init = function(next) {
 
@@ -259,5 +244,24 @@ Bosco.prototype.getRepoPath = function(repo) {
 
 Bosco.prototype.getRepoUrl = function(repo) {
 	return ['git@github.com:',this.getOrg(),"/",repo,'.git'].join(""); 
+}
+
+Bosco.prototype.warn = function(msg) {
+	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';	  
+	console.log(time.grey + " Bosco".yellow + ": " + msg);
+}
+
+Bosco.prototype.log = function(msg) {
+	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';	  
+	console.log(time.grey + " Bosco".cyan + ": " + msg);
+}
+
+Bosco.prototype.error = function(msg) {
+	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';	  
+	console.log(time.grey + " Bosco".red + ": " + msg);
+}
+
+Bosco.prototype.exists = function(path) {
+	return fs.existsSync(path);
 }
 
