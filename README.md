@@ -214,13 +214,13 @@ This command requires that you have configured your AWS details for S3.  Best to
 
 ```json
 {
-	"aws":{
-	  "key": "XXXXXX",
+    "aws":{
+      "key": "XXXXXX",
           "secret": "XXXXXX",
           "bucket": "bucket-name",
           "region": "eu-west-1",
           "cdn":"https://dudu89lpwit3y.cloudfront.net"
-	}
+    }
 }
 
 ```
@@ -294,6 +294,5 @@ Bosco will attempt to detect duplicate files (via a checksum), as well as duplic
 It is strongly recommended that you pull all 'core' libraries like jQuery into a central single project to avoid duplication, but Bosco will try and help you if you don't.
 
 Note that if you use the external build option then the files inside this project don't get included in the duplicate check.
-
 
 

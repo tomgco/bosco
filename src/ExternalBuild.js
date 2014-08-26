@@ -12,9 +12,15 @@ module.exports = function(bosco) {
 		doBuild: doBuild
 	}
 
-	function doBuild(build, watchBuilds, reloadOnly, tagFilter, next) {
+	function doBuild(service, options, next) {
 
-	    var command = watchBuilds ? (build.watch ? build.watch.command : build.command) : build.command;
+		if(!service.build) return next();
+
+		var watchBuilds = options.watchBuilds, 
+			reloadOnly = options.reloadOnly,
+			tagFilter =  options.tagFilter;
+
+	    var command = watchBuilds ? (service.build.watch ? service.build.watch.command : service.build.command) : service.build.command;
 	    command = reloadOnly ? "echo 'Not running build as change triggered by external build tool'" : command;
 
 	    var buildFinished = function(err, stdout, stderr) {
@@ -25,47 +31,20 @@ module.exports = function(bosco) {
 
 	        console.log(stdout);	        
 
-	        var assetKey, staticAssets = {},
-	            assetHelper = AssetHelper.getAssetHelper(build, tagFilter);
-
-	        // Now go and get the static assets
-	        if (build.output && build.output.js) {
-	        	
-	            _.forOwn(build.output.js, function(value, tag) {
-	                if (value) {	                	
-	                    value.forEach(function(asset) {	                    	
-	                        assetKey = build.name + "/" + asset;
-	                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, 'js');
-	                    });
-	                }
-	            });
-	        }
-
-	        if (build.output && build.output.css) {
-	            _.forOwn(build.output.css, function(value, tag) {
-	                if (value) {
-	                    value.forEach(function(asset) {
-	                        assetKey = build.name + "/" + asset;
-	                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, 'css');
-	                    });
-	                }
-	            });
-	        }
-
-	        next(null, staticAssets);
+	        next(null);
 
 	    }
 
 	    if (watchBuilds) {
 
-	        bosco.log("Spawning watch command for " + build.name.blue + ": " + command);
+	        bosco.log("Spawning watch command for " + service.name.blue + ": " + command);
 
 	        var cmdArray = command.split(" ");
 	        var command = cmdArray.shift();
 	        var wc = spawn(command, cmdArray, {
-	            cwd: build.repoPath
+	            cwd: service.repoPath
 	        });
-	        var readyText = build.watch.ready || 'finished';
+	        var readyText = service.build.watch.ready || 'finished';
 	        var stdout = "", stderr = "",
 	            calledReady = false;
 	        var checkDelay = 500; // Seems reasonable for build check cycle	
@@ -94,9 +73,9 @@ module.exports = function(bosco) {
 
 	    } else {
 
-	        bosco.log("Running build command for " + build.name.blue + ": " + command);
+	        bosco.log("Running build command for " + service.name.blue + ": " + command);
 	        exec(command, {
-	            cwd: build.repoPath
+	            cwd: service.repoPath
 	        }, buildFinished);
 
 	    }

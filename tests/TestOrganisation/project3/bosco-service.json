@@ -1,24 +1,22 @@
 {
+    "build":{
+        "command":"echo 'This is the pseudo output of a build command.'",            
+        "watch":{
+            "command":"echo \"COMPLETA\"",
+            "ready":"COMPLETA"
+        }
+    },    
     "assets": {
         "basePath":"/dist",
-        "build":{
-            "command":"echo 'This is the pseudo output of a build command.'",            
-            "output":{
-                "js": {
-                    "compiled": [
-                        "js/compiled.js"
-                    ]
-                },
-                "css": {
-                    "compiled": [
-                        "css/compiled.css"
-                    ]
-                }
-            },
-            "watch":{
-                "command":"echo \"COMPLETA\"",
-                "ready":"COMPLETA"
-            }
+        "js": {
+            "compiled": [
+                "js/compiled.js"
+            ]
+        },
+        "css": {
+            "compiled": [
+                "css/compiled.css"
+            ]
         }
     }
 }

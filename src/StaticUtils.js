@@ -29,70 +29,40 @@ module.exports = function(bosco) {
 
             async.mapSeries(services, function(service, cb) {
                 
-                createAssetList(service, options.minify, options.tagFilter, cb);
+                doBuild(service, options, function(err) {
+                    createAssetList(service, options.minify, options.tagFilter, cb);    
+                });
 
             }, function(err, assetList) {
 
                 var staticAssets = {};
 
                 assetList.forEach(function(asset) {
-                    _.forOwn(asset, function(value, key) {
-                        if (value.type == 'build') return;                       
+                    _.forOwn(asset, function(value, key) {                        
                         staticAssets[key] = value;                        
                     });
-                });
-               
-                buildExternal(assetList, options, staticAssets, function(err, staticAssets) {
+                });               
 
-                    // Dedupe
-                    removeDuplicates(staticAssets, function(err, staticAssets) {
-                        // Now go and minify
-                        if (options.minify) {
-                            getLastCommitForAssets(staticAssets, function(err, staticAssets) {
-                                minify(staticAssets, function(err, staticAssets) {
-                                    createHtmlFiles(staticAssets, next);
-                                });
+                // Dedupe
+                removeDuplicates(staticAssets, function(err, staticAssets) {
+                    // Now go and minify
+                    if (options.minify) {
+                        getLastCommitForAssets(staticAssets, function(err, staticAssets) {
+                            minify(staticAssets, function(err, staticAssets) {
+                                createHtmlFiles(staticAssets, next);
                             });
-                        } else {
-                        	createHtmlFiles(staticAssets, next);	
-                        }
-                    });
-
+                        });
+                    } else {
+                    	createHtmlFiles(staticAssets, next);	
+                    }
                 });
 
             });
         });
     }
 
-    function buildExternal(assetList, options, staticAssets, next) {
-
-    	// Check for externally built projects
-        var builds = [];
-        assetList.forEach(function(asset) {
-            _.forOwn(asset, function(value, key) {
-                if (value.type !== 'build') return;
-                builds.push(value);
-            });
-        });
-
-    	 // Build any external projects
-        async.mapSeries(builds, function(build, cb) {
-
-            doBuild(build, options.watchBuilds, options.reloadOnly, options.tagFilter, cb);
-
-        }, function(err, assets) {
-
-            // join build assets into staticAssets
-            assets.forEach(function(asset) {
-                _.forOwn(asset, function(value, key) {
-                    staticAssets[key] = value;
-                });
-            });
-
-            next(err, staticAssets);
-
-        });
-
+    function buildExternal(service, options, next) {    	
+        
     }
 
     function createAssetList(boscoRepo, minified, tagFilter, next) {
