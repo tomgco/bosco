@@ -24,7 +24,7 @@ It will ask initially for:
 |Github Auth Key|A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).|
 |Github Team|This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners|
 
-This is then saved in a configuration file locally on disk, default is in .bosco/bosco.json, so all subsequent commands use it.|
+This is then saved in a configuration file locally on disk, default is in .bosco/bosco.json, so all subsequent commands use it.
 
 ```json
 {
@@ -173,7 +173,9 @@ For example, a project that uses Gulp to create assets as well as watch for chan
 }
 ```
 
-In this mode, instead of directly defining the JS and CSS assets, simply define a abuild configuration that includes the command to run before pulling together the assets, the files created as a result of the build step and optionally a watch command that will allow bosco to understand how to put the project into watch mode when using 'bosco cdn'.
+In this mode, instead of directly defining the JS and CSS assets, simply define a build configuration that includes the command to run before pulling together the assets, along with a watch command (if available).
+
+The files created as a result of the build step should just be included as normal, but they won't be read until the build command is complete.
 
 ### CDN
 
