@@ -36,7 +36,7 @@ var boscoMock = function() {
 
 describe("Bosco Static Asset Handling", function() {
 
-    this.timeout(5000);
+    this.timeout(10000);
     this.slow(5000);
 
     it('should load static assets in un-minified cdn mode, deduping where necessary', function(done) {
