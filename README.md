@@ -18,7 +18,7 @@ Run this command in a folder where you want all of your projects to live.  It wi
 It will ask initially for:
 
 |Configuration|Description|
-|--------------|-----------|
+|:-----------------|-----------|
 |Github name|Your username|
 |Github Organization|The organization it will query for repos, e.g. TSLEducation.|
 |Github Auth Key|A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).|
@@ -136,15 +136,6 @@ e.g.
     }
 }
 ```
-When using the CDN mode (see [cdn command](#cdn) below, you can then access the html fragments for PC, it follows a simple convention:
-
-- http://localhost:7334/<environment>/<build>/html/tag.type.html
-
-For example:
-
-- [http://localhost:7334/local/default/html/bottom.js.html](http://localhost:7334/local/default/html/bottom.js.html)
-
-This would contain a fragment that has script tags for all of the JS tagged in the bottom group.
 
 ## Using project specific build tools
 
@@ -194,7 +185,22 @@ This will aggregate and serve all of the static assets (those defined within bos
 bosco cdn <minify>
 ```
 
-If passed the minify parameter it will minify the JS, but serve locally as above.
+If passed the minify parameter it will minify the JS as it does if pushing to s3, but serve locally.
+
+In CDN mode you can just visit the index page, default: [Bosco Index](http://localhost:7334/) and it will list all the files for you.
+
+The html fragments for [compoxure](https://github.com/TSLEducation/compoxure) in local mode (or the raw asset files) can be built by following a simple convention:
+
+```
+http://localhost:7334/<environment>/<build>/html/tag.type.html
+```
+
+For example:
+
+- [http://localhost:7334/local/default/html/bottom.js.html](http://localhost:7334/local/default/html/bottom.js.html)
+
+This would contain a fragment that has script tags for all of the JS tagged in the bottom group.
+
 
 ### S3 Push
 
@@ -219,7 +225,7 @@ This command requires that you have configured your AWS details for S3.  Best to
 
 ```
 
-To then access the html fragments for PC, it follows a simple convention:
+To then access the html fragments for [compoxure](https://github.com/TSLEducation/compoxure), it follows a simple convention:
 
 ```
 <cdn>/<environment>/<build>/<type>/<tag>.<fragmentType>.<js|css|html|map|txt>
