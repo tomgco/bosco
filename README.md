@@ -145,37 +145,35 @@ For example, a project that uses Gulp to create assets as well as watch for chan
 
 ```json
 {
+    "build":{
+        "command":"gulp build",            
+        "watch":{
+            "command":"gulp build --watch",
+            "ready":"Finished 'build'"
+        }
+    },
     "assets": {
         "basePath":"/dist",
-        "build":{
-            "command":"gulp build",            
-            "output":{
-                "js": {
-                    "upload": [
-                        "js/tsl-uploader.js"
-                    ]
-                },
-                "css": {
-                     "upload": [
-                        "css/tsl-uploader.css"
-                    ]   
-                },
-                "images": {
-                    "upload" :[
-                        "img"
-                    ]
-                }
-            },
-            "watch":{
-                "command":"gulp build --watch",
-                "ready":"Finished 'build'"
-            }
-        }
+        "js": {
+            "upload": [
+                "js/tsl-uploader.js"
+            ]
+        },
+        "css": {
+             "upload": [
+                "css/tsl-uploader.css"
+            ]   
+        },
+        "images": {
+            "upload" :[
+                "img"
+            ]
+        }    
     }
 }
 ```
 
-In this mode, instead of directly defining the JS and CSS assets, simply define a abuild configuration that includes the command to run, the files created as a result of the build step and optionally a watch command that will allow bosco to understand how to put the project into watch mode when using 'bosco cdn'.
+In this mode, instead of directly defining the JS and CSS assets, simply define a abuild configuration that includes the command to run before pulling together the assets, the files created as a result of the build step and optionally a watch command that will allow bosco to understand how to put the project into watch mode when using 'bosco cdn'.
 
 ### CDN
 
