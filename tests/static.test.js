@@ -87,17 +87,17 @@ describe("Bosco Static Asset Handling", function() {
             expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
             expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
-            expect(assets).to.have.keys('test/html/top.js.html',
-                                      'test/html/bottom.js.html',
-                                      'test/html/top.css.html',
-                                      'test/js/top.js.map',
-                                      'test/js/top.9788b8bac1.js',
-                                      'test/js/bottom.js.map',
-                                      'test/js/bottom.8007be235b.js',
-                                      'test/css/top.ca7986a9bb.css',
-                                      'test/manifest/top.js.txt',
-                                      'test/manifest/bottom.js.txt',
-                                      'test/manifest/top.css.txt' );
+            expect(assets).to.have.keys('test/html/bottom.js.html',
+                                  'test/html/top.js.html',
+                                  'test/html/top.css.html',
+                                  'test/js/bottom.js.map',
+                                  'test/js/bottom.e1ea2d8095.js',
+                                  'test/js/top.js.map',
+                                  'test/js/top.9788b8bac1.js',
+                                  'test/css/top.a1c537a4fe.css',
+                                  'test/manifest/bottom.js.txt',
+                                  'test/manifest/top.js.txt',
+                                  'test/manifest/top.css.txt'  );
             done();
 
         });
@@ -121,8 +121,8 @@ describe("Bosco Static Asset Handling", function() {
             expect(assets).to.have.keys('test/html/top.js.html',
                                       'test/html/top.css.html',
                                       'test/js/top.js.map',
-                                      'test/js/top.5892df4693.js',
-                                      'test/css/top.ca7986a9bb.css',
+                                      'test/js/top.77917a1f46.js',
+                                      'test/css/top.a1c537a4fe.css',
                                       'test/manifest/top.js.txt',
                                       'test/manifest/top.css.txt' );
             done();
@@ -146,7 +146,7 @@ describe("Bosco Static Asset Handling", function() {
         utils.getStaticAssets(options, function(err, assets) {
 
             expect(assets).to.have.keys('project2/css/top2.scss');
-            expect(assets['project2/css/top2.scss'].content.toString()).to.not.contain('#main {\n  width: 5em; }\n')
+            expect(assets['project2/css/top2.scss'].content.toString()).to.not.contain('#main{width:5em}')
             done();
 
         });
@@ -167,8 +167,8 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('test/css/top.ca7986a9bb.css');
-            expect(assets['test/css/top.ca7986a9bb.css'].content.toString()).to.contain('#main {\n  width: 5em; }\n')
+            expect(assets).to.have.keys('test/css/top.a1c537a4fe.css');
+            expect(assets['test/css/top.a1c537a4fe.css'].content.toString()).to.contain('#main{width:5em}')
             done();
 
         });
@@ -212,9 +212,8 @@ describe("Bosco Static Asset Handling", function() {
         var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
-
             expect(assets).to.have.keys('test/js/top.js.map');
-            expect(assets['test/js/top.5892df4693.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');            
+            expect(assets['test/js/top.77917a1f46.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');            
             done();
 
         });
@@ -247,7 +246,7 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
                                     'test/html/compiled.css.html',
                                     'test/js/compiled.js.map',
                                     'test/js/compiled.12915d7076.js',
-                                    'test/css/compiled.09414dff4c.css',
+                                    'test/css/compiled.aface06fbc.css',
                                     'test/manifest/compiled.js.txt',
                                     'test/manifest/compiled.css.txt');
 
@@ -275,7 +274,7 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
                                     'test/html/compiled.css.html',
                                     'test/js/compiled.js.map',
                                     'test/js/compiled.12915d7076.js',
-                                    'test/css/compiled.09414dff4c.css',
+                                    'test/css/compiled.aface06fbc.css',
                                     'test/manifest/compiled.js.txt',
                                     'test/manifest/compiled.css.txt');
             done();
