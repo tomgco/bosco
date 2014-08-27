@@ -4,6 +4,7 @@ var crypto = require('crypto');
 var path = require('path');
 var UglifyJS = require("uglify-js");
 var sass = require("node-sass");
+var CleanCSS = require('clean-css');
 var async = require('async');
 
 module.exports = function(bosco) { 
@@ -88,6 +89,8 @@ module.exports = function(bosco) {
 
 	        var compiled;
 
+	        bosco.log("Compiling " + files.length + " " + tag.blue + " JS assets ...");
+
 	        try {
 	            compiled = UglifyJS.minify(files, {
 	                outSourceMap: tag + ".js.map",
@@ -142,15 +145,23 @@ module.exports = function(bosco) {
 	                compiled.scss += fs.readFileSync(file);
 	            }
 	        });
+	        compiled.count = files.length	        
 	        compiled.tag = tag;
 	        compiledCss.push(compiled);
 	    });
 
 	    async.map(compiledCss, function(css, next) {
 
+	    	bosco.log("Compiling " + css.count + " " + css.tag.blue + " CSS assets ...");
+
 	        sassRender({key: css.assetKey, content: css.scss}, function(err, code) {
 
 	        	var cssContent = css.css + code.content;
+
+		        var cleanCssConfig = bosco.config.get('css:clean');
+		        if(cleanCssConfig) {
+		        	cssContent = new CleanCSS().minify(cssContent);	
+		        }	       	        
 
 	            if (err || cssContent.length == 0) return next({
 	                message: 'No css for tag ' + css.tag
@@ -180,11 +191,11 @@ module.exports = function(bosco) {
 	    return crypto.createHash("sha1").update(code).digest("hex").slice(0, 10);
 	}
 
-	function  sassRender(scss, callback) {
-	    // Now sassify it.
-	    sass.render(scss.content, function(err, compressed) {
+	function  sassRender(scss, callback) {	    
+
+	    sass.render(scss.content, function(err, css) {	        
 	        if (err) return callback(err);
-	        return callback(null, {key: scss.key, content: compressed});
+	        return callback(null, {key: scss.key, content: css});
 	    });
 	}
 }
