@@ -13,7 +13,7 @@ var _ = require('lodash'),
 module.exports = {
 	name:'s3push',
 	description:'Builds all of the front end assets for each microservice and pushes them to S3 for the current environment',
-	example:'bosco s3push | bosco s3push top',
+	example:'bosco -e <environment> -b <build> s3push <tag>',
 	cmd:cmd
 }
 

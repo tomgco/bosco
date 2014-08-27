@@ -3,7 +3,7 @@ require('colors');
 module.exports = {
 	name:'s3list',
 	description:'Lists all of the S3 pushes you have done from this configuration',
-	example:'bosco s3list',
+	example:'bosco -e <environment> s3list',
 	cmd:cmd
 }
 

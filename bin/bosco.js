@@ -7,9 +7,10 @@
 var program = require('commander');
 var Bosco = require('../index');
 var _ = require('lodash');
+var pkg = require('../package.json');
 
 program
-  .version('0.0.1')
+  .version(pkg.version)
   .usage('[options] <command>')
   .option('-c, --configFile [file]', 'Use specific config file')
   .option('-e, --environment [environment]', 'Set environment to use')
@@ -25,7 +26,8 @@ var options = {
   build: program.build || 'default',
 	environment: program.environment || "local",
 	args: program.args,
-  force: program.force
+  force: program.force,
+  program: program
 };
 
 var bosco = new Bosco(options);

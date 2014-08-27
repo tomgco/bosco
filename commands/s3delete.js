@@ -5,7 +5,7 @@ var _ = require('lodash');
 module.exports = {
 	name:'s3delete',
 	description:'Deletes a published asset set from S3 - must be one you have published previously',
-	example:'bosco s3delete <environmment>/<build>',
+	example:'bosco -e <environmment> s3delete <build>',
 	cmd:cmd
 }
 

@@ -226,6 +226,8 @@ Bosco.prototype._commands = function() {
 	    });
 	    console.log(table.toString());
 	    console.log("\r");
+	    console.log("You can also specify these parameters:")
+	    console.log(self.options.program.help());
 	});
 
 }
