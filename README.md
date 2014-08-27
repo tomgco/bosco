@@ -24,11 +24,27 @@ It will ask initially for:
 |Github Auth Key|A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).|
 |Github Team|This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners|
 
-This is then saved in a configuration file locally on disk, default is in .bosco/bosco.json, so all subsequent commands use it.
+This is then saved in a configuration file locally on disk, default is in .bosco/bosco.json, so all subsequent commands use it.  In addition to this data Bosco stores some default configuration for CleanCSS and Uglify.
 
 ```json
 {
   "progress":"bar",
+  "css":{
+    "clean":{
+          "enabled":true,
+          "options":{
+              "keepBreaks":false,
+              "processImport":true
+          }
+      }
+  },
+  "js":{
+      "uglify":{
+          "mangle":false,
+          "outputOptions":{},
+          "compressorOptions":{}
+      }
+  }
   "github": {
     "organization": "TSLEducation",
     "authToken": "2266b8xxxxxxxxxxxxxxxxxxxxxa84a5f9",

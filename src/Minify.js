@@ -91,11 +91,18 @@ module.exports = function(bosco) {
 
 	        bosco.log("Compiling " + files.length + " " + tag.blue + " JS assets ...");
 
+	        var uglifyConfig = bosco.config.get('js:uglify');	                   
+
+	        var uglifyOptions = {
+        		output: uglifyConfig ? uglifyConfig.outputOptions : null,
+        		compressor: uglifyConfig ? uglifyConfig.compressorOptions : null,
+        		mangle: uglifyConfig ? uglifyConfig.mangle : null,
+                outSourceMap: tag + ".js.map",
+                sourceMapIncludeSources: true
+            };
+
 	        try {
-	            compiled = UglifyJS.minify(files, {
-	                outSourceMap: tag + ".js.map",
-	                sourceMapIncludeSources: true
-	            });
+	        	compiled = UglifyJS.minify(files, uglifyOptions);
 	        } catch (ex) {
 	            bosco.error("There was an error minifying files in " + tag.blue + ", error:");
 	            console.log(ex.message + "\n");
@@ -159,8 +166,9 @@ module.exports = function(bosco) {
 	        	var cssContent = css.css + code.content;
 
 		        var cleanCssConfig = bosco.config.get('css:clean');
+
 		        if(cleanCssConfig) {
-		        	cssContent = new CleanCSS().minify(cssContent);	
+		        	cssContent = new CleanCSS(cleanCssConfig.options).minify(cssContent);	
 		        }	       	        
 
 	            if (err || cssContent.length == 0) return next({
