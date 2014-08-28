@@ -208,7 +208,7 @@ Bosco.prototype._commands = function() {
 
 	var self = this, cmdPath = [__dirname,'commands'].join("/"), localPath = path.join(path.resolve("."),"commands");
 
-	var showTable = function(tableName, cPath, files, next) {		
+	var showTable = function(tableName, cPath, files, next) {				
 
 		var table = new Table({
 		    head: [tableName, 'Description','Example']
@@ -236,10 +236,15 @@ Bosco.prototype._commands = function() {
 
 	async.series([
 		function(next) {
-			fs.readdir(cmdPath, function(err, files) { showTable("Core", cmdPath, files, next) })
+			fs.readdir(cmdPath, function(err, files) { 
+				showTable("Core", cmdPath, files, next) 
+			})
 		},
 		function(next) {			
-			fs.readdir(localPath, function(err, files) { showTable("Local", localPath, files, next) })
+			fs.readdir(localPath, function(err, files) { 
+				if(!files || files.length == 0) return next();
+				showTable("Local", localPath, files, next) 
+			})
 		},
 		function(next) {
 		    console.log("You can also specify these parameters:")
