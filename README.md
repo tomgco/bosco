@@ -54,9 +54,7 @@ This is then saved in a configuration file locally on disk, default is in .bosco
 }
 ```
 
-Bosco will also include any configuration in a file in the .bosco folder with the environment specified via the -e parameter.  This allows you to manage things like AWS keys for publication of assets into different environments.
-
-One additional configuration parameter in this file is 'progress' - change it to "verbose" if you would prefer to see all of the output from the commands vs progress bars.
+Bosco will also include any configuration in a file in the .bosco folder with the environment specified via the -e parameter, along with global defaults in a file called 'defaults.json'.  This allows you to manage things like AWS keys for publication of assets into different environments, or configuration for uglify or cleancss.
 
 ## Command List
 
@@ -311,4 +309,10 @@ It is strongly recommended that you pull all 'core' libraries like jQuery into a
 
 Note that if you use the external build option then the files inside this project don't get included in the duplicate check.
 
+
+## Local Commands
+
+To create your own Bosco commands for your project (ones that you don't want to submit back to core via a pull request), simply create a 'commands' folder in the root of your Bosco workspace and add commands to it.  You can use any of the core commands as a starting point.
+
+At TES we have a github project that is a 'default' Bosco workspace that contains local commands and configuration that teams use as their workspace.
 
