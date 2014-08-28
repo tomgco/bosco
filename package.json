@@ -19,6 +19,10 @@
   "bin": {
     "bosco": "./bin/bosco.js"
   },
+   "repository": {
+    "type": "git",
+    "url": "https://github.com/TSLEducation/bosco.git"
+  },
   "author": "clifton.cunningham@tes.co.uk",
   "license": "MIT",
   "dependencies": {
