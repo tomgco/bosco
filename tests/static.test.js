@@ -26,6 +26,9 @@ var boscoMock = function() {
       },
       config: {
           get: function(key) {
+              if(key == 'css:clean') {
+                return {enabled: true};
+              }
               return key;
           }
       }
