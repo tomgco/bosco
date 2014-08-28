@@ -29,13 +29,12 @@ function Bosco(options) {
  }
 
  self.options = _.defaults(options, self._defaults);
- self.options.envConfigFile = "./.bosco/" + options.environment + ".json"
+ self.options.envConfigFile = "./.bosco/" + options.environment + ".json";
+ self.options.defaultsConfigFile = "./.bosco/defaults.json";
 
  self.config = require('nconf');
  self.prompt = prompt;
  self.progress = progress;
-
- console.log("\r"); 
 
  self._init(function(err) {
  	if(err) return console.log(err);
@@ -60,10 +59,10 @@ function Bosco(options) {
 		});
 	}
 
+	self.staticUtils = require('./src/StaticUtils')(self);
+
  	self.log("Initialised using [" + self.options.configFile.magenta + "] in environment [" + self.options.environment.green + "]");
  	self._cmd();
-
- 	console.log("\r"); 
 
  });
 
@@ -83,7 +82,8 @@ Bosco.prototype._init = function(next) {
   var loadConfig = function() {
   	self.config.env()
 	  	 .file({ file: self.options.configFile })
-	  	 .file('environment',{ file: self.options.envConfigFile });
+	  	 .file('environment',{ file: self.options.envConfigFile })
+	  	 .file('defaults',{ file: self.options.defaultsConfigFile });	   
   }
 
   self._checkConfig(function(err, initialise) {
@@ -190,45 +190,66 @@ Bosco.prototype._cmd = function() {
 	var self = this,
 		commands = self.options.args,
 		command = commands.shift(),
-		commandModule = [__dirname,"/","commands","/",command,'.js'].join("");
+		commandModule = [__dirname,"/","commands","/",command,'.js'].join(""),
+		localCommandModule = [path.resolve("."),"/","commands","/",command,'.js'].join("");
 
 	if(self.exists(commandModule)) {
 		require(commandModule).cmd(self, commands);
 	} else {
-		self._commands();
+		if(self.exists(localCommandModule)) {
+			require(localCommandModule).cmd(self, commands);
+		} else {
+			self._commands();
+		}		
 	}
 }
 
 Bosco.prototype._commands = function() {
 
-	var self = this, cmdPath = [__dirname,'commands'].join("/");
+	var self = this, cmdPath = [__dirname,'commands'].join("/"), localPath = path.join(path.resolve("."),"commands");
 
-	var table = new Table({
-	    head: ['Name', 'Description','Example']
-	  , colWidths: [10, 80, 80]
-	});
+	var showTable = function(tableName, cPath, files, next) {		
 
-	var showCommand = function(cmd) {
-		table.push([cmd.name, cmd.description || "",cmd.example || ""]);
-	}
-	
-	console.log("\r");
-	self.warn("Hey, to use bosco, you need to enter one of the following commands:")
+		var table = new Table({
+		    head: [tableName, 'Description','Example']
+		  , colWidths: [10, 80, 80]
+		});		
 
-	fs.readdir(cmdPath, function (err, files) {
-	    if (err) throw err;
+		var showCommand = function(cmd) {
+			table.push([cmd.name, cmd.description || "",cmd.example || ""]);
+		}
+
 	    files.map(function (file) {
-	        return path.join(cmdPath, file);
+	        return path.join(cPath, file);
 	    }).filter(function (file) {
 	        return fs.statSync(file).isFile();
 	    }).forEach(function (file) {
 	        showCommand(require(file))
 	    });
 	    console.log(table.toString());
-	    console.log("\r");
-	    console.log("You can also specify these parameters:")
-	    console.log(self.options.program.help());
-	});
+	    console.log("\r");	    
+	    next();
+	}
+	
+	console.log("\r");
+	self.warn("Hey, to use bosco, you need to enter one of the following commands:")
+
+	async.series([
+		function(next) {
+			fs.readdir(cmdPath, function(err, files) { showTable("Core", cmdPath, files, next) })
+		},
+		function(next) {			
+			fs.readdir(localPath, function(err, files) { showTable("Local", localPath, files, next) })
+		},
+		function(next) {
+		    console.log("You can also specify these parameters:")
+		    console.log(self.options.program.help());
+		}],
+		function(err) {
+			//
+		});
+
+
 
 }
 

@@ -16,9 +16,7 @@ module.exports = {
 }
 
 function cmd(bosco, args) {
-	
-	utils = require('../src/StaticUtils')(bosco);
-	
+		
 	var minify = _.contains(args,'minify');
 	var port = bosco.config.get('cdn:port') || 7334;
 	var serverUrl = "http://localhost:" + port + "/";
@@ -112,7 +110,7 @@ function cmd(bosco, args) {
 					watchBuilds: false,
 					reloadOnly: true
 				}
-		  		utils.getStaticAssets(options, function(err, updatedAssets) {
+		  		bosco.staticUtils.getStaticAssets(options, function(err, updatedAssets) {
 		  			// Clear old for tag
 		  			_.forOwn(staticAssets, function(value, key) {
 		  				if(value.tag == fileKey) delete staticAssets[key];
@@ -146,7 +144,7 @@ function cmd(bosco, args) {
 		watchBuilds: true,
 		reloadOnly: false
 	}
-	utils.getStaticAssets(options, function(err, staticAssets) {
+	bosco.staticUtils.getStaticAssets(options, function(err, staticAssets) {
 		startServer(staticAssets, port);
 		startMonitor(staticAssets);
 	});

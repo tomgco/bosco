@@ -167,7 +167,7 @@ module.exports = function(bosco) {
 
 		        var cleanCssConfig = bosco.config.get('css:clean');
 
-		        if(cleanCssConfig) {
+		        if(cleanCssConfig && cleanCssConfig.enabled) {
 		        	cssContent = new CleanCSS(cleanCssConfig.options).minify(cssContent);	
 		        }	       	        
 

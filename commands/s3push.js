@@ -20,9 +20,7 @@ module.exports = {
 var tag = "", noprompt = false;
 
 function cmd(bosco, args) {
-	
-	utils = require('../src/StaticUtils')(bosco);
-	
+		
 	if(args.length > 0) tag = args[0];	
 
 	cdnUrl = bosco.config.get('aws:cdn') + "/";
@@ -176,7 +174,7 @@ function cmd(bosco, args) {
 			reloadOnly: false
 		}
 
-		utils.getStaticAssets(options, function(err, staticAssets) {
+		bosco.staticUtils.getStaticAssets(options, function(err, staticAssets) {
 			checkManifests(staticAssets, function(err, confirmation) {
 				if(err) return bosco.error(err.message);
 				pushAllToS3(staticAssets, confirmation, function(err) {
