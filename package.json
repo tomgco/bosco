@@ -19,7 +19,7 @@
   "bin": {
     "bosco": "./bin/bosco.js"
   },
-   "repository": {
+  "repository": {
     "type": "git",
     "url": "https://github.com/TSLEducation/bosco.git"
   },

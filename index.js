@@ -13,6 +13,7 @@ var prompt = require('prompt');
 var async = require('async');
 var mkdirp = require('mkdirp');
 var knox = require('knox');
+var request = require('request');
 var colors = require('colors');		
 var dateformat = require('dateformat');	
 
@@ -37,6 +38,9 @@ function Bosco(options) {
  self.progress = progress;
 
  self._init(function(err) {
+
+ 	self._checkVersion();
+
  	if(err) return console.log(err);
 
 	var quotes, quotePath = self.config.get("quotes") || './quotes.json';
@@ -199,7 +203,7 @@ Bosco.prototype._cmd = function() {
 		if(self.exists(localCommandModule)) {
 			require(localCommandModule).cmd(self, commands);
 		} else {
-			self._commands();
+			self._commands();			
 		}		
 	}
 }
@@ -247,15 +251,42 @@ Bosco.prototype._commands = function() {
 			})
 		},
 		function(next) {
+			var wait = function() {		
+				if(self._checkingVersion) {					
+					setTimeout(wait, 100);
+				} else {
+					next();
+				}
+			}
+			wait();
+		},
+		function(next) {
 		    console.log("You can also specify these parameters:")
 		    console.log(self.options.program.help());
 		}],
 		function(err) {
-			//
+
 		});
 
 
+}
 
+Bosco.prototype._checkVersion = function() {
+	// Check the version in the background
+	var self = this;
+	self._checkingVersion = true;
+	var npmUrl = "http://registry.npmjs.org/bosco";
+	request(npmUrl, function (error, response, body) {		
+		if (!error && response.statusCode == 200) {
+			var jsonBody = JSON.parse(body);
+			var version = jsonBody['dist-tags'].latest;
+			if(self.options.version !== version) {
+				self.error("There is a newer version (Remote: " + version.green + " <> Local: " + self.options.version.yellow + ") of Bosco available, you should upgrade!");
+				console.log("\r");
+			}
+		}
+		self._checkingVersion = false;
+	});
 }
 
 Bosco.prototype.getOrg = function() {

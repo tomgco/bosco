@@ -48,6 +48,8 @@ module.exports = function(bosco) {
 	        var stdout = "", stderr = "",
 	            calledReady = false;
 	        var checkDelay = 500; // Seems reasonable for build check cycle	
+	        var timeout = checkDelay * 50; // Before it starts checkign for any stdout
+	        var timer = 0;
 
 	        wc.stdout.on('data', function(data) {
 	            stdout += data.toString();
@@ -61,11 +63,18 @@ module.exports = function(bosco) {
 	            if (stdout.indexOf(readyText) >= 0 && !calledReady) {
 	                calledReady = true;	  
 	                buildFinished(null, stdout, null);	             		               	              
-	            } else if (stderr.indexOf('Error:') >= 0 && !calledReady) {
+	            } else if (stderr && !calledReady) {
+	            	// This doesn't really get called, most build tools output to stdout
 	            	calledReady = true;
 	                buildFinished(stderr);
 	            } else {
-	                setTimeout(checkFinished, checkDelay);
+	            	timer = timer + checkDelay;
+	                if(timer < timeout) {
+	                	setTimeout(checkFinished, checkDelay);
+	                } else {
+	                	bosco.error("Build timed out beyond " + timeout/1000 + " seconds, likely an issue with the project build - you may need to check locally.");	                	
+	                	console.error(stdout);
+	                }
 	            }
 	        }
 

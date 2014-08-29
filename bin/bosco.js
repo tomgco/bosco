@@ -27,7 +27,8 @@ var options = {
 	environment: program.environment || "local",
 	args: program.args,
   force: program.force,
-  program: program
+  program: program,
+  version: pkg.version
 };
 
 var bosco = new Bosco(options);
