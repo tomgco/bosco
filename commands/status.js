@@ -58,10 +58,10 @@ function status(bosco, orgPath, next) {
 			bosco.error(orgPath.blue + " >> " + stderr);
 		} else {
 			if(stdout) {
-				if(stdout.indexOf("Your branch is up-to-date") > 0) {
-					bosco.log(orgPath.blue + ": " + "OK".green);					
+				if(stdout.indexOf("Changes not staged") > 0) {
+					bosco.log(orgPath.blue + ":\n" + stdout);					
 				} else {
-					bosco.log(orgPath.blue + ":\n" + stdout);
+					bosco.log(orgPath.blue + ": " + "OK".green);					
 				}
 			}
 		}
