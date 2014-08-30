@@ -63,6 +63,9 @@ module.exports = function(bosco) {
             assets[asset.type].push(key);           
         });
 
+        assets.user = bosco.config.get('github:user');
+        assets.date = (new Date()).toString();
+
         return template(assets);
         
     }

@@ -5,7 +5,6 @@ var http = require('http');
 var watch = require('watch');
 var sass = require("node-sass");
 var path = require('path');
-var hb = require('handlebars');
 var utils;
 
 module.exports = {
