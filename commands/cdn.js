@@ -49,27 +49,13 @@ function cmd(bosco, args) {
 			})
 		  } else {
 		  	response.writeHead(404, {"Content-Type": "text/html"});
-		  	response.end(formattedAssets(staticAssets));
+		  	response.end(staticAssets.formattedAssets);
 		  }		  
 		});		
 
 		server.listen(serverPort);
 		bosco.log("Server is listening on " + serverPort);
 	
-	}
-
-	var formattedAssets = function(staticAssets) {
-		
-		var assets = {html: [], js: [], css: [], plain: []},
-			templateContent = fs.readFileSync(__dirname + '/../templates/assetList.html'),
-			template = hb.compile(templateContent.toString());
-
-		_.map(staticAssets, function(asset, key) {
-			assets[asset.type].push(key);	  		
-	  	});
-
-		return template(assets);
-	  	
 	}
 
 	var startMonitor = function(staticAssets) {

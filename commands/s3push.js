@@ -34,6 +34,7 @@ function cmd(bosco, args) {
 		_.forOwn(staticAssets, function(asset, key) {			
 			
 			if(tag && tag !== asset.tag) return;
+			if(!asset.content) return;
 
 			// Check confirmation by type and key
 			if(asset.type == 'js' && !confirmation[asset.tag][asset.type]) return;
@@ -46,6 +47,9 @@ function cmd(bosco, args) {
 		});
 
 		saveS3record(toPush);
+
+		// Add index
+		toPush.push({content:staticAssets.formattedAssets, path:(bosco.options.environment + "/" + bosco.options.build + "/index.html"), type:'html'});
 
 		async.mapSeries(toPush, pushToS3, next);
 	}

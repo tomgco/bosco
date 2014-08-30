@@ -1,4 +1,6 @@
 var _ = require('lodash');
+var hb = require('handlebars');
+var fs = require('fs');
 
 module.exports = function(bosco) { 
     
@@ -44,7 +46,24 @@ module.exports = function(bosco) {
 
         staticAssets = _.merge(htmlAssets, staticAssets);
 
+        staticAssets.formattedAssets = formattedAssets(staticAssets);
+
         next(null, staticAssets);
 
+    }
+
+
+    function formattedAssets(staticAssets) {
+        
+        var assets = {html: [], js: [], css: [], plain: []},
+            templateContent = fs.readFileSync(__dirname + '/../templates/assetList.html'),
+            template = hb.compile(templateContent.toString());
+
+        _.map(staticAssets, function(asset, key) {
+            assets[asset.type].push(key);           
+        });
+
+        return template(assets);
+        
     }
 }

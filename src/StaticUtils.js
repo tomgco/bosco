@@ -4,6 +4,7 @@ var _ = require('lodash');
 var crypto = require("crypto");
 var exec = require('child_process').exec;
 var async = require('async');
+var hb = require('handlebars');
 
 module.exports = function(bosco) {
 
@@ -59,10 +60,6 @@ module.exports = function(bosco) {
 
             });
         });
-    }
-
-    function buildExternal(service, options, next) {    	
-        
     }
 
     function createAssetList(boscoRepo, minified, tagFilter, next) {
