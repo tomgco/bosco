@@ -2,6 +2,7 @@
 var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
+var path = require('path');
 var http = require('http');
 var pm2 = require('pm2');
 
@@ -24,15 +25,15 @@ function cmd(bosco, args) {
 
 		var startRunnableServices = function(running) {			
 			async.map(repos, function(repo, next) {				
-				var boscoService, basePath, repoPath = bosco.getRepoPath(repo), boscoJson = [repoPath,"bosco-service.json"].join("/");
-				if(repo.match(repoRegex) && bosco.exists(boscoJson)) {
-					boscoService = require(boscoJson);
-					if(_.contains(running, repo)) {
+				var pkg, basePath, repoPath = bosco.getRepoPath(repo), packageJson = [repoPath,"package.json"].join("/");
+				if(repo.match(repoRegex) && bosco.exists(packageJson)) {
+					pkg = require(packageJson);
+					if(_.contains(running, repos)) {
 						bosco.warn(repo + " already running, use 'bosco stop " + repo + "'");
 						return next();
 					}					
-					if(boscoService.scripts) {
-						runService(repo, boscoService.scripts, repoPath, next);
+					if(pkg.scripts && pkg.scripts.start) {
+						runService(repo, pkg.scripts, repoPath, next);
 					} else {
 						next();
 					}
@@ -57,8 +58,25 @@ function cmd(bosco, args) {
 			run(repo, scripts, repoPath, next);
 		}
 
-		var run = function(repo, scripts, repoPath, next) {				
-			pm2.start(scripts.start, { name: repo, cwd: repoPath, watch: true, executeCommand: scripts.isCommand}, next);
+		var run = function(repo, scripts, repoPath, next) {		
+			
+			// Remove node from the start script as not req'd for PM2
+			var start = scripts.start, startArr;			
+			if(start.split(" ")[0] == "node") {
+				 startArr = start.split(" ");
+				 startArr.shift();				 
+				 start = startArr.join(" ");
+			}		
+
+			// If no extension, assume a JS file
+			var ext = path.extname(start);
+			if(!path.extname(start)) {
+				ext = ".js";
+				start = start + ".js";
+			}
+
+			pm2.start(start, { name: repo, cwd: repoPath, watch: true, executeCommand: ext == ".js" ? false : true }, next);
+
 		}
 
 		bosco.log("Run each mircoservice " + args);

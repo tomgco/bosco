@@ -24,11 +24,11 @@ function cmd(bosco, args) {
 
 		var stopRunningServices = function(running) {			
 			async.map(repos, function(repo, next) {				
-				var boscoService, basePath, repoPath = bosco.getRepoPath(repo), boscoJson = [repoPath,"bosco-service.json"].join("/");
-				if(repo.match(repoRegex) && bosco.exists(boscoJson)) {
-					boscoService = require(boscoJson);
+				var pkg, basePath, repoPath = bosco.getRepoPath(repo), packageJson = [repoPath,"package.json"].join("/");
+				if(repo.match(repoRegex) && bosco.exists(packageJson)) {
+					pkg = require(packageJson);
 					if(_.contains(running, repo)) {
-						stopService(repo, boscoService.scripts.start, repoPath, next);						
+						stopService(repo, pkg.scripts.start, repoPath, next);						
 					} else {
 						bosco.error("Not running: " + repo);
 						next();
