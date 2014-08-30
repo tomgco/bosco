@@ -60,8 +60,10 @@ function status(bosco, orgPath, next) {
 			if(stdout) {
 				if(stdout.indexOf("Changes not staged") > 0) {
 					bosco.log(orgPath.blue + ":\n" + stdout);					
+				} else if(stdout.indexOf("Your branch is ahead") > 0) {
+					bosco.log(orgPath.blue + ":\n" + stdout);										
 				} else {
-					bosco.log(orgPath.blue + ": " + "OK".green);					
+					bosco.log(orgPath.blue + ": " + "OK".green);	
 				}
 			}
 		}
