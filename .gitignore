@@ -1,5 +1,6 @@
 node_modules
 TSLEducation
+.DS_Store
 ./bosco.json
 .bosco
 npm-debug.log
