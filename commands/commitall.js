@@ -8,12 +8,8 @@ var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
 var utils;
 
-/*
-* this command is called pushall as there is a weird Node bug when calling the command 'push' - try bosco push to see.
-*/
-
 module.exports = {
-	name:'pushall',
+	name:'commitall',
 	description:'Will run commit across all repos - useful for batch updates',
 	example:'bosco commit <pattern> <commitMsg>',
 	cmd:cmd

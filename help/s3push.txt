@@ -1,0 +1,20 @@
+
+This command is used to minify and push assets up to S3:
+
+Development Usage
+=================
+
+  bosco -e development s3push
+
+This will push the 'default' build up to S3, which in most typical setups will be the Compoxure include for that environment.  
+
+If you want to push a specific feature, use the -b (branch) parameter:
+
+  bosco -e development -b myfeature s3push
+
+Further Environments
+=================
+
+You can push to any environment by changing the -e parameter, and adding -n will stop the prompt, allowing the command to run on a build server:
+
+  bosco -e staging -n s3push top

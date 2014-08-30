@@ -216,7 +216,7 @@ Bosco.prototype._commands = function() {
 
 		var table = new Table({
 		    head: [tableName, 'Description','Example']
-		  , colWidths: [10, 80, 80]
+		  , colWidths: [12, 90, 60]
 		});		
 
 		var showCommand = function(cmd) {
