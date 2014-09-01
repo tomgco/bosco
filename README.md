@@ -68,17 +68,17 @@ To get a list of installed commands in your installation just type 'bosco':
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
 │ cdn        │ Aggregates all the static assets across all microservices and serves them via a pseudo … │ bosco cdn <minify>                                         │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ commitall  │ Will run commit across all repos - useful for batch updates                              │ bosco commit <pattern> <commitMsg>                         │
+│ commitall  │ Will run commit across all repos - useful for batch updates                              │ bosco commit -r <repoPattern> 'Commit Message'             │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
 │ config     │ Lets you manage config from the command line instead of editing json files               │ bosco config set <key> <value> | bosco config show <key>   │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ fly        │ Initialises your entire working environment in one step                                  │ bosco fly <pull> <install>                                 │
+│ fly        │ Initialises your entire working environment in one step                                  │ bosco fly <pull> <install> -r <repoPattern>                │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
 │ help       │ Shows help about Bosco                                                                   │ bosco help <command>                                       │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ pushall    │ Will push any changes across all repos - useful for batch updates, typicall used after … │ bosco pushall <regex>                                      │
+│ pushall    │ Will push any changes across all repos - useful for batch updates, typicall used after … │ bosco pushall -r <repoPattern>                             │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ run        │ Runs all of the microservices (or subset based on regex pattern) using pm2               │ bosco run <pattern>                                        │
+│ run        │ Runs all of the microservices (or subset based on regex pattern) using pm2               │ bosco run -r <repoPattern>                                 │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
 │ s3delete   │ Deletes a published asset set from S3 - must be one you have published previously        │ bosco -e <environmment> s3delete <build>                   │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
@@ -86,13 +86,13 @@ To get a list of installed commands in your installation just type 'bosco':
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
 │ s3push     │ Builds all of the front end assets for each microservice and pushes them to S3 for the … │ bosco -e <environment> -b <build> s3push <tag>             │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ stash      │ Stashes any local changes across all repos                                               │ bosco stash                                                │
+│ stash      │ Stashes any local changes across all repos                                               │ bosco stash -r <repoPattern>                               │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ status     │ Checks git status across all services                                                    │ bosco status                                               │
+│ status     │ Checks git status across all services                                                    │ bosco status -r <repoPattern>                              │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ stop       │ Stops all of the microservices (or subset based on regex pattern) using pm2              │ bosco stop <pattern>                                       │
+│ stop       │ Stops all of the microservices (or subset based on regex pattern) using pm2              │ bosco stop -r <repoPattern>                                │
 ├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ upstream   │ Runs a git fetch and tells you what has changed upstream for all your repos              │ bosco upstream                                             │
+│ upstream   │ Runs a git fetch and tells you what has changed upstream for all your repos              │ bosco upstream -r <repoPattern>                            │
 └────────────┴──────────────────────────────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
 ```
 
