@@ -9,13 +9,13 @@ var pm2 = require('pm2');
 module.exports = {
 	name:'run',
 	description:'Runs all of the microservices (or subset based on regex pattern) using pm2',
-	example:'bosco run <pattern>',
+	example:'bosco run -r <repoPattern>',
 	cmd:cmd
 }
 
 function cmd(bosco, args) {
 
-	var repoPattern = args.shift() || '.*';
+	var repoPattern = bosco.options.repo;
 	var repoRegex = new RegExp(repoPattern);
 	var repos = bosco.config.get('github:repos');
 	var runningServices = {};

@@ -15,7 +15,7 @@ var utils;
 module.exports = {
 	name:'pushall',
 	description:'Will push any changes across all repos - useful for batch updates, typicall used after commitall',
-	example:'bosco pushall <regex>',
+	example:'bosco pushall -r <repoPattern>',
 	cmd:cmd
 }
 
@@ -24,7 +24,7 @@ function cmd(bosco, args) {
 	var repos = bosco.config.get('github:repos');
 	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
 
-	var regex = args[0] ? new RegExp(args[0]) : new RegExp(".*"); 
+	var regex = bosco.options.repo; 
 
 	bosco.log("Running git push across all repos that match " + regex + "...");
 

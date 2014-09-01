@@ -11,7 +11,7 @@ var utils;
 module.exports = {
 	name:'commitall',
 	description:'Will run commit across all repos - useful for batch updates',
-	example:'bosco commit <pattern> <commitMsg>',
+	example:'bosco commit -r <repoPattern> \'Commit Message\'',
 	cmd:cmd
 }
 
@@ -20,15 +20,10 @@ function cmd(bosco, args) {
 	var repos = bosco.config.get('github:repos');
 	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
 
-	var repoPattern = args.shift();
+	var repoPattern = bosco.options.repo;
 	var message = args.shift();
 
-	if(!repoPattern) return bosco.error("You need to supply at least a commit message.");
-
-	if(!message) {
-		message = repoPattern;
-		repoPattern = ".*";
-	}
+	if(!message) return bosco.error("You need to supply at least a commit message.");
 
 	if(args.shift()) {
 		return bosco.error("You need to put your commit message in quotes: 'this is my message'");

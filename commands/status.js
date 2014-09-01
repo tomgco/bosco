@@ -13,11 +13,14 @@ var utils;
 module.exports = {
 	name:'status',
 	description:'Checks git status across all services',
-	example:'bosco status',
+	example:'bosco status -r <repoPattern>',
 	cmd:cmd
 }
 
 function cmd(bosco, args) {
+
+	var repoPattern = bosco.options.repo;
+	var repoRegex = new RegExp(repoPattern);
 
 	var repos = bosco.config.get('github:repos');
 	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
@@ -28,6 +31,8 @@ function cmd(bosco, args) {
 	    		
 
 		async.mapSeries(repos, function repoStash(repo, repoCb) {	  
+
+		  if(!repo.match(repoRegex)) return repoCb();
 
 		  var repoPath = bosco.getRepoPath(repo); 
 		  status(bosco, repoPath, repoCb);

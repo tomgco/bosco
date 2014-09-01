@@ -13,11 +13,14 @@ var utils;
 module.exports = {
 	name:'upstream',
 	description:'Runs a git fetch and tells you what has changed upstream for all your repos',
-	example:'bosco upstream',
+	example:'bosco upstream -r <repoPattern>',
 	cmd:cmd
 }
 
 function cmd(bosco, args) {
+
+	var repoPattern = bosco.options.repo;
+	var repoRegex = new RegExp(repoPattern);
 
 	var repos = bosco.config.get('github:repos');
 	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
@@ -25,6 +28,7 @@ function cmd(bosco, args) {
 	var changedRepos = function(cb) { 	
 		async.mapSeries(repos, function repoStash(repo, repoCb) {	  
 		  var repoPath = bosco.getRepoPath(repo); 
+		  if(!repo.match(repoRegex)) return repoCb();
 		  upstream(bosco, repoPath, repoCb);
 		}, function(err) {
 			cb();

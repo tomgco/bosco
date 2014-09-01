@@ -13,7 +13,7 @@ var red = '\u001b[41m \u001b[0m';
 module.exports = {
 	name:'fly',
 	description:'Initialises your entire working environment in one step',
-	example: 'bosco fly <pull> <install>',
+	example: 'bosco fly <pull> <install> -r <repoPattern>',
 	help: getHelp(),
 	cmd:cmd
 }
@@ -30,6 +30,9 @@ function cmd(bosco, args) {
 	    proxy: process.env.http_proxy ? process.env.http_proxy : undefined,
 	    json: true
 	};
+
+	var repoPattern = bosco.options.repo;
+	var repoRegex = new RegExp(repoPattern);
 
     var ignoredRepos = bosco.config.get('github:ignoredRepos') || [];
 
@@ -71,7 +74,7 @@ function cmd(bosco, args) {
             }
 
             reposJson.forEach(obtainRepositoryName);
-            fetch(bosco, repos, args);
+            fetch(bosco, repos, repoRegex, args);
 
         }
 
@@ -83,7 +86,7 @@ function cmd(bosco, args) {
 	
 }
 
-function fetch(bosco, repos, args) {
+function fetch(bosco, repos, repoRegex, args) {
 
 	var org = bosco.config.get('github:organization'), orgPath;
 
@@ -119,6 +122,8 @@ function fetch(bosco, repos, args) {
 
     	  if(progressbar) bar.tick();
 
+    	  if(!repo.match(repoRegex)) return repoCb();
+
 		  var repoPath = bosco.getRepoPath(repo); 
 		  var repoUrl = bosco.getRepoUrl(repo);
 
@@ -141,7 +146,7 @@ function fetch(bosco, repos, args) {
 
 	var installRepos = function(cb) {
 	   
-	   	if(!_.contains(args,'install')) return cb();
+	   	if(!_.contains(args,'install')) return cb();	   	
 
 		var progressbar = bosco.config.get('progress') == 'bar', 
 			total = repos.length;
@@ -156,6 +161,8 @@ function fetch(bosco, repos, args) {
 		async.mapSeries(repos, function repoInstall(repo, repoCb) {	  
 
     	  if(progressbar) bar.tick();
+
+    	  if(!repo.match(repoRegex)) return repoCb();
 
 		  var repoPath = bosco.getRepoPath(repo); 
 		  install(bosco, progressbar, repoPath, repoCb);
