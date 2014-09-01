@@ -276,7 +276,7 @@ Bosco.prototype._checkVersion = function() {
 	var self = this;
 	self._checkingVersion = true;
 	var npmUrl = "http://registry.npmjs.org/bosco";
-	request(npmUrl, function (error, response, body) {		
+	request({url:npmUrl,timeout:1000}, function (error, response, body) {		
 		if (!error && response.statusCode == 200) {
 			var jsonBody = JSON.parse(body);
 			var version = jsonBody['dist-tags'].latest;
