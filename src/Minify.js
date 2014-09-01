@@ -196,7 +196,13 @@ module.exports = function(bosco) {
 	}
 
 	function createHash(code) {
-	    return crypto.createHash("sha1").update(code).digest("hex").slice(0, 10);
+	    var hash = crypto.createHash("sha1").update(code).digest("hex").slice(0, 7);	    
+	    hash = hash.replace(/a/g,"b");
+	    hash = hash.replace(/e/g,"f");
+	    hash = hash.replace(/i/g,"j");
+	    hash = hash.replace(/o/g,"p");
+	    hash = hash.replace(/u/g,"v");
+	    return hash;
 	}
 
 	function  sassRender(scss, callback) {	    
