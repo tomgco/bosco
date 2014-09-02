@@ -63,7 +63,13 @@ function install(bosco, progressbar, bar, repoPath, next) {
 		return next();	
 	}
 
-	exec('npm install', {
+	var npmCommand = 'npm';
+	if(bosco.config.get('npm:registry')) {
+		npmCommand += ' --registry ' + bosco.config.get('npm:registry');
+	}
+	npmCommand += ' install';
+	
+	exec(npmCommand, {
 	  cwd: repoPath
 	}, function(err, stdout, stderr) {
 		if(progressbar) bar.tick();
