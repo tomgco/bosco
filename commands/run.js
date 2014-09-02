@@ -66,6 +66,12 @@ function cmd(bosco, args) {
 				 startArr = start.split(" ");
 				 startArr.shift();				 
 				 start = startArr.join(" ");
+			}	
+
+			var ext = path.extname(start);
+			if(!path.extname(start)) {
+				ext = ".js";
+				start = start + ".js";
 			}
 
 			pm2.start(start, { name: repo, cwd: repoPath, watch: true, executeCommand: ext == ".js" ? false : true }, next);
