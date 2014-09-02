@@ -68,7 +68,7 @@ To get a list of installed commands in your installation just type 'bosco':
 ├────────────┼────────────────────────────────────────────────────────────┤
 │ cdn        │ bosco cdn <minify>                                         │
 ├────────────┼────────────────────────────────────────────────────────────┤
-│ install    │ bosco clean -r <repoPattern>                               │
+│ clean      │ bosco clean -r <repoPattern>                               │
 ├────────────┼────────────────────────────────────────────────────────────┤
 │ fly        │ bosco clone                                                │
 ├────────────┼────────────────────────────────────────────────────────────┤
