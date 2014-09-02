@@ -49,7 +49,8 @@ function cmd(bosco, args) {
 
 		});
 
-		saveS3record(toPush);
+		// Disable for now so that per environment configs can be committed
+		// saveS3record(toPush);
 
 		// Add index
 		toPush.push({content:staticAssets.formattedAssets, path:(bosco.options.environment + "/" + bosco.options.build + "/index.html"), type:'html'});
