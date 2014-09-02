@@ -32,6 +32,7 @@ function Bosco(options) {
  self.options = _.defaults(options, self._defaults);
  self.options.envConfigFile = "./.bosco/" + options.environment + ".json";
  self.options.defaultsConfigFile = "./.bosco/defaults.json";
+ self.options.cpus = require('os').cpus().length;
 
  self.config = require('nconf');
  self.prompt = prompt;
@@ -203,9 +204,52 @@ Bosco.prototype._cmd = function() {
 		if(self.exists(localCommandModule)) {
 			require(localCommandModule).cmd(self, commands);
 		} else {
-			self._commands();			
+			if(self.options.shellCommands) {
+				self._shellCommands();			
+			} else {
+				self._commands();			
+			}
+			
 		}		
 	}
+}
+
+Bosco.prototype._shellCommands = function() {
+
+	var self = this, cmdPath = [__dirname,'commands'].join("/"), localPath = path.join(path.resolve("."),"commands");
+
+	var showCommands = function(cPath, files, next) {				
+		var showCommand = function(cmd) {
+			return(cmd.name);
+		}
+		var cmdString = "";
+	    files.map(function (file) {
+	        return path.join(cPath, file);
+	    }).filter(function (file) {
+	        return fs.statSync(file).isFile();
+	    }).forEach(function (file) {
+	        cmdString += showCommand(require(file)) + " ";
+	    });	    
+	    next(null, cmdString.split(" "));
+	}
+	
+	async.series([
+		function(next) {
+			fs.readdir(cmdPath, function(err, files) { 
+				showCommands(cmdPath, files, next) 
+			})
+		},
+		function(next) {			
+			fs.readdir(localPath, function(err, files) { 
+				if(!files || files.length == 0) return next();
+				showCommands(localPath, files, next) 
+			})
+		}],
+		function(err, files) {
+			files = _.uniq(_.flatten(files));
+			console.log("Available commands: " + files.join(" "));
+			process.exit(0);
+		});
 }
 
 Bosco.prototype._commands = function() {
@@ -215,12 +259,12 @@ Bosco.prototype._commands = function() {
 	var showTable = function(tableName, cPath, files, next) {				
 
 		var table = new Table({
-		    head: [tableName, 'Description','Example']
-		  , colWidths: [12, 90, 60]
+		    head: [tableName,'Example']
+		  , colWidths: [12, 60]
 		});		
 
 		var showCommand = function(cmd) {
-			table.push([cmd.name, cmd.description || "",cmd.example || ""]);
+			table.push([cmd.name, cmd.example || ""]);
 		}
 
 	    files.map(function (file) {

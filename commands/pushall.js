@@ -52,8 +52,6 @@ function cmd(bosco, args) {
 
 }
 
-
-
 function confirm(bosco, message, next) {
 	 bosco.prompt.start();
   	 bosco.prompt.get({
@@ -71,7 +69,6 @@ function confirm(bosco, message, next) {
   	 	}
   	 });
 }
-
 
 function push(bosco, orgPath, next) {
     

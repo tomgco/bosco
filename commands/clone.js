@@ -12,13 +12,13 @@ var red = '\u001b[41m \u001b[0m';
 
 module.exports = {
 	name:'fly',
-	description:'Initialises your entire working environment in one step',
-	example: 'bosco fly <pull> <install> -r <repoPattern>',
+	description:'Gets an list of all repos in your team and runs git clone for each',
+	example: 'bosco clone',
 	help: getHelp(),
 	cmd:cmd
 }
 
-function cmd(bosco, args) {
+function cmd(bosco, args, next) {
 
 	var options = {
 	    headers: {
@@ -74,7 +74,7 @@ function cmd(bosco, args) {
             }
 
             reposJson.forEach(obtainRepositoryName);
-            fetch(bosco, repos, repoRegex, args);
+            fetch(bosco, repos, repoRegex, args, next);
 
         }
 
@@ -86,7 +86,7 @@ function cmd(bosco, args) {
 	
 }
 
-function fetch(bosco, repos, repoRegex, args) {
+function fetch(bosco, repos, repoRegex, args, next) {
 
 	var org = bosco.config.get('github:organization'), orgPath;
 
@@ -118,9 +118,7 @@ function fetch(bosco, repos, repoRegex, args) {
 			total: total
 		}) : null;
 
-    	async.mapSeries(repos, function repoGet(repo, repoCb) {	  
-
-    	  if(progressbar) bar.tick();
+    	async.mapLimit(repos, bosco.options.cpus, function repoGet(repo, repoCb) {	      	 
 
     	  if(!repo.match(repoRegex)) return repoCb();
 
@@ -128,107 +126,40 @@ function fetch(bosco, repos, repoRegex, args) {
 		  var repoUrl = bosco.getRepoUrl(repo);
 
 		  if(bosco.exists(repoPath)) {
-		  	if(_.contains(args,'pull')) {
-		  		pull(bosco, progressbar, repoPath, repoCb);
-		  	} else {	
-		  		pullFlag = true;	  		
-		  		repoCb();
-		  	}		  
+		  	pullFlag = true;	  		
+		  	if(progressbar) bar.tick();
+		  	repoCb();
 		  } else {
-		  	clone(bosco,  progressbar, repoUrl, orgPath, repoCb);
+		  	clone(bosco,  progressbar, bar, repoUrl, orgPath, repoCb);
 		  }
 		}, function(err) {
-			if(pullFlag) bosco.warn("Some repositories already existed, to pull changes use 'bosco fly pull'");
+			if(pullFlag) bosco.warn("Some repositories already existed, to pull changes use 'bosco pull'");
 			cb(err);
 		})
 		
 	}
 
-	var installRepos = function(cb) {
-	   
-	   	if(!_.contains(args,'install')) return cb();	   	
-
-		var progressbar = bosco.config.get('progress') == 'bar', 
-			total = repos.length;
-
-		var bar = progressbar ? new bosco.progress('Running NPM install  [:bar] :percent :etas', {
-  			complete: green,
-  			incomplete: red,
-			width: 50,
-			total: total
-		}) : null;
-
-		async.mapSeries(repos, function repoInstall(repo, repoCb) {	  
-
-    	  if(progressbar) bar.tick();
-
-    	  if(!repo.match(repoRegex)) return repoCb();
-
-		  var repoPath = bosco.getRepoPath(repo); 
-		  install(bosco, progressbar, repoPath, repoCb);
-
-		}, function(err) {
-			cb(err);
-		});
-
-	}
-
-	async.series([checkOrg, saveRepos, getRepos, installRepos], function(err) {
+	async.series([checkOrg, saveRepos, getRepos], function(err) {
 		bosco.log("Complete");
+		if(next) next();
 	});
 
 }
 
-function clone(bosco, progressbar, repoUrl, orgPath, next) {
+function clone(bosco, progressbar, bar, repoUrl, orgPath, next) {
     if(!progressbar) bosco.log("Cloning " + repoUrl.blue + " into " + orgPath.blue);
 	exec('git clone ' + repoUrl, {
 	  cwd: orgPath
 	}, function(err, stdout, stderr) {
+		if(progressbar) bar.tick();
 		if(err) {
 			if(progressbar) console.log("");
 			bosco.error(repoUrl.blue + " >> " + stderr);
 		} else {
 			if(!progressbar && stdout) bosco.log(repoUrl.blue + " >> " + stdout);
 		}
-		next(err);
+		next();
 	});
-}
-
-function pull(bosco, progressbar, repoPath, next) {
-	
-	if(!progressbar) bosco.log("Pulling " + repoPath.blue)
-
-	exec('git pull --rebase origin master', {
-	  cwd: repoPath
-	}, function(err, stdout, stderr) {
-		if(err) {
-			if(progressbar) console.log("");
-			bosco.error(repoPath.blue + " >> " + stderr);
-		} else {
-			if(!progressbar && stdout) bosco.log(repoPath.blue + " >> " + stdout);
-		}
-		next(err);
-	});
-}
-
-function install(bosco, progressbar, repoPath, next) {
-
-	var packageJson = [repoPath,"package.json"].join("/");
-	if(!bosco.exists(packageJson)) return next();
-	if(!progressbar) bosco.log("Running NPM install for " + repoPath);
-
-	exec('npm install', {
-	  cwd: repoPath
-	}, function(err, stdout, stderr) {
-		if(err) {
-			if(progressbar) console.log("");
-			bosco.error(repoPath.blue + " >> " + stderr);
-		} else {
-			if(!progressbar && stdout) bosco.log(stdout);
-		}
-		next(err);
-	});
-
 }
 
 function getHelp() {

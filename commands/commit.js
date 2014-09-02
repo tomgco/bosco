@@ -9,7 +9,7 @@ var red = '\u001b[41m \u001b[0m';
 var utils;
 
 module.exports = {
-	name:'commitall',
+	name:'commit',
 	description:'Will run commit across all repos - useful for batch updates',
 	example:'bosco commit -r <repoPattern> \'Commit Message\'',
 	cmd:cmd

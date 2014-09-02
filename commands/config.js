@@ -55,7 +55,6 @@ function cmd(bosco, args) {
 		if(!key && !value) return bosco.error("You need to specify a key and value: " + "bosco config set <key> <value>".blue);
 
 		var prevValue = bosco.config.get(key);
-		console.log(typeof prevValue);
 
 		if(typeof prevValue == 'object') {
 			return bosco.error("You can only set values, not objects, try one of its children using ':' as the separator - e.g. github:team");			

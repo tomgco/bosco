@@ -8,10 +8,10 @@ Bosco is a utility knife to help manage the complexity that using microservices,
 
 ```
 npm install bosco -g
-bosco fly
+bosco setup
 ```
 
-Run this command in a folder where you want all of your projects to live.  It will prompt you for some information, and then save this configuration in this based folder, in future always run bosco from here.
+Run this command in a folder where you want all of your projects to live.  It will prompt you for some information, and then save this configuration in this based folder, in future always run bosco from here - this is your new work folder when working in this team.
 
 ## Configuration
 
@@ -63,37 +63,53 @@ Commands in Bosco are defined via specific command files within the 'commands' f
 To get a list of installed commands in your installation just type 'bosco':
 
 ```
-┌────────────┬──────────────────────────────────────────────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
-│ Core       │ Description                                                                              │ Example                                                    │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ cdn        │ Aggregates all the static assets across all microservices and serves them via a pseudo … │ bosco cdn <minify>                                         │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ commitall  │ Will run commit across all repos - useful for batch updates                              │ bosco commit -r <repoPattern> 'Commit Message'             │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ config     │ Lets you manage config from the command line instead of editing json files               │ bosco config set <key> <value> | bosco config show <key>   │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ fly        │ Initialises your entire working environment in one step                                  │ bosco fly <pull> <install> -r <repoPattern>                │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ help       │ Shows help about Bosco                                                                   │ bosco help <command>                                       │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ pushall    │ Will push any changes across all repos - useful for batch updates, typicall used after … │ bosco pushall -r <repoPattern>                             │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ run        │ Runs all of the microservices (or subset based on regex pattern) using pm2               │ bosco run -r <repoPattern>                                 │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ s3delete   │ Deletes a published asset set from S3 - must be one you have published previously        │ bosco -e <environmment> s3delete <build>                   │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ s3list     │ Lists all of the S3 pushes you have done from this configuration                         │ bosco -e <environment> s3list                              │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ s3push     │ Builds all of the front end assets for each microservice and pushes them to S3 for the … │ bosco -e <environment> -b <build> s3push <tag>             │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ stash      │ Stashes any local changes across all repos                                               │ bosco stash -r <repoPattern>                               │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ status     │ Checks git status across all services                                                    │ bosco status -r <repoPattern>                              │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ stop       │ Stops all of the microservices (or subset based on regex pattern) using pm2              │ bosco stop -r <repoPattern>                                │
-├────────────┼──────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ upstream   │ Runs a git fetch and tells you what has changed upstream for all your repos              │ bosco upstream -r <repoPattern>                            │
-└────────────┴──────────────────────────────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+┌────────────┬────────────────────────────────────────────────────────────┐
+│ Core       │ Example                                                    │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ cdn        │ bosco cdn <minify>                                         │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ install    │ bosco clean -r <repoPattern>                               │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ fly        │ bosco clone                                                │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ commit     │ bosco commit -r <repoPattern> 'Commit Message'             │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ config     │ bosco config set <key> <value> | bosco config show <key>   │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ help       │ bosco help <command>                                       │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ install    │ bosco install -r <repoPattern>                             │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ setup      │ bosco setup                                                │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ pull       │ bosco pull -r <repoPattern>                                │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ pushall    │ bosco pushall -r <repoPattern>                             │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ run        │ bosco run -r <repoPattern>                                 │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ s3delete   │ bosco -e <environmment> s3delete <build>                   │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ s3list     │ bosco -e <environment> s3list                              │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ s3push     │ bosco -e <environment> -b <build> s3push <tag>             │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ setup      │ bosco setup                                                │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ stash      │ bosco stash -r <repoPattern>                               │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ status     │ bosco status -r <repoPattern>                              │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ stop       │ bosco stop -r <repoPattern>                                │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ upstream   │ bosco upstream -r <repoPattern>                            │
+└────────────┴────────────────────────────────────────────────────────────┘
+```
+
+To get help on any command just type;
+
+```
+bosco help s3push
 ```
 
 ## Parameters
@@ -115,19 +131,10 @@ You can use a number of parameters to control the behaviour of Bosco.  Parameter
 The default command, this sets you up.
 
 ```
-bosco fly <pull> <install>
+bosco setup
 ```
 
-This will clone all the repositories in your team, and then run npm install on all of them.  If the repository already exists locally it will skip it.  
-
-To have it update the repository with changes, just add 'pull' to the command, and it will issue a 'git pull --rebase' on all the projects.
-
-To have it run 'npm install' against all repos, just add 'install'.
-
-```
-bosco fly pull install
-```
-
+This will clone all the repositories in your team, and then run npm install on all of them.  If the repository already exists locally it will skip it.  Typically you only use this command once, and use the other pull, install, morning commands on a daily basis.
 
 ## Service Configuration
 

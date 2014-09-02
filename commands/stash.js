@@ -3,7 +3,6 @@ var async = require('async');
 var fs = require('fs');
 var path = require('path');
 var exec = require('child_process').exec;
-var utils;
 
 module.exports = {
 	name:'stash',
@@ -38,9 +37,8 @@ function cmd(bosco, args) {
 
 		  if(!repo.match(repoRegex)) return repoCb();
 
-    	  if(progressbar) bar.tick();
 		  var repoPath = bosco.getRepoPath(repo); 
-		  stash(bosco, progressbar, repoPath, repoCb);
+		  stash(bosco, progressbar, bar, repoPath, repoCb);
 		  
 		}, function(err) {
 			cb();
@@ -54,7 +52,7 @@ function cmd(bosco, args) {
 
 }
 
-function stash(bosco, progressbar, orgPath, next) {
+function stash(bosco, progressbar, bar, orgPath, next) {
     
     if(!progressbar) bosco.log("Stashing "+ orgPath.blue);
     if(!bosco.exists([orgPath,".git"].join("/"))) {
@@ -65,6 +63,7 @@ function stash(bosco, progressbar, orgPath, next) {
 	exec('git stash', {
 	  cwd: orgPath
 	}, function(err, stdout, stderr) {
+		if(progressbar) bar.tick();
 		if(err) {
 			if(progressbar) console.log("");
 			bosco.error(orgPath.blue + " >> " + stderr);
