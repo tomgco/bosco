@@ -7,7 +7,7 @@ var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
 
 module.exports = {
-	name:'install',
+	name:'clean',
 	description:'Cleans out node_modules and re-runs npm install against all repos',
 	example:'bosco clean -r <repoPattern>',
 	cmd:cmd
