@@ -22,6 +22,9 @@ function cmd(bosco, args) {
 	cdnUrl = bosco.config.get('aws:cdn') + "/";
 	force = bosco.options.force;
 	noprompt = bosco.options.noprompt;
+
+	var maxAge = bosco.config.get('aws:maxage');		
+	if(typeof maxAge !== 'number') maxAge = 300;	
  
 	bosco.log("Compile front end assets across services " + (tag ? "for tag: " + tag.blue : ""));
 
@@ -74,7 +77,7 @@ function cmd(bosco, args) {
 		var buffer = new Buffer(file.content);
 		var headers = {
 		  'Content-Type': 'text/' + (file.type == 'js' ? 'javascript': file.type),
-		  'Cache-Control': 'max-age=300'
+		  'Cache-Control': ('max-age=' + (maxAge == 0 ? "0, must-revalidate" : maxAge))
 		};
 		bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){		  
 	      if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
