@@ -55,7 +55,7 @@ function Bosco(options) {
 	}
 
 	var aws = self.config.get('aws');
-	if(aws) {
+	if(aws && aws.key) {
 		self.knox = knox.createClient({
 		  key: aws.key,
 		  secret: aws.secret,
