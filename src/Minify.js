@@ -66,7 +66,7 @@ module.exports = function(bosco) {
 	            files: []
 	        };
 
-	        manifest[manifestFile].content += value.repo + value.basePath + "/" + value.asset + ', Last commit: ' + value.commit;
+	        manifest[manifestFile].content += value.repo + value.basePath + "/" + value.asset + ', Hash: ' + createHash(value.content) + ', Last commit: ' + value.commit;
 	        manifest[manifestFile].files.push({
 	            key: createKey(value.repo + value.basePath + "/" + value.asset, '', 'src', ''),
 	            relativePath: value.repo + value.basePath + "/" + value.asset,

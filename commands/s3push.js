@@ -158,7 +158,8 @@ function cmd(bosco, args) {
 			bosco.log(part.value[color]);						
 		});	
 
-		confirm("Are you certain you want to push based on the changes above?".white, next);	
+		if(!noprompt) return confirm("Are you certain you want to push based on the changes above?".white, next);	
+		return next(null, true);
 
 	}
 
