@@ -3,6 +3,8 @@ var async = require('async');
 var fs = require('fs');
 var path = require('path');
 var exec = require('child_process').exec;
+var green = '\u001b[42m \u001b[0m';
+var red = '\u001b[41m \u001b[0m';
 
 module.exports = {
 	name:'stash',
