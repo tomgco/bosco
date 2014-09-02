@@ -4,24 +4,24 @@ var prettyjson = require('prettyjson');
 module.exports = {
 	name:'config',
 	description:'Lets you manage config from the command line instead of editing json files',
-	example:'bosco config set <key> <value> | bosco config show <key>',
+	example:'bosco config set <key> <value> | bosco config get <key>',
 	cmd:cmd
 }
 
 function cmd(bosco, args) {
 	
 	var set = _.contains(args,"set");
-	var show = _.contains(args,"show");
+	var get = _.contains(args,"get");
 
 	var type = args.shift();
 	var key = args.shift();
 	var value = args.shift();
 
-	if(type !== 'set' && type !== 'show') {
+	if(type !== 'set' && type !== 'get') {
 		bosco.error("The command needs to be of the format: " + module.exports.example.blue);
 	}
 
-	if(type == 'show') {
+	if(type == 'get') {
 		// Get the key
 		if(!key) {
 			
