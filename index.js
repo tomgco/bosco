@@ -223,12 +223,8 @@ Bosco.prototype._shellCommands = function() {
 			return(cmd.name);
 		}
 		var cmdString = "";
-	    files.map(function (file) {
-	        return path.join(cPath, file);
-	    }).filter(function (file) {
-	        return fs.statSync(file).isFile();
-	    }).forEach(function (file) {
-	        cmdString += showCommand(require(file)) + " ";
+	    files.forEach(function (file) {
+	        cmdString += file.replace(".js","") + " ";
 	    });	    
 	    next(null, cmdString.split(" "));
 	}
