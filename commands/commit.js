@@ -18,7 +18,7 @@ module.exports = {
 function cmd(bosco, args) {
 
 	var repos = bosco.config.get('github:repos');
-	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
 
 	var repoPattern = bosco.options.repo;
 	var message = args.shift();
@@ -32,20 +32,20 @@ function cmd(bosco, args) {
 	var repoRegex = new RegExp(repoPattern);
 
 	bosco.log("Running git commit -am across all repos that match " + repoRegex + "...");
-	bosco.log("Using message: " + message.blue);	
+	bosco.log("Using message: " + message.blue);
 
-	var commitRepos = function(cb) {	    	
+	var commitRepos = function(cb) {
 
-		async.mapSeries(repos, function repoPush(repo, repoCb) {	  
+		async.mapSeries(repos, function repoPush(repo, repoCb) {
 
-    	  var repoPath = bosco.getRepoPath(repo); 
-    	  if(repo.match(repoRegex)) {    
-    	  	 bosco.log("Running 'git commit -am' on " + repo.blue);	  			 
-			 commit(bosco, message, repoPath, repoCb);	
+    	  var repoPath = bosco.getRepoPath(repo);
+    	  if(repo.match(repoRegex)) {
+    	  	 bosco.log("Running 'git commit -am' on " + repo.blue);
+			 commit(bosco, message, repoPath, repoCb);
     	  } else {
     	  	repoCb();
     	  }
-		  
+
 		}, function(err) {
 			cb();
 		});
@@ -80,15 +80,15 @@ function confirm(bosco, message, next) {
 
 
 function commit(bosco, commitMsg, orgPath, next) {
-    
+
     if(!bosco.exists([orgPath,".git"].join("/"))) {
     	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
     	return next();
-    }    
+    }
 
     confirm(bosco, 'Confirm you want to commit any changes in: ' + orgPath.blue, function(err, confirmed) {
-    	if(err || !confirmed) return next();    	
-    	var gitCmd = 'git commit -am "' + commitMsg +'"';    	
+    	if(err || !confirmed) return next();
+    	var gitCmd = 'git commit -am "' + commitMsg +'"';
 		exec(gitCmd, {
 		  cwd: orgPath
 		}, function(err, stdout, stderr) {

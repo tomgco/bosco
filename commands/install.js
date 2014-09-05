@@ -17,15 +17,15 @@ function cmd(bosco, args, next) {
 
 	var repoPattern = bosco.options.repo;
 	var repoRegex = new RegExp(repoPattern);
-	
+
 	var repos = bosco.config.get('github:repos');
-	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
 
 	bosco.log("Running npm install across all repos ...");
 
 	var installRepos = function(cb) {
-	    	
-		var progressbar = bosco.config.get('progress') == 'bar', 
+
+		var progressbar = bosco.config.get('progress') == 'bar',
 			total = repos.length;
 
 		var bar = progressbar ? new bosco.progress('Doing npm install [:bar] :percent :etas', {
@@ -35,13 +35,13 @@ function cmd(bosco, args, next) {
 			total: total
 		}) : null;
 
-		async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {	  
+		async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {
 
 		  if(!repo.match(repoRegex)) return repoCb();
 
-		  var repoPath = bosco.getRepoPath(repo); 
+		  var repoPath = bosco.getRepoPath(repo);
 		  install(bosco, progressbar, bar, repoPath, repoCb);
-		  
+
 		}, function(err) {
 			cb();
 		});
@@ -60,7 +60,7 @@ function install(bosco, progressbar, bar, repoPath, next) {
 	var packageJson = [repoPath,"package.json"].join("/");
 	if(!bosco.exists(packageJson)) {
 		if(progressbar) bar.tick();
-		return next();	
+		return next();
 	}
 
 	var npmCommand = 'npm';
@@ -68,7 +68,7 @@ function install(bosco, progressbar, bar, repoPath, next) {
 		npmCommand += ' --registry ' + bosco.config.get('npm:registry');
 	}
 	npmCommand += ' install';
-	
+
 	exec(npmCommand, {
 	  cwd: repoPath
 	}, function(err, stdout, stderr) {
@@ -83,8 +83,8 @@ function install(bosco, progressbar, bar, repoPath, next) {
 				} else {
 					bosco.log("NPM install for " + repoPath.blue);
 					console.log(stdout);
-				}							
-			} 
+				}
+			}
 		}
 		next();
 	});

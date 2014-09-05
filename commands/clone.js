@@ -11,7 +11,7 @@ var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
 
 module.exports = {
-	name:'fly',
+	name:'clone',
 	description:'Gets an list of all repos in your team and runs git clone for each',
 	example: 'bosco clone',
 	help: getHelp(),
@@ -70,7 +70,7 @@ function cmd(bosco, args, next) {
 
             function obtainRepositoryName(repo) {
                 if(_.contains(ignoredRepos,repo.name)) return;
-                repos.push(repo.name);                
+                repos.push(repo.name);
             }
 
             reposJson.forEach(obtainRepositoryName);
@@ -83,7 +83,7 @@ function cmd(bosco, args, next) {
     }
 
     request.get('https://api.github.com/user/teams', options, fetchTeamProfile);
-	
+
 }
 
 function fetch(bosco, repos, repoRegex, args, next) {
@@ -107,8 +107,8 @@ function fetch(bosco, repos, repoRegex, args, next) {
 
 	var getRepos = function(cb) {
 
-		var progressbar = bosco.config.get('progress') == 'bar', 
-			total = repos.length, 
+		var progressbar = bosco.config.get('progress') == 'bar',
+			total = repos.length,
 			pullFlag = false;
 
   		var bar = progressbar ? new bosco.progress('Getting repositories [:bar] :percent :etas', {
@@ -118,15 +118,15 @@ function fetch(bosco, repos, repoRegex, args, next) {
 			total: total
 		}) : null;
 
-    	async.mapLimit(repos, bosco.options.cpus, function repoGet(repo, repoCb) {	      	 
+    	async.mapLimit(repos, bosco.options.cpus, function repoGet(repo, repoCb) {
 
     	  if(!repo.match(repoRegex)) return repoCb();
 
-		  var repoPath = bosco.getRepoPath(repo); 
+		  var repoPath = bosco.getRepoPath(repo);
 		  var repoUrl = bosco.getRepoUrl(repo);
 
 		  if(bosco.exists(repoPath)) {
-		  	pullFlag = true;	  		
+		  	pullFlag = true;
 		  	if(progressbar) bar.tick();
 		  	repoCb();
 		  } else {
@@ -136,7 +136,7 @@ function fetch(bosco, repos, repoRegex, args, next) {
 			if(pullFlag) bosco.warn("Some repositories already existed, to pull changes use 'bosco pull'");
 			cb(err);
 		})
-		
+
 	}
 
 	async.series([checkOrg, saveRepos, getRepos], function(err) {

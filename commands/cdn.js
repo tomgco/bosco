@@ -15,7 +15,7 @@ module.exports = {
 }
 
 function cmd(bosco, args) {
-		
+
 	var minify = _.contains(args,'minify');
 	var port = bosco.config.get('cdn:port') || 7334;
 	var serverUrl = "http://localhost:" + port + "/";
@@ -23,25 +23,25 @@ function cmd(bosco, args) {
 	bosco.log("Starting pseudo CDN on port: " + (port+"").blue);
 
 	var repos = bosco.config.get('github:repos');
-	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
 
 	var startServer = function(staticAssets, serverPort) {
-		
+
 		var server = http.createServer(function(request, response) {
-		  
+
 		  var url = request.url.replace("/","");
 
 		  if(staticAssets[url]) {
 			response.writeHead(200, {
-				"Content-Type": "text/" + staticAssets[url].type, 
-				"Cache-Control": "no-cache, must-revalidate", 
+				"Content-Type": "text/" + staticAssets[url].type,
+				"Cache-Control": "no-cache, must-revalidate",
 				"Pragma": "no-cache",
 				"Expires": "Sat, 21 May 1952 00:00:00 GMT"
 			});
 			getContent(staticAssets[url], function(err, content) {
 				if(err) {
 					response.writeHead(500, {"Content-Type": "text/html"});
-					response.end("<h2>There was an error: " + err.message + "</h2>");				
+					response.end("<h2>There was an error: " + err.message + "</h2>");
 				} else {
 					response.end(content);
 				}
@@ -49,28 +49,28 @@ function cmd(bosco, args) {
 		  } else {
 		  	response.writeHead(404, {"Content-Type": "text/html"});
 		  	response.end(staticAssets.formattedAssets);
-		  }		  
-		});		
+		  }
+		});
 
 		server.listen(serverPort);
 		bosco.log("Server is listening on " + serverPort);
-	
+
 	}
 
 	var startMonitor = function(staticAssets) {
 
 	  var watchSet = {};
 	  _.forOwn(staticAssets, function(asset, key) {
-	  	
+
 	  	if(!minify) return watchSet[asset.path] = key;
 
 	  	if(asset.extname == ".manifest") {
 
-	  		var manifestKey = key, 
+	  		var manifestKey = key,
 	  			manifestFile,
 	  			manifestFiles = asset.files;
 
-	  			manifestFiles.forEach(function(file) {	  			
+	  			manifestFiles.forEach(function(file) {
 	  				if(file) watchSet[file.path] = asset.tag;
 	  			});
 	  	}
@@ -78,18 +78,18 @@ function cmd(bosco, args) {
 
 	  watch.createMonitor(bosco.getOrgPath(), {ignoreDirectoryPattern: /node_modules/, interval: 50}, function (monitor) {
 
-	    monitor.on("changed", function (f, curr, prev) {	      
-	      var fileKey = watchSet[f];	      
-	      if(!minify) {		      	      	
+	    monitor.on("changed", function (f, curr, prev) {
+	      var fileKey = watchSet[f];
+	      if(!minify) {
 	      	if(fileKey) {
 		      	staticAssets[fileKey].content = fs.readFileSync(staticAssets[fileKey].path);
-		      	bosco.log("Reloaded " + fileKey);	
+		      	bosco.log("Reloaded " + fileKey);
 	      	}
 		  } else {
 		  	if(fileKey) {
 		  		bosco.log('Recompiling tag ' + fileKey.blue + ' due to change in ' + f.blue);
 		  		var options = {
-					repos: repos, 
+					repos: repos,
 					minify: minify,
 					tagFilter: fileKey,
 					watchBuilds: false,
@@ -104,7 +104,7 @@ function cmd(bosco, args) {
 		  			_.forOwn(updatedAssets, function(value, key) {
 		  				staticAssets[key] = value;
 		  			});
-		  			bosco.log("Reloaded minified assets for tag " + fileKey.blue);	
+		  			bosco.log("Reloaded minified assets for tag " + fileKey.blue);
 		  		});
 		  	}
 		  }
@@ -117,13 +117,13 @@ function cmd(bosco, args) {
 		if(asset.extname == '.scss') {
 			sass.render(asset.content, next);
 		} else {
-			next(null, asset.content);	
+			next(null, asset.content);
 		}
 	}
 
 	if(minify) bosco.log("Minifying front end assets, this can take some time ...");
 	var options = {
-		repos: repos, 
+		repos: repos,
 		minify: minify,
 		tagFilter: null,
 		watchBuilds: true,
@@ -133,5 +133,5 @@ function cmd(bosco, args) {
 		startServer(staticAssets, port);
 		startMonitor(staticAssets);
 	});
-	
+
 }

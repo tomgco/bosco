@@ -23,19 +23,19 @@ function cmd(bosco, args) {
 	var repoRegex = new RegExp(repoPattern);
 
 	var repos = bosco.config.get('github:repos');
-	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
 
 	bosco.log("Running git status across all repos ...");
 
-	var stashRepos = function(cb) {	    	
+	var stashRepos = function(cb) {
 
-		async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {	  
+		async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {
 
 		  if(!repo.match(repoRegex)) return repoCb();
 
-		  var repoPath = bosco.getRepoPath(repo); 
+		  var repoPath = bosco.getRepoPath(repo);
 		  status(bosco, repoPath, repoCb);
-		  
+
 		}, function(err) {
 			cb();
 		});
@@ -49,7 +49,7 @@ function cmd(bosco, args) {
 }
 
 function status(bosco, orgPath, next) {
-    
+
     if(!bosco.exists([orgPath,".git"].join("/"))) {
     	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
     	return next();
@@ -63,11 +63,11 @@ function status(bosco, orgPath, next) {
 		} else {
 			if(stdout) {
 				if(stdout.indexOf("Changes not staged") > 0) {
-					bosco.log(orgPath.blue + ":\n" + stdout);					
+					bosco.log(orgPath.blue + ":\n" + stdout);
 				} else if(stdout.indexOf("Your branch is ahead") > 0) {
-					bosco.log(orgPath.blue + ":\n" + stdout);										
+					bosco.log(orgPath.blue + ":\n" + stdout);
 				} else {
-					bosco.log(orgPath.blue + ": " + "OK".green);	
+					bosco.log(orgPath.blue + ": " + "OK".green);
 				}
 			}
 		}

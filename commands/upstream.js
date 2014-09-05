@@ -23,11 +23,11 @@ function cmd(bosco, args) {
 	var repoRegex = new RegExp(repoPattern);
 
 	var repos = bosco.config.get('github:repos');
-	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
 
-	var changedRepos = function(cb) { 	
-		async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {	  
-		  var repoPath = bosco.getRepoPath(repo); 
+	var changedRepos = function(cb) {
+		async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {
+		  var repoPath = bosco.getRepoPath(repo);
 		  if(!repo.match(repoRegex)) return repoCb();
 		  upstream(bosco, repoPath, repoCb);
 		}, function(err) {
@@ -44,7 +44,7 @@ function cmd(bosco, args) {
 }
 
 function upstream(bosco, orgPath, next) {
-    
+
 	exec('git fetch; git log HEAD..origin/master --oneline', {
 	  cwd: orgPath
 	}, function(err, stdout, stderr) {

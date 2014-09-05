@@ -70,7 +70,7 @@ To get a list of installed commands in your installation just type 'bosco':
 ├────────────┼────────────────────────────────────────────────────────────┤
 │ clean      │ bosco clean -r <repoPattern>                               │
 ├────────────┼────────────────────────────────────────────────────────────┤
-│ fly        │ bosco clone                                                │
+│ clone      │ bosco clone                                                │
 ├────────────┼────────────────────────────────────────────────────────────┤
 │ commit     │ bosco commit -r <repoPattern> 'Commit Message'             │
 ├────────────┼────────────────────────────────────────────────────────────┤
@@ -120,7 +120,7 @@ You can use a number of parameters to control the behaviour of Bosco.  Parameter
 |---------|-----------|-------|--------|
 |-e, --environment|Environment name|bosco -e development s3push|local|
 |-b, --build|Build number or tag|bosco -e production -b 66 s3push|default|
-|-c, --configFile|Config file|bosco -c config.json fly|.bosco/bosco.json|
+|-c, --configFile|Config file|bosco -c config.json clone|.bosco/bosco.json|
 |-n, --noprompt|Do not prompt for confirmation|bosco -e staging -b 67 -n s3push|false|
 |-f, --force|Force over ride of any files|bosco -e production -b 66 -f s3push|false|
 
@@ -183,7 +183,7 @@ For example, a project that uses Gulp to create assets as well as watch for chan
 ```json
 {
     "build":{
-        "command":"gulp build",            
+        "command":"gulp build",
         "watch":{
             "command":"gulp build --watch",
             "ready":"Finished 'build'"
@@ -199,13 +199,13 @@ For example, a project that uses Gulp to create assets as well as watch for chan
         "css": {
              "upload": [
                 "css/tsl-uploader.css"
-            ]   
+            ]
         },
         "images": {
             "upload" :[
                 "img"
             ]
-        }    
+        }
     }
 }
 ```
@@ -216,7 +216,7 @@ The files created as a result of the build step should just be included as norma
 
 ### CDN
 
-This will aggregate and serve all of the static assets (those defined within bosco-service.json files within each project) on a single pseudo CDN url.  
+This will aggregate and serve all of the static assets (those defined within bosco-service.json files within each project) on a single pseudo CDN url.
 
 ```
 bosco cdn <minify>
@@ -300,7 +300,7 @@ This will delete a specific build from an environment.  Note that the build name
 
 ## Manifest Files
 
-To ensure that we always know what was in a specific release, the minification process creates a manifest file 
+To ensure that we always know what was in a specific release, the minification process creates a manifest file
 for each bundle that includes each file, along with the last commit that was made to that file.
 
 Before you push, it will do a diff between the last manifest file created, and the one for the bundle you are about to push, and ask you to confirm that all of the files changed are ones that you expected to be changed.  e.g. it will try to avoid you pushing someone elses change unexpectedly.
@@ -326,7 +326,7 @@ service-resource/js/resources.js, Last commit: bf28fc9 @cressie176 fixing server
 
 ## Duplicate Files and Libraries
 
-Bosco will attempt to detect duplicate files (via a checksum), as well as duplicate libraries (e.g. multiple versions of jQuery).  If it spots a duplicate, it will not add it to a minified bundle after warning you that it found it.  Because of this the first version of a library it finds will 'win'. 
+Bosco will attempt to detect duplicate files (via a checksum), as well as duplicate libraries (e.g. multiple versions of jQuery).  If it spots a duplicate, it will not add it to a minified bundle after warning you that it found it.  Because of this the first version of a library it finds will 'win'.
 
 It is strongly recommended that you pull all 'core' libraries like jQuery into a central single project to avoid duplication, but Bosco will try and help you if you don't.
 

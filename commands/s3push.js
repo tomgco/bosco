@@ -1,6 +1,6 @@
 var _ = require('lodash'),
 	 async = require('async'),
-	fs = require("fs"), 
+	fs = require("fs"),
 	path = require("path"),
 	colors = require('colors'),
 	jsdiff = require('diff'),
@@ -16,26 +16,26 @@ module.exports = {
 var tag = "", noprompt = false;
 
 function cmd(bosco, args) {
-		
-	if(args.length > 0) tag = args[0];	
+
+	if(args.length > 0) tag = args[0];
 
 	cdnUrl = bosco.config.get('aws:cdn') + "/";
 	force = bosco.options.force;
 	noprompt = bosco.options.noprompt;
 
-	var maxAge = bosco.config.get('aws:maxage');		
-	if(typeof maxAge !== 'number') maxAge = 300;	
- 
+	var maxAge = bosco.config.get('aws:maxage');
+	if(typeof maxAge !== 'number') maxAge = 300;
+
 	bosco.log("Compile front end assets across services " + (tag ? "for tag: " + tag.blue : ""));
 
 	var repos = bosco.config.get('github:repos');
-	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco fly'.");
+	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
 
 	var pushAllToS3 = function(staticAssets, confirmation, next) {
-		
+
 		var toPush = [];
-		_.forOwn(staticAssets, function(asset, key) {			
-			
+		_.forOwn(staticAssets, function(asset, key) {
+
 			if(tag && tag !== asset.tag) return;
 			if(!asset.content) return;
 
@@ -60,13 +60,13 @@ function cmd(bosco, args) {
 
 	var saveS3record = function(toPush) {
 		// Get the environment + build tag to save in your config file
-		if(toPush.length > 0) {			
-			var envBuild = toPush[0].path.split("/")[1];			
+		if(toPush.length > 0) {
+			var envBuild = toPush[0].path.split("/")[1];
 			var myRepos = bosco.config.get('S3:published') || [];
 			if(!_.contains(myRepos,envBuild)) {
 				myRepos.push(envBuild);
-				var envConfig = bosco.config.stores.environment;	
-				envConfig.store.S3 = {published: myRepos};				
+				var envConfig = bosco.config.stores.environment;
+				envConfig.store.S3 = {published: myRepos};
 				bosco.config.save();
 			};
 		}
@@ -80,7 +80,7 @@ function cmd(bosco, args) {
 		  'Content-Type': 'text/' + (file.type == 'js' ? 'javascript': file.type),
 		  'Cache-Control': ('max-age=' + (maxAge == 0 ? "0, must-revalidate" : maxAge))
 		};
-		bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){		  
+		bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){
 	      if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
 	      bosco.log('Pushed to S3: ' +  cdnUrl + file.path);
 		  next(err, {file: file});
@@ -106,7 +106,7 @@ function cmd(bosco, args) {
 	}
 
 	var checkManifests = function(staticAssets, next) {
-		
+
 		if(!bosco.knox) return next({message: "You don't appear to have any S3 config for this environment?"});
 
 		var manifestFiles = [];
@@ -127,20 +127,20 @@ function cmd(bosco, args) {
 					isError = true;
 				}
 				res.on('data', function(chunk) { currFile += chunk; });
-				res.on('end', function() { 	
+				res.on('end', function() {
 					if(isError) {
 						bosco.error(currFile);
 						return cb(null, false);
 					}
 					if(currFile == file.content) {
-						bosco.log("No changes".green + " found in " + file.file.blue + "." + (force ? " Forcing push anyway." : ""));	
-						return cb(null, force);			
+						bosco.log("No changes".green + " found in " + file.file.blue + "." + (force ? " Forcing push anyway." : ""));
+						return cb(null, force);
 					}
 					bosco.log("Changes found in " + file.file.blue + ", diff:");
 					showDiff(currFile, file.content, cb);
 				});
 			});
-		}, function(err, result) {			
+		}, function(err, result) {
 			var results = {};
 			result.forEach(function(confirm, index) {
 				var mkey = manifestFiles[index].tag, atype = manifestFiles[index].assetType;
@@ -149,30 +149,30 @@ function cmd(bosco, args) {
 			});
 			next(err, results);
 		});
-		
+
 	}
 
-	var showDiff = function(original, changed, next) {		
+	var showDiff = function(original, changed, next) {
 
 		var diff = jsdiff.diffLines(original, changed);
 
 		diff.forEach(function(part){
-		  var color = part.added ? 'green' : 
+		  var color = part.added ? 'green' :
 		  		part.removed ? 'red' : 'grey';
-			bosco.log(part.value[color]);						
-		});	
+			bosco.log(part.value[color]);
+		});
 
-		if(!noprompt) return confirm("Are you certain you want to push based on the changes above?".white, next);	
+		if(!noprompt) return confirm("Are you certain you want to push based on the changes above?".white, next);
 		return next(null, true);
 
 	}
 
 	var go = function() {
-		
+
 		bosco.log("Compiling front end assets, this can take a while ... ");
 
 		var options = {
-			repos: repos, 
+			repos: repos,
 			minify: true,
 			tagFilter: tag,
 			watchBuilds: false,
@@ -185,10 +185,10 @@ function cmd(bosco, args) {
 				pushAllToS3(staticAssets, confirmation, function(err) {
 					if(err) return bosco.error("There was an error: " + err.message);
 					bosco.log("Done");
-				});	
+				});
 
 			})
-			
+
 		});
 	}
 
