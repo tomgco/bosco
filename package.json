@@ -48,6 +48,7 @@
     "progress": "^1.1.8",
     "prompt": "^0.2.13",
     "request": "^2.40.0",
+    "tail": "^0.4.0",
     "uglify-js": "^2.4.15",
     "watch": "TSLEducation/watch"
   },
