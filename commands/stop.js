@@ -30,7 +30,7 @@ function cmd(bosco, args) {
 					if(_.contains(running, repo)) {
 						stopService(repo, pkg.scripts.start, repoPath, next);						
 					} else {
-						bosco.error("Not running: " + repo);
+						bosco.warn("Not running: " + repo);
 						next();
 					}					
 				} else {

@@ -23,15 +23,15 @@ function cmd(bosco, args) {
 	// Connect or launch PM2
 	pm2.connect(function(err) {
 
-		var startRunnableServices = function(running) {			
-			async.map(repos, function(repo, next) {				
+		var startRunnableServices = function(running) {
+			async.map(repos, function(repo, next) {
 				var pkg, basePath, repoPath = bosco.getRepoPath(repo), packageJson = [repoPath,"package.json"].join("/");
 				if(repo.match(repoRegex) && bosco.exists(packageJson)) {
 					pkg = require(packageJson);
-					if(_.contains(running, repos)) {
+					if(_.contains(running, repo)) {
 						bosco.warn(repo + " already running, use 'bosco stop " + repo + "'");
 						return next();
-					}					
+					}
 					if(pkg.scripts && pkg.scripts.start) {
 						runService(repo, pkg.scripts, repoPath, next);
 					} else {
@@ -41,7 +41,11 @@ function cmd(bosco, args) {
 					next();
 				}
 
-			}, function(err) {				
+			}, function(err) {
+				if (err) {
+					bosco.error(err);
+					process.exit(1);
+				}
 				process.exit(0);
 			});
 
@@ -74,8 +78,17 @@ function cmd(bosco, args) {
 				start = start + ".js";
 			}
 
-			pm2.start(start, { name: repo, cwd: repoPath, watch: true, executeCommand: ext == ".js" ? false : true }, next);
+			var executeCommand = false;
+			if (ext != ".js") {
+				executeCommand = true;
+			}
 
+			// Node 0.10.x has a problem with cluster mode
+			if (process.version.match(/0.10/)) {
+				executeCommand = true;
+			}
+
+			pm2.start(start, { name: repo, cwd: repoPath, watch: true, executeCommand: executeCommand }, next);
 		}
 
 		bosco.log("Run each mircoservice " + args);
