@@ -14,8 +14,9 @@ var async = require('async');
 var mkdirp = require('mkdirp');
 var knox = require('knox');
 var request = require('request');
-var colors = require('colors');		
-var dateformat = require('dateformat');	
+var colors = require('colors');
+var dateformat = require('dateformat');
+var sf = require('sf');
 
 prompt.message = "Bosco".green;
 
@@ -46,10 +47,10 @@ function Bosco(options) {
 
 	var quotes, quotePath = self.config.get("quotes") || './quotes.json';
 	try {
-		quotes = require(quotePath);	
+		quotes = require(quotePath);
 	} catch(ex) {
 		console.log("Failed to load quotes: " + quotePath);
-	} 
+	}
 	if(quotes) {
 		self.log(quotes[Math.floor(Math.random() * quotes.length)].blue);
 	}
@@ -88,7 +89,7 @@ Bosco.prototype._init = function(next) {
   	self.config.env()
 	  	 .file({ file: self.options.configFile })
 	  	 .file('environment',{ file: self.options.envConfigFile })
-	  	 .file('defaults',{ file: self.options.defaultsConfigFile });	   
+	  	 .file('defaults',{ file: self.options.defaultsConfigFile });
   }
 
   self._checkConfig(function(err, initialise) {
@@ -107,12 +108,12 @@ Bosco.prototype._init = function(next) {
   	  		self.error("It looks like you are in a micro service folder or something is wrong with your config?\n");
   	  		next("error");
   	  	} else {
-  	  		next();	
-  	  	}  	  	
+  	  		next();
+  	  	}
   	  }
-	
+
   });
-  
+
 }
 
 Bosco.prototype._checkConfig = function(next) {
@@ -131,7 +132,7 @@ Bosco.prototype._checkConfig = function(next) {
   }
 
   var checkConfig = function(cb) {
-  	if(!self.exists(configFile)) {  	  
+  	if(!self.exists(configFile)) {
 	  	 prompt.start();
 	  	 prompt.get({
 		    properties: {
@@ -152,7 +153,7 @@ Bosco.prototype._checkConfig = function(next) {
 	  } else {
 	  	cb();
 	  }
-	} 
+	}
 
 	async.series([checkConfigPath,checkConfig], function(err, result) {
 		next(err, result[1]);
@@ -191,7 +192,7 @@ Bosco.prototype._initialiseConfig = function(next) {
   	 });
 };
 
-Bosco.prototype._cmd = function() {	
+Bosco.prototype._cmd = function() {
 	var self = this,
 		commands = self.options.args,
 		command = commands.shift(),
@@ -205,12 +206,12 @@ Bosco.prototype._cmd = function() {
 			require(localCommandModule).cmd(self, commands);
 		} else {
 			if(self.options.shellCommands) {
-				self._shellCommands();			
+				self._shellCommands();
 			} else {
-				self._commands();			
+				self._commands();
 			}
-			
-		}		
+
+		}
 	}
 }
 
@@ -218,27 +219,27 @@ Bosco.prototype._shellCommands = function() {
 
 	var self = this, cmdPath = [__dirname,'commands'].join("/"), localPath = path.join(path.resolve("."),"commands");
 
-	var showCommands = function(cPath, files, next) {				
+	var showCommands = function(cPath, files, next) {
 		var showCommand = function(cmd) {
 			return(cmd.name);
 		}
 		var cmdString = "";
 	    files.forEach(function (file) {
 	        cmdString += file.replace(".js","") + " ";
-	    });	    
+	    });
 	    next(null, cmdString.split(" "));
 	}
-	
+
 	async.series([
 		function(next) {
-			fs.readdir(cmdPath, function(err, files) { 
-				showCommands(cmdPath, files, next) 
+			fs.readdir(cmdPath, function(err, files) {
+				showCommands(cmdPath, files, next)
 			})
 		},
-		function(next) {			
-			fs.readdir(localPath, function(err, files) { 
+		function(next) {
+			fs.readdir(localPath, function(err, files) {
 				if(!files || files.length == 0) return next();
-				showCommands(localPath, files, next) 
+				showCommands(localPath, files, next)
 			})
 		}],
 		function(err, files) {
@@ -252,12 +253,12 @@ Bosco.prototype._commands = function() {
 
 	var self = this, cmdPath = [__dirname,'commands'].join("/"), localPath = path.join(path.resolve("."),"commands");
 
-	var showTable = function(tableName, cPath, files, next) {				
+	var showTable = function(tableName, cPath, files, next) {
 
 		var table = new Table({
 		    head: [tableName,'Example']
 		  , colWidths: [12, 60]
-		});		
+		});
 
 		var showCommand = function(cmd) {
 			table.push([cmd.name, cmd.example || ""]);
@@ -271,28 +272,28 @@ Bosco.prototype._commands = function() {
 	        showCommand(require(file))
 	    });
 	    console.log(table.toString());
-	    console.log("\r");	    
+	    console.log("\r");
 	    next();
 	}
-	
+
 	console.log("\r");
 	self.warn("Hey, to use bosco, you need to enter one of the following commands:")
 
 	async.series([
 		function(next) {
-			fs.readdir(cmdPath, function(err, files) { 
-				showTable("Core", cmdPath, files, next) 
-			})
-		},
-		function(next) {			
-			fs.readdir(localPath, function(err, files) { 
-				if(!files || files.length == 0) return next();
-				showTable("Local", localPath, files, next) 
+			fs.readdir(cmdPath, function(err, files) {
+				showTable("Core", cmdPath, files, next)
 			})
 		},
 		function(next) {
-			var wait = function() {		
-				if(self._checkingVersion) {					
+			fs.readdir(localPath, function(err, files) {
+				if(!files || files.length == 0) return next();
+				showTable("Local", localPath, files, next)
+			})
+		},
+		function(next) {
+			var wait = function() {
+				if(self._checkingVersion) {
 					setTimeout(wait, 100);
 				} else {
 					next();
@@ -316,7 +317,7 @@ Bosco.prototype._checkVersion = function() {
 	var self = this;
 	self._checkingVersion = true;
 	var npmUrl = "http://registry.npmjs.org/bosco";
-	request({url:npmUrl,timeout:1000}, function (error, response, body) {		
+	request({url:npmUrl,timeout:1000}, function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 			var jsonBody = JSON.parse(body);
 			var version = jsonBody['dist-tags'].latest;
@@ -342,25 +343,24 @@ Bosco.prototype.getRepoPath = function(repo) {
 }
 
 Bosco.prototype.getRepoUrl = function(repo) {
-	return ['git@github.com:',this.getOrg(),"/",repo,'.git'].join(""); 
+	return ['git@github.com:',this.getOrg(),"/",repo,'.git'].join("");
 }
 
-Bosco.prototype.warn = function(msg) {
-	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';	  
-	console.log(time.grey + " Bosco".yellow + ": " + msg);
+Bosco.prototype.warn = function(msg, args) {
+	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';
+	console.log(time.grey + " Bosco".yellow + ": " + sf(msg, args));
 }
 
-Bosco.prototype.log = function(msg) {
-	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';	  
-	console.log(time.grey + " Bosco".cyan + ": " + msg);
+Bosco.prototype.log = function(msg, args) {
+	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';
+	console.log(time.grey + " Bosco".cyan + ": " + sf(msg, args));
 }
 
-Bosco.prototype.error = function(msg) {
-	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';	  
-	console.log(time.grey + " Bosco".red + ": " + msg);
+Bosco.prototype.error = function(msg, args) {
+	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';
+	console.log(time.grey + " Bosco".red + ": " + sf(msg, args));
 }
 
 Bosco.prototype.exists = function(path) {
 	return fs.existsSync(path);
 }
-
