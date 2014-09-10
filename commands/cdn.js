@@ -76,7 +76,7 @@ function cmd(bosco, args) {
 	  	}
 	  });
 
-	  watch.createMonitor(bosco.getOrgPath(), {ignoreDirectoryPattern: /node_modules/, interval: 50}, function (monitor) {
+	  watch.createMonitor(bosco.getOrgPath(), {ignoreDirectoryPattern: /node_modules/, interval: 500}, function (monitor) {
 
 	    monitor.on("changed", function (f, curr, prev) {
 	      var fileKey = watchSet[f];
