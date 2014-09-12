@@ -364,7 +364,7 @@ Bosco.prototype._log = function(identifier, msg, args) {
         time: new Date(),
         message: args ? sf(msg, args) : msg
     };
-    console.log(sf('{time:hh:mm:ss} {identifier}: {message}', parts));
+    console.log(sf('[{time:hh:mm:ss}] {identifier}: {message}', parts));
 }
 
 Bosco.prototype.exists = function(path) {
