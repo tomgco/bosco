@@ -7,10 +7,11 @@ module.exports = function(bosco) {
     var createKey = require('./AssetHelper')(bosco).createKey;
 
     return {
-        createHtmlFiles:createHtmlFiles
+        createAssetHtmlFiles:createAssetHtmlFiles,
+        attachFormattedRepos: attachFormattedRepos
     }
 
-    function createHtmlFiles(staticAssets, next) {
+    function createAssetHtmlFiles(staticAssets, next) {
 
         var htmlAssets = {},
             port = bosco.config.get('cdn:port') || "7334";
@@ -52,6 +53,12 @@ module.exports = function(bosco) {
 
     }
 
+    function attachFormattedRepos(repos, next) {
+        repos.formattedRepos = formattedRepos(repos);
+
+        next(null, repos);
+    }
+
 
     function formattedAssets(staticAssets) {
         
@@ -67,6 +74,19 @@ module.exports = function(bosco) {
         assets.date = (new Date()).toString();
 
         return template(assets);
+        
+    }
+
+    function formattedRepos(repos) {
+        
+        var templateContent = fs.readFileSync(__dirname + '/../templates/repoList.html'),
+            template = hb.compile(templateContent.toString()),
+            templateData = { repos: repos };
+
+        templateData.user = bosco.config.get('github:user');
+        templateData.date = (new Date()).toString();
+
+        return template(templateData);
         
     }
 }

@@ -25,30 +25,40 @@ function cmd(bosco, args) {
 	var repos = bosco.config.get('github:repos');
 	if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
 
-	var startServer = function(staticAssets, serverPort) {
+	var startServer = function(staticAssets, staticRepos, serverPort) {
 
 		var server = http.createServer(function(request, response) {
 
 		  var url = request.url.replace("/","");
 
 		  if(staticAssets[url]) {
-			response.writeHead(200, {
-				"Content-Type": "text/" + staticAssets[url].type,
-				"Cache-Control": "no-cache, must-revalidate",
-				"Pragma": "no-cache",
-				"Expires": "Sat, 21 May 1952 00:00:00 GMT"
-			});
-			getContent(staticAssets[url], function(err, content) {
-				if(err) {
-					response.writeHead(500, {"Content-Type": "text/html"});
-					response.end("<h2>There was an error: " + err.message + "</h2>");
-				} else {
-					response.end(content);
-				}
-			})
+				response.writeHead(200, {
+					"Content-Type": "text/" + staticAssets[url].type,
+					"Cache-Control": "no-cache, must-revalidate",
+					"Pragma": "no-cache",
+					"Expires": "Sat, 21 May 1952 00:00:00 GMT"
+				});
+				getContent(staticAssets[url], function(err, content) {
+					if(err) {
+						response.writeHead(500, {"Content-Type": "text/html"});
+						response.end("<h2>There was an error: " + err.message + "</h2>");
+					} else {
+						response.end(content);
+					}
+				})
 		  } else {
-		  	response.writeHead(404, {"Content-Type": "text/html"});
-		  	response.end(staticAssets.formattedAssets);
+		  	var assetExtension = url.substring(url.lastIndexOf('.'));
+		  	var assets = ['css', 'js', 'sass', 'png', 'svg', '.ico', 'jpeg'];
+		  	
+		  	var isAssetRequest = assets.indexOf(assetExtension.slice(1)) !== -1;
+
+		  	if (isAssetRequest) {
+		  		response.writeHead(404, {"Content-Type": "text/html"});
+		  		response.end(staticAssets.formattedAssets);
+		  	} else {
+		  		response.writeHead(404, {"Content-Type": "text/html"});
+		  		response.end(staticRepos.formattedRepos);
+		  	}
 		  }
 		});
 
@@ -129,9 +139,15 @@ function cmd(bosco, args) {
 		watchBuilds: true,
 		reloadOnly: false
 	}
-	bosco.staticUtils.getStaticAssets(options, function(err, staticAssets) {
-		startServer(staticAssets, port);
-		startMonitor(staticAssets);
+
+	var executeAsync = {
+		staticAssets: bosco.staticUtils.getStaticAssets.bind(null, options),
+		staticRepos: bosco.staticUtils.getStaticRepos.bind(null, options)
+	}
+
+	async.parallel(executeAsync, function(err, results){
+		startServer(results.staticAssets, results.staticRepos, port);
+		startMonitor(results.staticAssets);
 	});
 
 }
