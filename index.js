@@ -348,19 +348,25 @@ Bosco.prototype.getRepoUrl = function(repo) {
 
 Bosco.prototype.warn = function(msg, args) {
 	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';
-	console.log(time.grey + " Bosco".yellow + ": " + sf(msg, args));
+	console.log(time.grey + " Bosco".yellow + ": " + Bosco.sf(msg, args));
 }
 
 Bosco.prototype.log = function(msg, args) {
 	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';
-	console.log(time.grey + " Bosco".cyan + ": " + sf(msg, args));
+	console.log(time.grey + " Bosco".cyan + ": " + Bosco.sf(msg, args));
 }
 
 Bosco.prototype.error = function(msg, args) {
 	var time = '['+dateformat(new Date(), 'HH:MM:ss')+']';
-	console.log(time.grey + " Bosco".red + ": " + sf(msg, args));
+	console.log(time.grey + " Bosco".red + ": " + Bosco.sf(msg, args));
 }
 
 Bosco.prototype.exists = function(path) {
 	return fs.existsSync(path);
+}
+
+Bosco.sf = function(msg, args) {
+	msg = msg.replace(/{/g, '{{').replace(/}/g, '}}');
+
+	return sf(msg, args);
 }
