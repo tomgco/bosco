@@ -47,7 +47,7 @@ function cmd(bosco, args, next) {
 
 var grepRepo = function(bosco, args, pattern, repo, repoPath, callback) {
 
-  var grepCommand = 'grep --color=always --exclude-dir node_modules -rnw . -e "' + pattern + '" ' + args.join(' ');
+  var grepCommand = 'git grep --color=always -n "' + pattern + '" ' + args.join(' ');
   
   exec(grepCommand, {
     cwd: repoPath
