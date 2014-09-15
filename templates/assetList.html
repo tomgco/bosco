@@ -1,33 +1,36 @@
 <!-- Simple asset list -->
 <link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 <style>
- .col {
- 	float: left;
- 	width: 24%;
- }
-.h1 {
-	font-size: 18px;	
-}
-.h2 {
-	font-size: 15px;
-	color: #008855;
-}
-a {
-	font-family: arial;
-	font-size: 14px;
-}
 html {
 	margin: 10px;
 	font-family: 'Open Sans', cursive;
 	color: #006633;
+}
+h1
+{
+	font-size: 28px;
+}
+h2
+{
+	font-size: 22px;
 }
 ul
 {
     list-style-type: none;
     padding-left: 5px;
 }
+.assets
+{
+	font-family: arial;
+	font-size: 14px;
+}
+.col
+{
+ 	float: left;
+ 	width: 24%;
+ }
 </style>
-<h1>Bosco couldn't find that, how about you try one of these assets?</h1>
+<h1>Bosco couldn't find that, how about you try one of these assets or the list of <a class="" href="/">repos</a>?</h1>
 <div class='col'>
 	<h2>HTML Fragments</h2>
 	<ul>
@@ -40,7 +43,7 @@ ul
 	<h2>Manifest Files</h2>
 	<ul>
 	{{#each plain}}
-	  <li><a href="/{{this}}">{{this}}</a></li>
+	  <li><a class='assets' href="/{{this}}">{{this}}</a></li>
 	{{/each}}
 	</ul>
 </div>
@@ -48,7 +51,7 @@ ul
 	<h2>Javascript Files</h2>
 	<ul>
 	{{#each js}}
-	  <li><a href="/{{this}}">{{this}}</a></li>
+	  <li><a class='assets' href="/{{this}}">{{this}}</a></li>
 	{{/each}}
 	</ul>
 </div>
@@ -56,7 +59,7 @@ ul
 	<h2>CSS Files</h2>
 	<ul>
 	{{#each css}}
-	  <li><a href="/{{this}}">{{this}}</a></li>
+	  <li><a class='assets' href="/{{this}}">{{this}}</a></li>
 	{{/each}}
 	</ul>
 </div>
