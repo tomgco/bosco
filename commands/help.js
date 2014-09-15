@@ -6,19 +6,22 @@ var fs = require('fs');
 module.exports = {
 	name:'help',
 	description:'Shows help about Bosco',
-	example:'bosco help <command>',	
+	example:'bosco help <command>',
 	cmd:cmd
 }
 
 function cmd(bosco, args) {
 
 	var cmdName = args.shift();
-	if(!cmdName) return bosco.error("You need to provide a command name. e.g: " + module.exports.example);
+	if(!cmdName) return bosco.error('You need to provide a command name. e.g: ' + module.exports.example);
 
-	var cmdPath = path.join(__dirname,'commands',cmdName + '.js'), 
-		localPath = path.join(path.resolve("."),"commands",cmdName + '.js'),
-		helpPath = path.join(__dirname,'help',cmdName + '.txt'),
-		localHelpPath = path.join(path.resolve("."),'help',cmdName + '.txt');
+console.log(__dirname);
+	var cmdPath = path.join(__dirname,cmdName + '.js'),
+		localPath = path.join(path.resolve('.'),'commands',cmdName + '.js'),
+		helpPath = path.join(path.resolve(__dirname + '/..'),'help',cmdName + '.txt'),
+		localHelpPath = path.join(path.resolve('.'),'help',cmdName + '.txt');
+
+console.log(cmdPath, localPath, helpPath, localHelpPath);
 
 	var printHelp = function(module) {
 		var m = require(module);
@@ -27,13 +30,13 @@ function cmd(bosco, args) {
 			description: m.description,
 			example: m.example
 		}
-		
-		console.log("");
+
+		console.log('');
 		console.log(prettyjson.render(o, {noColor: false}));
-		console.log("");
+		console.log('');
 
 		if(bosco.exists(helpPath)) return console.log(fs.readFileSync(helpPath).toString());
-		if(bosco.exists(localHelpPath)) return console.log(fs.readFileSync(localHelpPath).toString());		
+		if(bosco.exists(localHelpPath)) return console.log(fs.readFileSync(localHelpPath).toString());
 
 	}
 
