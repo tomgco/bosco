@@ -126,13 +126,11 @@ module.exports = function(bosco) {
         if (bosco.exists(boscoRepoConfig)) {
             boscoConfig = JSON.parse(fs.readFileSync(boscoRepoConfig)) || {};
 
-            if (boscoConfig.assets) {
-                boscoRepo.assets = boscoConfig.assets;
+            boscoRepo = _.merge(boscoRepo, boscoConfig);
 
-                if (boscoRepo.assets.basePath) {
-                    boscoRepo.path += boscoRepo.assets.basePath;
-                    boscoRepo.basePath = boscoRepo.assets.basePath;
-                }
+            if (boscoRepo.assets && boscoRepo.assets.basePath) {
+                boscoRepo.path += boscoRepo.assets.basePath;
+                boscoRepo.basePath = boscoRepo.assets.basePath;
             }
         }
 
