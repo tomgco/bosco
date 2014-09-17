@@ -47,18 +47,13 @@ function cmd(bosco, args) {
 					}
 				})
 		  } else {
-		  	var assetExtension = url.substring(url.lastIndexOf('.'));
-		  	var assets = ['css', 'js', 'sass', 'png', 'svg', '.ico', 'jpeg'];
-		  	
-		  	var isAssetRequest = assets.indexOf(assetExtension.slice(1)) !== -1;
+		  	if (request.url == '/repos') {
+		  		response.writeHead(200, {"Content-Type": "text/html"});
+		  		return response.end(staticRepos.formattedRepos);
+		  	};
 
-		  	if (isAssetRequest) {
 		  		response.writeHead(404, {"Content-Type": "text/html"});
 		  		response.end(staticAssets.formattedAssets);
-		  	} else {
-		  		response.writeHead(404, {"Content-Type": "text/html"});
-		  		response.end(staticRepos.formattedRepos);
-		  	}
 		  }
 		});
 
