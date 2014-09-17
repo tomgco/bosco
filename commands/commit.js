@@ -87,7 +87,7 @@ function commit(bosco, commitMsg, orgPath, next) {
     	return next();
     }
 
-    confirm(bosco, 'Confirm you want to commit any changes in: ' + orgPath.blue, function(err, confirmed) {
+    confirm(bosco, 'Confirm you want to commit any changes in: ' + orgPath.blue + ' [y/N]', function(err, confirmed) {
     	if(err) return next(err);
 
     	if (!confirmed) {
