@@ -238,6 +238,8 @@ For example:
 
 This would contain a fragment that has script tags for all of the JS tagged in the bottom group.
 
+You can view all assets that are being tracked by `bosco cdn` by going to any url once the `bosco cdn` command is running and using the cdn port (i.e: 127.0.0.1:7334). You can also see a list of repos by going to /repos on the `bosco cdn` server (i.e: 127.0.0.1:7334/repos).
+
 
 ### S3 Push
 
