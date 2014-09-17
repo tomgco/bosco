@@ -14,7 +14,7 @@ var utils;
 
 module.exports = {
 	name:'pushall',
-	description:'Will push any changes across all repos - useful for batch updates, typicall used after commitall',
+	description:'Will push any changes across all repos - useful for batch updates, typicall used after bosco commit',
 	example:'bosco pushall -r <repoPattern>',
 	cmd:cmd
 }
@@ -62,6 +62,7 @@ function confirm(bosco, message, next) {
 	    }
 	  }, function (err, result) {
 	  	if(!result) return next({message:'Did not confirm'});
+
 	  	if(result.confirm == 'Y' || result.confirm == 'y') {
   	 		next(null, true);
   	 	} else {
@@ -77,17 +78,23 @@ function push(bosco, orgPath, next) {
     	return next();
     }
 
-    confirm(bosco, 'Confirm you want to push: ' + orgPath.blue, function(err, confirmed) {
-    	if(err || !confirmed) return next();
-		exec('git push origin master', {
-		  cwd: orgPath
-		}, function(err, stdout, stderr) {
-			if(err) {
-				bosco.error(orgPath.blue + " >> " + stderr);
-			} else {
-				if(stdout) bosco.log(orgPath.blue + " >> " + stdout);
-			}
-			next(err);
-		});
+    confirm(bosco, 'Confirm you want to push: ' + orgPath.blue + ' [y/N]', function(err, confirmed) {
+    	if(err) return next(err);
+
+    	if (!confirmed) {
+    		bosco.log('Not pushing ' + orgPath.blue);
+    		return next();
+    	}
+
+			exec('git push origin master', {
+			  cwd: orgPath
+			}, function(err, stdout, stderr) {
+				if(err) {
+					bosco.error(orgPath.blue + " >> " + stderr);
+				} else {
+					if(stdout) bosco.log(orgPath.blue + " >> " + stdout);
+				}
+				next(err);
+			});
     })
 }
