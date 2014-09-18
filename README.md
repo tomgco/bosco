@@ -76,6 +76,8 @@ To get a list of installed commands in your installation just type 'bosco':
 ├────────────┼────────────────────────────────────────────────────────────┤
 │ config     │ bosco config set <key> <value> | bosco config show <key>   │
 ├────────────┼────────────────────────────────────────────────────────────┤
+│ grep       │ bosco grep <patternToSearch>                               │
+├────────────┼────────────────────────────────────────────────────────────┤
 │ help       │ bosco help <command>                                       │
 ├────────────┼────────────────────────────────────────────────────────────┤
 │ install    │ bosco install -r <repoPattern>                             │

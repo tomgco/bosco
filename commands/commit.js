@@ -70,6 +70,7 @@ function confirm(bosco, message, next) {
 	    }
 	  }, function (err, result) {
 	  	if(!result) return next({message:'Did not confirm'});
+
 	  	if(result.confirm == 'Y' || result.confirm == 'y') {
   	 		next(null, true);
   	 	} else {
@@ -86,18 +87,25 @@ function commit(bosco, commitMsg, orgPath, next) {
     	return next();
     }
 
-    confirm(bosco, 'Confirm you want to commit any changes in: ' + orgPath.blue, function(err, confirmed) {
-    	if(err || !confirmed) return next();
+    confirm(bosco, 'Confirm you want to commit any changes in: ' + orgPath.blue + ' [y/N]', function(err, confirmed) {
+    	if(err) return next(err);
+
+    	if (!confirmed) {
+    		bosco.log('No commit done for ' + orgPath.blue);
+    		return next();
+    	}
+
     	var gitCmd = 'git commit -am "' + commitMsg +'"';
-		exec(gitCmd, {
-		  cwd: orgPath
-		}, function(err, stdout, stderr) {
-			if(err) {
-				bosco.warn(orgPath.blue + " >> No changes to commit.");
-			} else {
-				if(stdout) bosco.log(orgPath.blue + " >> " + stdout);
-			}
-			next();
-		});
+			
+			exec(gitCmd, {
+			  cwd: orgPath
+			}, function(err, stdout, stderr) {
+				if(err) {
+					bosco.warn(orgPath.blue + " >> No changes to commit.");
+				} else {
+					if(stdout) bosco.log(orgPath.blue + " >> " + stdout);
+				}
+				next();
+			});
     })
 }

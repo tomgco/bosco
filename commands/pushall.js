@@ -14,7 +14,7 @@ var utils;
 
 module.exports = {
 	name:'pushall',
-	description:'Will push any changes across all repos - useful for batch updates, typicall used after commitall',
+	description:'Will push any changes across all repos - useful for batch updates, typicall used after bosco commit',
 	example:'bosco pushall -r <repoPattern>',
 	cmd:cmd
 }
@@ -35,7 +35,7 @@ function cmd(bosco, args) {
     	  var repoPath = bosco.getRepoPath(repo);
     	  if(repo.match(regex)) {
     	  	 bosco.log("Running git push on " + repo.blue);
-			 push(bosco, repoPath, repoCb);
+			 push(bosco, repoPath, repo, repoCb);
     	  } else {
     	  	repoCb();
     	  }
@@ -62,6 +62,7 @@ function confirm(bosco, message, next) {
 	    }
 	  }, function (err, result) {
 	  	if(!result) return next({message:'Did not confirm'});
+
 	  	if(result.confirm == 'Y' || result.confirm == 'y') {
   	 		next(null, true);
   	 	} else {
@@ -70,24 +71,52 @@ function confirm(bosco, message, next) {
   	 });
 }
 
-function push(bosco, orgPath, next) {
+function push(bosco, orgPath, repo, next) {
+  if(!bosco.exists([orgPath,".git"].join("/"))) {
+  	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
+  	return next();
+  }
 
-    if(!bosco.exists([orgPath,".git"].join("/"))) {
-    	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
-    	return next();
-    }
+  countCommitsAhead(bosco, orgPath, function(err, commitsAhead){
+  	if (err) return next(err);
+  	
+  	if (!commitsAhead) {
+  		bosco.log('Nothing to push for ' + repo.blue);
+			return next();
+  	}
 
-    confirm(bosco, 'Confirm you want to push: ' + orgPath.blue, function(err, confirmed) {
-    	if(err || !confirmed) return next();
-		exec('git push origin master', {
-		  cwd: orgPath
+  	confirm(bosco, 'Confirm you want to push: ' + orgPath.blue + ' [y/N]', function(err, confirmed) {
+    	if(err) return next(err);
+
+    	if (!confirmed) {
+    		bosco.log('Not pushing ' + repo.blue);
+    		return next();
+    	}
+
+			exec('git push origin master', {
+			  cwd: orgPath
+			}, function(err, stdout, stderr) {
+				if(err) {
+					bosco.error(orgPath.blue + " >> " + stderr);
+				} else {
+					if(stdout) bosco.log(orgPath.blue + " >> " + stdout);
+				}
+				next(err);
+			});
+    })
+  })
+}
+
+function countCommitsAhead(bosco, orgPath, next) {
+	exec('git log origin/master..master | xargs cat | wc -l', {
+	  cwd: orgPath
 		}, function(err, stdout, stderr) {
 			if(err) {
 				bosco.error(orgPath.blue + " >> " + stderr);
 			} else {
-				if(stdout) bosco.log(orgPath.blue + " >> " + stdout);
+				if(stdout) return next(null, parseInt(stdout, 10));
 			}
-			next(err);
+
+			next(err, 0);
 		});
-    })
 }
