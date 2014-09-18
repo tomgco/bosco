@@ -13,19 +13,22 @@ module.exports = function(bosco) {
 	var removeDuplicates = require('./Duplicates')(bosco).removeDuplicates;
 	var doBuild = require('./ExternalBuild')(bosco).doBuild;
 	var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
-	var createHtmlFiles = require('./Html')(bosco).createHtmlFiles;
+	var html = require('./Html')(bosco);
+    var createAssetHtmlFiles = html.createAssetHtmlFiles;
+    var attachFormattedRepos = html.attachFormattedRepos;
 
     return {
-        getStaticAssets: getStaticAssets
+        getStaticAssets: getStaticAssets,
+        getStaticRepos: getStaticRepos
     }
 
     function getStaticAssets(options, next) {
 
         async.mapSeries(options.repos, loadService, function(err, services) {
 
-            // Remove any that don't have a bosco-service
+            // Remove any service that doesnt have an assets child
             services = _.filter(services, function(service) {
-                return service;
+                return service.assets;
             });
 
             async.mapSeries(services, function(service, cb) {
@@ -50,15 +53,21 @@ module.exports = function(bosco) {
                     if (options.minify) {
                         getLastCommitForAssets(staticAssets, function(err, staticAssets) {
                             minify(staticAssets, function(err, staticAssets) {
-                                createHtmlFiles(staticAssets, next);
+                                createAssetHtmlFiles(staticAssets, next);
                             });
                         });
                     } else {
-                    	createHtmlFiles(staticAssets, next);	
+                    	createAssetHtmlFiles(staticAssets, next);	
                     }
                 });
 
             });
+        });
+    }
+
+    function getStaticRepos(options, next) {
+        async.mapSeries(options.repos, loadService, function(err, repos){
+            attachFormattedRepos(repos, next);
         });
     }
 
@@ -106,29 +115,31 @@ module.exports = function(bosco) {
     }
 
     function loadService(repo, next) {
-        var boscoRepo, basePath, repoPath = bosco.getRepoPath(repo),
-            boscoRepoConfig = [repoPath, "bosco-service.json"].join("/");
+        var boscoRepo = {}, repoPath = bosco.getRepoPath(repo), basePath, boscoConfig
+            boscoRepoConfig = path.join(repoPath, "bosco-service.json"),
+            repoPackageFile = path.join(repoPath, 'package.json');
+
+        boscoRepo.name = repo;
+        boscoRepo.path = repoPath;
+        boscoRepo.repoPath = repoPath;
 
         if (bosco.exists(boscoRepoConfig)) {
+            boscoConfig = JSON.parse(fs.readFileSync(boscoRepoConfig)) || {};
 
-            boscoRepo = JSON.parse(fs.readFileSync(boscoRepoConfig)) || {};
-            boscoRepo.name = repo;
-            boscoRepo.path = repoPath;
-            boscoRepo.repoPath = repoPath;
+            boscoRepo = _.merge(boscoRepo, boscoConfig);
 
-            if (boscoRepo.assets) {
-                if (boscoRepo.assets.basePath) {
-                    boscoRepo.path += boscoRepo.assets.basePath;
-                    boscoRepo.basePath = boscoRepo.assets.basePath;
-                }
-                next(null, boscoRepo);
-            } else {
-                next();
+            if (boscoRepo.assets && boscoRepo.assets.basePath) {
+                boscoRepo.path += boscoRepo.assets.basePath;
+                boscoRepo.basePath = boscoRepo.assets.basePath;
             }
-        } else {
-            next();
         }
-    }
 
+        if (bosco.exists(repoPackageFile)) {
+            // Add the info from the package file to the service and return it
+            boscoRepo.info = JSON.parse(fs.readFileSync(repoPackageFile) || {});;
+        }
+
+        next(null, boscoRepo);
+    }
 
 };
