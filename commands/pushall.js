@@ -35,7 +35,7 @@ function cmd(bosco, args) {
     	  var repoPath = bosco.getRepoPath(repo);
     	  if(repo.match(regex)) {
     	  	 bosco.log("Running git push on " + repo.blue);
-			 push(bosco, repoPath, repoCb);
+			 push(bosco, repoPath, repo, repoCb);
     	  } else {
     	  	repoCb();
     	  }
@@ -71,18 +71,25 @@ function confirm(bosco, message, next) {
   	 });
 }
 
-function push(bosco, orgPath, next) {
+function push(bosco, orgPath, repo, next) {
+  if(!bosco.exists([orgPath,".git"].join("/"))) {
+  	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
+  	return next();
+  }
 
-    if(!bosco.exists([orgPath,".git"].join("/"))) {
-    	bosco.warn("Doesn't seem to be a git repo: "+ orgPath.blue);
-    	return next();
-    }
+  countCommitsAhead(bosco, orgPath, function(err, commitsAhead){
+  	if (err) return next(err);
+  	
+  	if (!commitsAhead) {
+  		bosco.log('Nothing to push for ' + repo.blue);
+			return next();
+  	}
 
-    confirm(bosco, 'Confirm you want to push: ' + orgPath.blue + ' [y/N]', function(err, confirmed) {
+  	confirm(bosco, 'Confirm you want to push: ' + orgPath.blue + ' [y/N]', function(err, confirmed) {
     	if(err) return next(err);
 
     	if (!confirmed) {
-    		bosco.log('Not pushing ' + orgPath.blue);
+    		bosco.log('Not pushing ' + repo.blue);
     		return next();
     	}
 
@@ -97,4 +104,19 @@ function push(bosco, orgPath, next) {
 				next(err);
 			});
     })
+  })
+}
+
+function countCommitsAhead(bosco, orgPath, next) {
+	exec('git log origin/master..master | xargs cat | wc -l', {
+	  cwd: orgPath
+		}, function(err, stdout, stderr) {
+			if(err) {
+				bosco.error(orgPath.blue + " >> " + stderr);
+			} else {
+				if(stdout) return next(null, parseInt(stdout, 10));
+			}
+
+			next(err, 0);
+		});
 }
