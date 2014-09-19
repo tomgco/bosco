@@ -57,7 +57,6 @@ function cmd(bosco, args, next) {
         bosco.log("Fetching repos for " + team.name.magenta);
 
         function fetchTeamRepositories(err, res, reposJson) {
-
             if (err) {
                 return bosco.error('Problem with request: ' + err.message);
             }
@@ -67,8 +66,10 @@ function cmd(bosco, args, next) {
             }
 
             var repos = [];
+            var org = bosco.getOrg();
 
             function obtainRepositoryName(repo) {
+                if(repo.full_name.indexOf(org + '/') !== 0) return;
                 if(_.contains(ignoredRepos,repo.name)) return;
                 repos.push(repo.name);
             }
@@ -87,9 +88,6 @@ function cmd(bosco, args, next) {
 }
 
 function fetch(bosco, repos, repoRegex, args, next) {
-
-	var org = bosco.config.get('github:organization'), orgPath;
-
 	var checkOrg = function(cb) {
 		orgPath = bosco.getOrgPath();
 		if(!bosco.exists(orgPath)) {
