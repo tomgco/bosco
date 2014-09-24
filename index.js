@@ -98,6 +98,14 @@ Bosco.prototype._init = function(next) {
 
 	  loadConfig();
 
+	  // Check for issue #12
+	  if(self._checkRepoPath()) {
+	  	return self._moveRepoPath(function(err) {
+	  		if(err) return self.error(err.message);
+	  		self.log("Folders all moved - please check the old organization folder and delete manually, once you have done this you can use Bosco normally.");
+	  	});
+	  }
+
   	  if(initialise) {
   	  	self._initialiseConfig(function(err) {
   	  		if(err) return;
@@ -330,16 +338,60 @@ Bosco.prototype._checkVersion = function() {
 	});
 }
 
+
+Bosco.prototype._checkRepoPath = function() {
+	// This is a check for the move from the repos being in a path with the organization
+	// to just being in the working folder
+	var self = this;
+
+	// Do we have any repos
+	if(!self.config.get('github:repos')) return false;
+
+	// Check the first repo
+	return self.exists(self.getOldRepoPath(self.config.get('github:repos')[0]));
+}
+
+Bosco.prototype._moveRepoPath = function(next) {
+	var self = this;
+	prompt.start();
+	prompt.get({
+	properties: {
+	  confirm: {
+	    description: "I need to move your repositories from the old organisation path to this folder, can I proceed [y/N]?".white
+	  }
+	}
+	}, function (err, result) {
+		if(!result) return next({message:'Did not confirm'});
+		if(result.confirm == 'Y' || result.confirm == 'y') {
+	 		self.log("Moving repositories - this may take some time ...");
+	 		var repos = self.config.get('github:repos');
+	 		async.map(repos, function(repo, cb) {
+	 			fs.rename(self.getOldRepoPath(repo), self.getRepoPath(repo), cb)
+	 		}, next);
+	 	} else {
+	 		next({message:'Did not confirm'});
+	 	}
+	 });
+}
+
 Bosco.prototype.getOrg = function() {
 	return this.config.get('github:organization');
 }
 
 Bosco.prototype.getOrgPath = function() {
-	return [path.resolve("."),this.getOrg()].join("/");
+	return "./";
 }
 
 Bosco.prototype.getRepoPath = function(repo) {
-	return [this.getOrgPath(),repo].join("/");
+	return [".",repo].join("/");
+}
+
+// To support change outlined in issue #12
+Bosco.prototype.getOldOrgPath = function() {
+	return [path.resolve("."),this.getOrg()].join("/");
+}
+Bosco.prototype.getOldRepoPath = function(repo) {
+	return [this.getOldOrgPath(),repo].join("/");
 }
 
 Bosco.prototype.getRepoUrl = function(repo) {

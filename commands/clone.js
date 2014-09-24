@@ -88,15 +88,10 @@ function cmd(bosco, args, next) {
 }
 
 function fetch(bosco, repos, repoRegex, args, next) {
-	var checkOrg = function(cb) {
-		orgPath = bosco.getOrgPath();
-		if(!bosco.exists(orgPath)) {
-			bosco.log("Creating organization folder " + orgPath.magenta);
-			mkdirp(orgPath, cb);
-		} else {
-			cb();
-		}
-	}
+
+	var orgPath = bosco.getOrgPath();
+
+	console.log(orgPath);
 
 	var saveRepos = function(cb) {
 		bosco.config.set("github:repos",repos);
@@ -137,7 +132,7 @@ function fetch(bosco, repos, repoRegex, args, next) {
 
 	}
 
-	async.series([checkOrg, saveRepos, getRepos], function(err) {
+	async.series([saveRepos, getRepos], function(err) {
 		bosco.log("Complete");
 		if(next) next();
 	});
