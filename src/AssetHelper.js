@@ -2,9 +2,10 @@
 var fs = require('fs');
 var crypto = require('crypto');
 var path = require('path');
+var mime = require('mime');
 
-module.exports = function(bosco) { 
-    
+module.exports = function(bosco) {
+
     return {
         getAssetHelper: getAssetHelper,
         createKey: createKey,
@@ -19,6 +20,8 @@ module.exports = function(bosco) {
                 if (tagFilter && tag !== tagFilter) return;
 
                 var newAsset = {};
+
+                newAsset.mimeType = mime.lookup(asset);
                 newAsset.assetKey = assetKey;
                 newAsset.asset = asset;
                 newAsset.repoPath = boscoRepo.repoPath;

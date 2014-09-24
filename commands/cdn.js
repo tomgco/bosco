@@ -5,7 +5,6 @@ var http = require('http');
 var watch = require('watch');
 var sass = require("node-sass");
 var path = require('path');
-var mime = require('mime');
 var utils;
 
 module.exports = {
@@ -30,15 +29,18 @@ function cmd(bosco, args) {
 
 		var server = http.createServer(function(request, response) {
 
-		  var url = request.url.replace("/","");
+			var url = request.url.replace("/","");
 
-		  if(staticAssets[url]) {
+			if(staticAssets[url]) {
+				var asset = staticAssets[url];
+
 				response.writeHead(200, {
-					"Content-Type": mime.lookup(url),
+					"Content-Type": asset.mimeType,
 					"Cache-Control": "no-cache, must-revalidate",
 					"Pragma": "no-cache",
 					"Expires": "Sat, 21 May 1952 00:00:00 GMT"
 				});
+
 				getContent(staticAssets[url], function(err, content) {
 					if(err) {
 						response.writeHead(500, {"Content-Type": "text/html"});
@@ -46,7 +48,8 @@ function cmd(bosco, args) {
 					} else {
 						response.end(content);
 					}
-				})
+				});
+
 		  } else {
 		  	if (request.url == '/repos') {
 		  		response.writeHead(200, {"Content-Type": "text/html"});

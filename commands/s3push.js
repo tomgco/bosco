@@ -77,7 +77,7 @@ function cmd(bosco, args) {
 		if(!bosco.knox) return bosco.warn("Knox AWS not configured for environment " + bosco.options.envrionment + " - so not pushing " + file.path + " to S3.");
 		var buffer = new Buffer(file.content);
 		var headers = {
-		  'Content-Type': file.type == 'js' ? 'application/javascript': 'text/' + file.type,
+		  'Content-Type': file.mimeType,
 		  'Cache-Control': ('max-age=' + (maxAge == 0 ? "0, must-revalidate" : maxAge))
 		};
 		bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){
@@ -202,6 +202,3 @@ function cmd(bosco, args) {
 	}
 
 }
-
-
-
