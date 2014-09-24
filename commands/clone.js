@@ -91,8 +91,6 @@ function fetch(bosco, repos, repoRegex, args, next) {
 
 	var orgPath = bosco.getOrgPath();
 
-	console.log(orgPath);
-
 	var saveRepos = function(cb) {
 		bosco.config.set("github:repos",repos);
 		bosco.config.save(cb);
