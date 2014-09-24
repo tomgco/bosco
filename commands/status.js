@@ -27,9 +27,9 @@ function cmd(bosco, args) {
 
 	bosco.log("Running git status across all repos ...");
 
-	var stashRepos = function(cb) {
+	var statusRepos = function(cb) {
 
-		async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {
+		async.mapLimit(repos, bosco.options.cpus, function(repo, repoCb) {
 
 		  if(!repo.match(repoRegex)) return repoCb();
 
@@ -42,7 +42,7 @@ function cmd(bosco, args) {
 
 	}
 
-	stashRepos(function() {
+	statusRepos(function() {
 		bosco.log("Complete");
 	});
 
