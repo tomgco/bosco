@@ -128,7 +128,7 @@ function cmd(bosco, args) {
 		if(asset.extname == '.scss') {
 			sass.render(asset.content, next);
 		} else {
-			next(null, asset.data);
+			next(null, asset.data || asset.content);
 		}
 	}
 
