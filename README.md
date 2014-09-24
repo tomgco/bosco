@@ -336,10 +336,47 @@ It is strongly recommended that you pull all 'core' libraries like jQuery into a
 
 Note that if you use the external build option then the files inside this project don't get included in the duplicate check.
 
-
 ## Local Commands
 
 To create your own Bosco commands for your project (ones that you don't want to submit back to core via a pull request), simply create a 'commands' folder in the root of your Bosco workspace and add commands to it.  You can use any of the core commands as a starting point.
 
 At TES we have a github project that is a 'default' Bosco workspace that contains local commands and configuration that teams use as their workspace.
 
+### Options and Args in new commands
+
+There are two ways of passing input through to a command: options and args.
+
+#### Options (e.g. Command Line Options)
+
+Options are specified via - switches, and are typically applied across more than one command.  For example, -e development.
+
+```
+bosco -e development s3push
+bosco -e development cdn minify
+```
+
+To add a new option you need to submit a pull request to Bosco core, as these are applied across all commands (they can't be added locally in a Bosco working folder - yet!).
+
+Within a command these are then accessed via the global Bosco object, by their long name (see /bin/bosco.js).
+
+```
+var environment = bosco.options.environment;
+```
+
+#### Arguments (to specific commands)
+
+Arguments are an array of strings that follow the command.
+
+For example:
+
+```
+bosco cdn minify
+```
+
+In the above command, the command is cdn, the args are: ["minify"]
+
+To use in a command, you typically scan the array for their presence and set a variable (as in most instances they actually represent a Boolean vs a string).
+
+```
+var minify = _.contains(args,'minify');
+```

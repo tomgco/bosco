@@ -19,6 +19,7 @@ program
   .option('-r, --repo [pattern]', 'Use a specific repository (parsed as regexp)')
   .option('-n, --noprompt', 'Do not prompt for confirmation')
   .option('-f, --force', 'Force over ride on publish even if no changes')
+  .option('-s, --since', 'Use for commands that need a start date such as activity')
   .option('--completion [shell]','Generate the shell completion code')
   .option('--shellCommands','Generate commands for shell completion mode [used internally]')
   .parse(process.argv);
@@ -31,6 +32,7 @@ var options = {
   repo: program.repo || ".*",
 	args: program.args,
   force: program.force,
+  since: program.since,
   program: program,
   shellCommands: program.shellCommands,
   version: pkg.version
