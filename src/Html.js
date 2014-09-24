@@ -13,12 +13,14 @@ module.exports = function(bosco) {
 
     function createAssetHtmlFiles(staticAssets, next) {
 
-        var htmlAssets = {},
-            port = bosco.config.get('cdn:port') || "7334";
+        var htmlAssets = {};
+
+        var cdnPort = bosco.config.get('cdn:port') || "7334";
+        var cdnHostname = bosco.config.get('cdn:hostname') || 'localhost';
+        var cdnUrl = bosco.config.get('aws:cdn') ? bosco.config.get('aws:cdn') : 'http://'+ cdnHostname +':' + cdnPort;
 
         _.forOwn(staticAssets, function(asset, key) {
             var html;
-            var cdn = bosco.config.get('aws:cdn') ? bosco.config.get('aws:cdn') : 'http://localhost:' + port;
             var htmlFile = createKey(asset.tag, asset.type, 'html', 'html');
 
             if (!isJavascript(asset) && !isStylesheet(asset)) return;
@@ -33,13 +35,13 @@ module.exports = function(bosco) {
 
             if (isJavascript(asset)) {
                 htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', {
-                    'url': cdn + "/" + key
+                    'url': cdnUrl + "/" + key
                 });
             }
 
             if (isStylesheet(asset)) {
                 htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', {
-                    'url': cdn + "/" + key
+                    'url': cdnUrl + "/" + key
                 });
             }
         });

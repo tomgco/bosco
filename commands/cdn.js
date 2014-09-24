@@ -18,7 +18,9 @@ function cmd(bosco, args) {
 
 	var minify = _.contains(args,'minify');
 	var port = bosco.config.get('cdn:port') || 7334;
-	var serverUrl = "http://localhost:" + port + "/";
+	var hostname = bosco.config.get('cdn:hostname') || 'localhost';
+
+	var serverUrl = "http://"+hostname+":" + port + "/";
 
 	bosco.log("Starting pseudo CDN on port: " + (port+"").blue);
 
