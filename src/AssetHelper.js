@@ -29,7 +29,8 @@ module.exports = function(bosco) {
                 newAsset.tag = tag;
                 newAsset.repo = boscoRepo.name;
                 newAsset.type = type;
-                newAsset.content = fs.readFileSync(newAsset.path).toString();
+                newAsset.data = fs.readFileSync(newAsset.path);
+                newAsset.content = newAsset.data.toString();
                 newAsset.checksum = checksum(newAsset.content, 'sha1', 'hex');
 
                 staticAssets[assetKey] = newAsset;

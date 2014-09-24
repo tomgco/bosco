@@ -5,6 +5,7 @@ var http = require('http');
 var watch = require('watch');
 var sass = require("node-sass");
 var path = require('path');
+var mime = require('mime');
 var utils;
 
 module.exports = {
@@ -33,7 +34,7 @@ function cmd(bosco, args) {
 
 		  if(staticAssets[url]) {
 				response.writeHead(200, {
-					"Content-Type": "text/" + staticAssets[url].type,
+					"Content-Type": mime.lookup(url),
 					"Cache-Control": "no-cache, must-revalidate",
 					"Pragma": "no-cache",
 					"Expires": "Sat, 21 May 1952 00:00:00 GMT"
@@ -122,7 +123,7 @@ function cmd(bosco, args) {
 		if(asset.extname == '.scss') {
 			sass.render(asset.content, next);
 		} else {
-			next(null, asset.content);
+			next(null, asset.data);
 		}
 	}
 

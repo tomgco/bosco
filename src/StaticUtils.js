@@ -77,27 +77,18 @@ module.exports = function(bosco) {
             staticBuild = {},
             assetHelper = AssetHelper.getAssetHelper(boscoRepo, tagFilter);
 
-        if (boscoRepo.assets && boscoRepo.assets.js) {
-            _.forOwn(boscoRepo.assets.js, function(value, tag) {
-                if (value) {
-                    value.forEach(function(asset) {
-                        assetKey = boscoRepo.name + "/" + asset;
-                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, 'js');
-                    });
-                }
-            });
-        }
+				if (boscoRepo.assets) {
+						_.forEach(_.pick(boscoRepo.assets, ['js', 'css', 'img', 'html']), function (assets, type) {
+								_.forOwn(assets, function (value, tag) {
+										if (!value) return;
 
-        if (boscoRepo.assets && boscoRepo.assets.css) {
-            _.forOwn(boscoRepo.assets.css, function(value, tag) {
-                if (value) {
-                    value.forEach(function(asset) {
-                        assetKey = boscoRepo.name + "/" + asset;
-                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, 'css');
-                    });
-                }
-            });
-        }
+										_.forEach(value, function (asset) {
+												assetKey = boscoRepo.name + "/" + asset;
+												assetHelper.addAsset(staticAssets, assetKey, asset, tag, type);
+										});
+								});
+						});
+				}
 
         // Create build entry
         if (boscoRepo.assets && boscoRepo.assets.build) {
