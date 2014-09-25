@@ -25,8 +25,13 @@ function cmd(bosco, args) {
 
 		var startRunnableServices = function(running) {
 			async.map(repos, function(repo, next) {
-				var pkg, basePath, repoPath = bosco.getRepoPath(repo), packageJson = [repoPath,"package.json"].join("/");
+				var pkg, svc, basePath,
+					repoPath = bosco.getRepoPath(repo),
+					packageJson = [repoPath,"package.json"].join("/"),
+					boscoService = [repoPath,"bosco-service.json"].join("/");
+
 				if(repo.match(repoRegex) && bosco.exists(packageJson)) {
+
 					pkg = require(packageJson);
 					if(_.contains(running, repo)) {
 						bosco.warn(repo + " already running, use 'bosco stop " + repo + "'");
@@ -37,6 +42,9 @@ function cmd(bosco, args) {
 					} else {
 						next();
 					}
+				} else if (repo.match(repoRegex) && bosco.exists(boscoService)) {
+					svc = require(boscoService);
+					console.dir(svc);
 				} else {
 					next();
 				}
@@ -53,7 +61,7 @@ function cmd(bosco, args) {
 
 		var getRunningServices = function(next) {
 			pm2.list(function(err, list) {
-				next(err, _.pluck(list,'name'));				
+				next(err, _.pluck(list,'name'));
 			});
 		}
 
@@ -62,15 +70,15 @@ function cmd(bosco, args) {
 			run(repo, scripts, repoPath, next);
 		}
 
-		var run = function(repo, scripts, repoPath, next) {		
-			
+		var run = function(repo, scripts, repoPath, next) {
+
 			// Remove node from the start script as not req'd for PM2
-			var start = scripts.start, startArr;			
+			var start = scripts.start, startArr;
 			if(start.split(" ")[0] == "node") {
 				 startArr = start.split(" ");
-				 startArr.shift();				 
+				 startArr.shift();
 				 start = startArr.join(" ");
-			}	
+			}
 
 			var ext = path.extname(start);
 			if(!path.extname(start)) {
@@ -94,10 +102,10 @@ function cmd(bosco, args) {
 		bosco.log("Run each mircoservice " + args);
 
 		getRunningServices(function(err, running) {
-			startRunnableServices(running);	
+			startRunnableServices(running);
 		});
 
 	});
 
 }
-	
+
