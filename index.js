@@ -379,11 +379,11 @@ Bosco.prototype.getOrg = function() {
 }
 
 Bosco.prototype.getOrgPath = function() {
-	return "./";
+	return path.resolve(".");
 }
 
 Bosco.prototype.getRepoPath = function(repo) {
-	return [".",repo].join("/");
+	return [path.resolve("."),repo].join("/");
 }
 
 // To support change outlined in issue #12
