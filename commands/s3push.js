@@ -4,6 +4,7 @@ var _ = require('lodash'),
 	path = require("path"),
 	colors = require('colors'),
 	jsdiff = require('diff'),
+	mime = require('mime'),
 	utils;
 
 module.exports = {
@@ -49,7 +50,7 @@ function cmd(bosco, args) {
 				content:asset.content,
 				path:key,
 				type:asset.type,
-				mimeType:asset.mimeType
+				mimeType:mime.lookup(key)
 			});
 
 		});
