@@ -45,7 +45,12 @@ function cmd(bosco, args) {
 			if(asset.type == 'html' && !confirmation[asset.tag][asset.assetType]) return;
 			if(asset.type == 'plain' && !confirmation[asset.tag][asset.assetType]) return;
 
-			toPush.push({content:asset.content, path:key, type:asset.type});
+			toPush.push({
+				content:asset.content,
+				path:key,
+				type:asset.type,
+				mimeType:asset.mimeType
+			});
 
 		});
 
@@ -53,7 +58,12 @@ function cmd(bosco, args) {
 		// saveS3record(toPush);
 
 		// Add index
-		toPush.push({content:staticAssets.formattedAssets, path:(bosco.options.environment + "/" + bosco.options.build + "/index.html"), type:'html'});
+		toPush.push({
+			content:staticAssets.formattedAssets,
+			path:(bosco.options.environment + "/" + bosco.options.build + "/index.html"),
+			type:'html',
+			mimeType:'text/html'
+		});
 
 		async.mapSeries(toPush, pushToS3, next);
 	}
