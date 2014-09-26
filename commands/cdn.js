@@ -93,8 +93,17 @@ function cmd(bosco, args) {
 	      var fileKey = watchSet[f];
 	      if(!minify) {
 	      	if(fileKey) {
-		      	staticAssets[fileKey].content = fs.readFileSync(staticAssets[fileKey].path);
-		      	bosco.log("Reloaded " + fileKey);
+						fs.readFile(staticAssets[fileKey].path, function (err, data) {
+							if (err) {
+								bosco.log("Error reloading "+fileKey);
+								bosco.log(err.toString());
+								return;
+							}
+
+							staticAssets[fileKey].data = data;
+							staticAssets[fileKey].content = data.toString();
+		      		bosco.log("Reloaded " + fileKey);
+						});
 	      	}
 		  } else {
 		  	if(fileKey) {
