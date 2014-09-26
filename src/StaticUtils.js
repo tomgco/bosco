@@ -32,9 +32,9 @@ module.exports = function(bosco) {
             });
 
             async.mapSeries(services, function(service, cb) {
-                
+
                 doBuild(service, options, function(err) {
-                    createAssetList(service, options.minify, options.tagFilter, cb);    
+                    createAssetList(service, options.minify, options.tagFilter, cb);
                 });
 
             }, function(err, assetList) {
@@ -42,10 +42,10 @@ module.exports = function(bosco) {
                 var staticAssets = {};
 
                 assetList.forEach(function(asset) {
-                    _.forOwn(asset, function(value, key) {                        
-                        staticAssets[key] = value;                        
+                    _.forOwn(asset, function(value, key) {
+                        staticAssets[key] = value;
                     });
-                });               
+                });
 
                 // Dedupe
                 removeDuplicates(staticAssets, function(err, staticAssets) {
@@ -57,7 +57,7 @@ module.exports = function(bosco) {
                             });
                         });
                     } else {
-                    	createAssetHtmlFiles(staticAssets, next);	
+                    	createAssetHtmlFiles(staticAssets, next);
                     }
                 });
 
@@ -96,7 +96,7 @@ module.exports = function(bosco) {
             staticBuild.name = boscoRepo.name;
             staticBuild.repoPath = boscoRepo.repoPath;
             staticBuild.basePath = boscoRepo.basePath;
-            staticBuild.path = boscoRepo.repoPath + boscoRepo.basePath;
+            staticBuild.path = path.resolve(boscoRepo.repoPath, boscoRepo.basePath);
             staticBuild.type = 'build';
             staticAssets['build:' + staticBuild.name] = staticBuild;
         }
@@ -120,7 +120,7 @@ module.exports = function(bosco) {
             boscoRepo = _.merge(boscoRepo, boscoConfig);
 
             if (boscoRepo.assets && boscoRepo.assets.basePath) {
-                boscoRepo.path += boscoRepo.assets.basePath;
+                boscoRepo.path = path.join(boscoRepo.path, boscoRepo.assets.basePath);
                 boscoRepo.basePath = boscoRepo.assets.basePath;
             }
         }

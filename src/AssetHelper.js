@@ -13,6 +13,7 @@ module.exports = function(bosco) {
     }
 
     function getAssetHelper(boscoRepo, tagFilter) {
+        var repoAssetPath = boscoRepo.basePath || '.';
 
         return {
             addAsset: function(staticAssets, assetKey, asset, tag, type) {
@@ -26,8 +27,8 @@ module.exports = function(bosco) {
                 newAsset.asset = asset;
                 newAsset.repoPath = boscoRepo.repoPath;
                 newAsset.basePath = boscoRepo.basePath;
-                newAsset.relativePath = "." + [boscoRepo.basePath, asset].join("/");
-                newAsset.path = [boscoRepo.path, asset].join("/");
+                newAsset.relativePath = path.join(".", path.relative(repoAssetPath, asset));
+                newAsset.path = path.resolve(boscoRepo.path, asset);
                 newAsset.extname = path.extname(asset);
                 newAsset.tag = tag;
                 newAsset.repo = boscoRepo.name;
