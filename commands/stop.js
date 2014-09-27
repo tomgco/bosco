@@ -1,69 +1,102 @@
-
 var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
 var http = require('http');
-var pm2 = require('pm2');
+var NodeRunner = require('../src/RunWrappers/Node');
+var DockerRunner = require('../src/RunWrappers/Docker');
+var runningServices = [];
 
 module.exports = {
-	name:'stop',
-	description:'Stops all of the microservices (or subset based on regex pattern) using pm2',
-	example:'bosco stop -r <repoPattern>',
-	cmd:cmd
+    name: 'stop',
+    description: 'Stops all of the microservices (or subset based on regex pattern)',
+    example: 'bosco stop -r <repoPattern>',
+    cmd: cmd
 }
 
 function cmd(bosco, args) {
 
-	var repoPattern = bosco.options.repo;
-	var repoRegex = new RegExp(repoPattern);
-	var repos = bosco.config.get('github:repos');
-	var runningServices = {};
+    var repoPattern = bosco.options.repo;
+    var repoRegex = new RegExp(repoPattern);
+    var repos = bosco.config.get('github:repos');
 
-	// Connect or launch PM2
-	pm2.connect(function(err) {
+    var initialiseRunners = function(next) {
+        var runners = [NodeRunner, DockerRunner];
+        async.map(runners, function loadRunner(runner, cb) {
+            runner.init(bosco, cb);
+        }, next);
+    }
 
-		var stopRunningServices = function(running) {			
-			async.map(repos, function(repo, next) {				
-				var pkg, basePath, repoPath = bosco.getRepoPath(repo), packageJson = [repoPath,"package.json"].join("/");
-				if(repo.match(repoRegex) && bosco.exists(packageJson)) {
-					pkg = require(packageJson);
-					if(_.contains(running, repo)) {
-						stopService(repo, pkg.scripts.start, repoPath, next);						
-					} else {
-						bosco.warn("Not running: " + repo);
-						next();
-					}					
-				} else {
-					next();
-				}
-			}, function(err) {				
-				process.exit(0);
-			});
+    var stopRunningServices = function() {
 
-		}
+        async.map(repos, function(repo, next) {
 
-		var getRunningServices = function(next) {
-			pm2.list(function(err, list) {
-				next(err, _.pluck(list,'name'));				
-			});
-		}
+            var pkg, svc, basePath,
+                repoPath = bosco.getRepoPath(repo),
+                packageJson = [repoPath, "package.json"].join("/"),
+                boscoService = [repoPath, "bosco-service.json"].join("/");
 
-		var stopService = function(repo, script, repoPath, next) {
-			bosco.log("Stopping " + repo + " @ " + repoPath + " via " + script.blue);
-			pm2.stop(repo, function(err, proc) {
-				pm2.delete(repo, function(err, proc) {
-				  next(err);	
-				});				
-			});	
-		}
+            if (repo.match(repoRegex)) {
 
-		bosco.log("Stop each mircoservice " + args);
+                if (bosco.exists(packageJson)) {
+                    pkg = require(packageJson);
+                    if (pkg.scripts && pkg.scripts.start) {
+                        // Assume node
+                        if (_.contains(runningServices, repo)) {
+                            return NodeRunner.stop({name: repo, cwd: repoPath, cmd: pkg.scripts.start}, next);
+                        }
+                    }
+                }
 
-		getRunningServices(function(err, running) {
-			stopRunningServices(running);	
-		});
+                if (bosco.exists(boscoService)) {
+                    var svc = require(boscoService);
+                    if (svc.service) {
+                        if (svc.service.type == 'docker') {
+                            if (_.contains(runningServices, DockerRunner.getFqn(svc))) {
+                                return DockerRunner.stop({name: repo, service: svc.service}, next);
+                            }
 
-	});
+                        } else {
+                            // Assume node
+                            if (_.contains(runningServices, repo)) {
+                                return NodeRunner.stop({name: repo, cwd: repoPath, cmd: pkg.scripts.start}, next);
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            next();
+
+        }, function(err) {
+            process.exit(0);
+        });
+
+    }
+
+    var getRunningServices = function(next) {
+        NodeRunner.list(false, function(err, nodeRunning) {
+            DockerRunner.list(false, function(err, dockerRunning) {
+                runningServices = _.union(nodeRunning, dockerRunning);
+                next();
+            })
+        })
+    }
+
+    var stopNodeService = function(repo, script, repoPath, next) {
+        bosco.log("Stopping " + repo + " @ " + repoPath + " via " + script.blue);
+        pm2.stop(repo, function(err, proc) {
+            pm2.delete(repo, function(err, proc) {
+                next(err);
+            });
+        });
+    }
+
+    bosco.log("Stop each mircoservice " + args);
+
+    async.series([initialiseRunners, getRunningServices, stopRunningServices], function(err) {
+        bosco.log("Complete");
+        process.exit(0);
+    })
 
 }
-	

@@ -17,6 +17,7 @@ program
     .option('-e, --environment [environment]', 'Set environment to use')
     .option('-b, --build [build]', 'Set build identifier to use')
     .option('-r, --repo [pattern]', 'Use a specific repository (parsed as regexp)')
+    .option('-t, --tag [tag]', 'Use repositories tagged with tag (exact match)')
     .option('-n, --noprompt', 'Do not prompt for confirmation')
     .option('-f, --force', 'Force over ride on publish even if no changes')
     .option('-s, --since', 'Use for commands that need a start date such as activity')
@@ -33,6 +34,7 @@ var options = {
     args: program.args,
     force: program.force,
     since: program.since,
+    tag: program.tag,
     program: program,
     shellCommands: program.shellCommands,
     version: pkg.version
