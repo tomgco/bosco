@@ -38,7 +38,7 @@ function cmd(bosco, args) {
         if (bosco.exists(packageJson)) {
             pkg = require(packageJson);
             svcConfig = {
-                name: pkg.name,
+                name: repo,
                 cwd: repoPath
             };
             if (pkg.scripts && pkg.scripts.start) {
