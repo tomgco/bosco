@@ -1,0 +1,84 @@
+.TH "BOSCO\-CDN" "3" "September 2014" "" ""
+.SH "NAME"
+\fBbosco-cdn\fR \- Serve static assets locally for development\.
+.SH SYNOPSIS
+.P
+.RS 2
+.nf
+bosco cdn
+bosco cdn minify
+.fi
+.RE
+.SH DESCRIPTION
+.P
+This command will run the bundling and minification process and then serve all of the static assets locally, which defaults to http://localhost:7334/\|\.  It will watch the assets specified in the \fBbosco\-service\.json\fR file and reload if they change\.
+.P
+It is expected that you leave this command running while doing development on services, as if you are also using Compoxure then it provides the HTML fragments that allow the static assets to be included in other pages\.
+.SH CONFIGURATION REQUIREMENTS
+.P
+For this command to work you must have configured the \fBbosco\-service\.json\fR file in the base of the micro services who would like to take part in the asset minification process\.
+.P
+An example \fBbosco\-service\.json\fR file is shown below for a simple service that doesn't have its own build script:
+.P
+.RS 2
+.nf
+{
+    "tags":["review"],
+    "assets": {
+        "basePath": "/src/public",
+        "js": {
+            "bottom": [
+                "js/report\-review\.js",
+                "js/lib/lean\-modal\.min\.js",
+                "js/moderate\-review\.js"
+            ]
+        },
+        "css": {
+            "top": [
+                "css/reviews\.sass"
+            ]
+        }
+    }
+}
+.fi
+.RE
+.P
+For a project that has it's own build step, you can have Bosco wrap around it:
+.P
+.RS 2
+.nf
+{
+    "build":{
+        "command":"gulp build",
+        "watch":{
+            "command":"gulp build \-\-watch",
+            "ready":"Finished 'build'"
+        }
+    },
+    "assets": {
+        "basePath":"/dist",
+         "js": {
+            "upload": [
+                "js/tsl\-uploader\.js"
+            ]
+        },
+        "css": {
+             "upload": [
+                "css/tsl\-uploader\.css"
+            ]
+        },
+        "images": {
+            "upload" :[
+                "img"
+            ]
+        }
+    }
+}
+.fi
+.RE
+.SH SEE ALSO
+.RS 0
+.IP \(bu 2
+bosco help s3push
+
+.RE
