@@ -383,7 +383,14 @@ Bosco.prototype.getOrgPath = function() {
 }
 
 Bosco.prototype.getRepoPath = function(repo) {
-	return [path.resolve("."),repo].join("/");
+    // Strip out / to support full github references
+    var repoName;
+    if(repo.indexOf("/") < 0) {
+        repoName = repo;
+    } else {
+        repoName = repo.split("/")[1];
+    }
+	return [path.resolve("."),repoName].join("/");
 }
 
 // To support change outlined in issue #12
@@ -395,7 +402,11 @@ Bosco.prototype.getOldRepoPath = function(repo) {
 }
 
 Bosco.prototype.getRepoUrl = function(repo) {
-	return ['git@github.com:',this.getOrg(),"/",repo,'.git'].join("");
+    var org;
+    if(repo.indexOf("/") < 0) {
+        org = this.getOrg() + "/";
+    }
+	return ['git@github.com:',org ? org : "",repo,'.git'].join("");
 }
 
 Bosco.prototype.warn = function(msg, args) {

@@ -36,6 +36,14 @@ function cmd(bosco, args, next) {
 
     var ignoredRepos = bosco.config.get('github:ignoredRepos') || [];
 
+    if(!bosco.config.get('github:team')) {
+        // The user does not have a team, so just treat the repos config
+        // as manually edited
+        bosco.log("No team set, so using repos in config as manually managed list ...");
+        var repos = bosco.config.get("github:repos");
+        return fetch(bosco, repos, repoRegex, args, next);
+    }
+
     function fetchTeamProfile(err, res, teamJson) {
 
     	if(teamJson.message) {
