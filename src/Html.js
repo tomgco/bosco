@@ -2,8 +2,8 @@ var _ = require('lodash');
 var hb = require('handlebars');
 var fs = require('fs');
 
-module.exports = function(bosco) { 
-    
+module.exports = function(bosco) {
+
     var createKey = require('./AssetHelper')(bosco).createKey;
 
     return {
