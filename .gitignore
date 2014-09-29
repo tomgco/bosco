@@ -2,6 +2,7 @@
 *.iml
 node_modules
 TSLEducation
+tes
 .DS_Store
 ./bosco.json
 .bosco

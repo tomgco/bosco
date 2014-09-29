@@ -20,7 +20,7 @@ It will ask initially for:
 |Configuration|Description|
 |:-----------------|-----------|
 |Github name|Your username|
-|Github Organization|The organization it will query for repos, e.g. TSLEducation.|
+|Github Organization|The organization it will query for repos, e.g. tes.|
 |Github Auth Key|A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).|
 |Github Team|This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners|
 
@@ -46,7 +46,7 @@ This is then saved in a configuration file locally on disk, default is in .bosco
       }
   }
   "github": {
-    "organization": "TSLEducation",
+    "organization": "tes",
     "authToken": "2266b8xxxxxxxxxxxxxxxxxxxxxa84a5f9",
     "team": "southampton-buildings",
     "user": "cliftonc"
@@ -58,7 +58,7 @@ Bosco will also include any configuration in a file in the .bosco folder with th
 
 ## Command List
 
-Commands in Bosco are defined via specific command files within the 'commands' folder: [https://github.com/TSLEducation/bosco/tree/master/commands](commands).
+Commands in Bosco are defined via specific command files within the 'commands' folder: [https://github.com/tes/bosco/tree/master/commands](commands).
 
 To get a list of installed commands in your installation just type 'bosco':
 
@@ -228,7 +228,7 @@ If passed the minify parameter it will minify the JS as it does if pushing to s3
 
 In CDN mode you can just visit the index page, default: [Bosco Index](http://localhost:7334/) and it will list all the files for you.
 
-The html fragments for [compoxure](https://github.com/TSLEducation/compoxure) in local mode (or the raw asset files) can be built by following a simple convention:
+The html fragments for [compoxure](https://github.com/tes/compoxure) in local mode (or the raw asset files) can be built by following a simple convention:
 
 ```
 http://localhost:7334/<environment>/<build>/html/tag.type.html
@@ -266,7 +266,7 @@ This command requires that you have configured your AWS details for S3.  Best to
 
 ```
 
-To then access the html fragments for [compoxure](https://github.com/TSLEducation/compoxure), it follows a simple convention:
+To then access the html fragments for [compoxure](https://github.com/tes/compoxure), it follows a simple convention:
 
 ```
 <cdn>/<environment>/<build>/<type>/<tag>.<fragmentType>.<js|css|html|map|txt>
