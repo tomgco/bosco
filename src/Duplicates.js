@@ -1,8 +1,8 @@
 
-var _ = require('lodash');
+var _ = require('lodash-node');
 
-module.exports = function(bosco) { 
-    
+module.exports = function(bosco) {
+
     return {
         removeDuplicates: removeDuplicates
     }
@@ -50,11 +50,22 @@ module.exports = function(bosco) {
             }
 
         _.forOwn(staticAssets, function(avalue, akey) {
+
+            if (_.contains(['html', 'img'], avalue.type)) {
+                return;
+            };
+
             _.forOwn(staticAssets, function(bvalue, bkey) {
+
+                if (_.contains(['html', 'img'], avalue.type)) {
+                    return;
+                };
+
                 if (akey == bkey) return;
                 var duplicate = checkDuplicate(avalue, bvalue);
                 var duplicateLibrary = checkDuplicateLibrary(avalue, bvalue);
                 if (duplicate || duplicateLibrary) {
+                    console.log(avalue.assetKey, 'is a duplicate');
                     if (!_.contains(duplicates, avalue.assetKey)) {
                         duplicates.push(bvalue.assetKey);
                     }
