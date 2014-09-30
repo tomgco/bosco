@@ -26,13 +26,13 @@ function Bosco(options) {
 
  self._defaults = {
  	_defaultConfig: [__dirname,'config/bosco.json'].join("/"),
- 	configPath:"./.bosco/",
- 	configFile:"./.bosco/bosco.json"
+ 	configPath: [self.getWorkspacePath(), ".bosco"].join("/"),
+ 	configFile: [self.getWorkspacePath(), ".bosco", "bosco.json"].join("/")
  }
 
  self.options = _.defaults(options, self._defaults);
- self.options.envConfigFile = "./.bosco/" + options.environment + ".json";
- self.options.defaultsConfigFile = "./.bosco/defaults.json";
+ self.options.envConfigFile = self.getWorkspacePath() + "/.bosco/" + options.environment + ".json";
+ self.options.defaultsConfigFile = self.getWorkspacePath() + "/.bosco/defaults.json";
  self.options.cpus = require('os').cpus().length;
 
  self.config = require('nconf');
@@ -374,12 +374,32 @@ Bosco.prototype._moveRepoPath = function(next) {
 	 });
 }
 
+Bosco.prototype.getWorkspacePath = function() {
+    var self = this;
+    var getParent = function(path) {
+        var pathSplit = path.split("/");
+        if(pathSplit.length > 2) {
+            pathSplit.pop();
+            return pathSplit.join("/");
+        } else {
+            return "/";
+        }
+    }
+    var checkRecursive = function(path) {
+        var boscoConfig = [path, ".bosco", "bosco.json"].join("/");
+        if(self.exists(boscoConfig)) return path;
+        if(path == "/") return ".";
+        return checkRecursive(getParent(path));
+    }
+    return checkRecursive(path.resolve("."));
+}
+
 Bosco.prototype.getOrg = function() {
 	return this.config.get('github:organization');
 }
 
 Bosco.prototype.getOrgPath = function() {
-	return path.resolve(".");
+	return path.resolve(this.getWorkspacePath());
 }
 
 Bosco.prototype.getRepoPath = function(repo) {
@@ -390,12 +410,12 @@ Bosco.prototype.getRepoPath = function(repo) {
     } else {
         repoName = repo.split("/")[1];
     }
-	return [path.resolve("."),repoName].join("/");
+	return [path.resolve(this.getWorkspacePath()),repoName].join("/");
 }
 
 // To support change outlined in issue #12
 Bosco.prototype.getOldOrgPath = function() {
-	return [path.resolve("."),this.getOrg()].join("/");
+	return [path.resolve(this.getWorkspacePath()),this.getOrg()].join("/");
 }
 Bosco.prototype.getOldRepoPath = function(repo) {
 	return [this.getOldOrgPath(),repo].join("/");
