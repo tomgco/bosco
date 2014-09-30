@@ -11,11 +11,17 @@ function Runner() {
 
 Runner.prototype.init = function(bosco, next) {
     this.bosco = bosco;
-    var dockerUrl = url.parse(process.env.DOCKER_HOST || 'tcp://127.0.0.1:3000');
-    docker = new Docker({
-        host: dockerUrl.hostname,
-        port: dockerUrl.port
-    });
+    if(process.env.DOCKER_HOST) {
+        // We are likely on OSX and Boot2docker
+        var dockerUrl = url.parse(process.env.DOCKER_HOST || 'tcp://127.0.0.1:3000');
+        docker = new Docker({
+            host: dockerUrl.hostname,
+            port: dockerUrl.port
+        });
+    } else {
+        // Assume we are on linux and so connect on a socket
+        docker = new Docker({socketPath: '/var/run/docker.sock'});
+    }
     next();
 }
 
