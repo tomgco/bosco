@@ -2,8 +2,8 @@ var _ = require('lodash');
 var exec = require('child_process').exec;
 var async = require('async');
 
-module.exports = function(bosco) { 
-    
+module.exports = function(bosco) {
+
     return {
     	getLastCommitForAssets: getLastCommitForAssets
 	}

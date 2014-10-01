@@ -14,6 +14,7 @@ module.exports = function(bosco) {
     }
 
     function getAssetHelper(boscoRepo, tagFilter) {
+
         var repoAssetPath = boscoRepo.basePath || '.';
 
         return {
@@ -30,7 +31,7 @@ module.exports = function(bosco) {
                     newAsset.asset = asset;
                     newAsset.repoPath = boscoRepo.repoPath;
                     newAsset.basePath = boscoRepo.basePath;
-                    newAsset.relativePath = path.join(".", path.relative(repoAssetPath, asset));
+                    newAsset.relativePath = path.join(".", boscoRepo.basePath || "", asset);
                     newAsset.path = resolvedPath;
                     newAsset.extname = path.extname(asset);
                     newAsset.tag = tag;
@@ -39,7 +40,6 @@ module.exports = function(bosco) {
                     newAsset.data = fs.readFileSync(newAsset.path);
                     newAsset.content = newAsset.data.toString();
                     newAsset.checksum = checksum(newAsset.content, 'sha1', 'hex');
-
                     staticAssets[assetKey] = newAsset;
                 }
             }
