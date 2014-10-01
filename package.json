@@ -4,10 +4,10 @@
   "description": "Bosco will take care of your microservices, just don't try and use him on a plane.",
   "main": "index.js",
   "scripts": {
-    "lint": "jshint .",
-    "coveralls": "NODE_ENV=test mocha --require blanket --reporter mocha-lcov-reporter tests/* | ./node_modules/coveralls/bin/coveralls.js",
-    "test": "istanbul cover _mocha -- -R spec tests/* && istanbul check-coverage --statements 80"
+    "test": "istanbul cover _mocha -- -R spec tests/* && istanbul check-coverage --statements 80",
+    "coveralls": "NODE_ENV=test mocha --require blanket --reporter mocha-lcov-reporter tests/* | ./node_modules/coveralls/bin/coveralls.js"
   },
+  "precommit": ["lint", "test"],
   "keywords": [
     "micro",
     "service",
