@@ -86,7 +86,7 @@
     }
   },
   "pre-conmmit": [
-    "jshint",
+    "lint",
     "test"
   ]
 }
