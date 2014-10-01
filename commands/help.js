@@ -2,6 +2,7 @@
 var prettyjson = require('prettyjson');
 var path = require('path');
 var fs = require('fs');
+var spawn = require("child_process").spawn;
 
 module.exports = {
 	name:'help',
@@ -15,32 +16,28 @@ function cmd(bosco, args) {
 	var cmdName = args.shift();
 	if(!cmdName) return bosco.error('You need to provide a command name. e.g: ' + module.exports.example);
 
-console.log(__dirname);
-	var cmdPath = path.join(__dirname,cmdName + '.js'),
-		localPath = path.join(path.resolve('.'),'commands',cmdName + '.js'),
-		helpPath = path.join(path.resolve(__dirname + '/..'),'help',cmdName + '.txt'),
-		localHelpPath = path.join(path.resolve('.'),'help',cmdName + '.txt');
+	var man = 'bosco-' + cmdName + ".3";
+	viewMan(man, function(){});
 
-console.log(cmdPath, localPath, helpPath, localHelpPath);
+}
 
-	var printHelp = function(module) {
-		var m = require(module);
-		var o = {
-			name: m.name,
-			description: m.description,
-			example: m.example
-		}
+// Shamelessly stolen from npm
+function viewMan (man, cb) {
 
-		console.log('');
-		console.log(prettyjson.render(o, {noColor: false}));
-		console.log('');
+  var nre = /([0-9]+)$/
+  var num = man.match(nre)[1]
+  var section = path.basename(man, "." + num)
 
-		if(bosco.exists(helpPath)) return console.log(fs.readFileSync(helpPath).toString());
-		if(bosco.exists(localHelpPath)) return console.log(fs.readFileSync(localHelpPath).toString());
+  // at this point, we know that the specified man page exists
+  var manpath = path.join(__dirname, "..", "man")
+    , env = {}
+  Object.keys(process.env).forEach(function (i) {
+    env[i] = process.env[i]
+  })
+  env.MANPATH = manpath;
 
-	}
-
-	if(bosco.exists(cmdPath)) return printHelp(cmdPath);
-	if(bosco.exists(localPath)) return printHelp(localPath);
+  var conf = { env: env, customFds: [ 0, 1, 2] }
+  var manProcess = spawn("man", [num, section], conf)
+  manProcess.on("close", cb)
 
 }

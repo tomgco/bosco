@@ -29,13 +29,13 @@ function Bosco(options) {
 
  self._defaults = {
  	_defaultConfig: [__dirname,'config/bosco.json'].join("/"),
- 	configPath:"./.bosco/",
- 	configFile:"./.bosco/bosco.json"
+ 	configPath: [self.getWorkspacePath(), ".bosco"].join("/"),
+ 	configFile: [self.getWorkspacePath(), ".bosco", "bosco.json"].join("/")
  }
 
  self.options = _.defaults(options, self._defaults);
- self.options.envConfigFile = "./.bosco/" + options.environment + ".json";
- self.options.defaultsConfigFile = "./.bosco/defaults.json";
+ self.options.envConfigFile = self.getWorkspacePath() + "/.bosco/" + options.environment + ".json";
+ self.options.defaultsConfigFile = self.getWorkspacePath() + "/.bosco/defaults.json";
  self.options.cpus = require('os').cpus().length;
 
  self.config = require('nconf');
@@ -100,6 +100,14 @@ Bosco.prototype._init = function(next) {
   	  if(err) return;
 
 	  loadConfig();
+
+	  // Check for issue #12
+	  if(self._checkRepoPath()) {
+	  	return self._moveRepoPath(function(err) {
+	  		if(err) return self.error(err.message);
+	  		self.log("Folders all moved - please check the old organization folder and delete manually, once you have done this you can use Bosco normally.");
+	  	});
+	  }
 
   	  if(initialise) {
   	  	self._initialiseConfig(function(err) {
@@ -333,20 +341,95 @@ Bosco.prototype._checkVersion = function() {
 	});
 }
 
+
+Bosco.prototype._checkRepoPath = function() {
+	// This is a check for the move from the repos being in a path with the organization
+	// to just being in the working folder
+	var self = this;
+
+	// Do we have any repos
+	if(!self.config.get('github:repos')) return false;
+
+	// Check the first repo
+	return self.exists(self.getOldRepoPath(self.config.get('github:repos')[0]));
+}
+
+Bosco.prototype._moveRepoPath = function(next) {
+	var self = this;
+	prompt.start();
+	prompt.get({
+	properties: {
+	  confirm: {
+	    description: "I need to move your repositories from the old organisation path to this folder, can I proceed [y/N]?".white
+	  }
+	}
+	}, function (err, result) {
+		if(!result) return next({message:'Did not confirm'});
+		if(result.confirm == 'Y' || result.confirm == 'y') {
+	 		self.log("Moving repositories - this may take some time ...");
+	 		var repos = self.config.get('github:repos');
+	 		async.map(repos, function(repo, cb) {
+	 			fs.rename(self.getOldRepoPath(repo), self.getRepoPath(repo), cb)
+	 		}, next);
+	 	} else {
+	 		next({message:'Did not confirm'});
+	 	}
+	 });
+}
+
+Bosco.prototype.getWorkspacePath = function() {
+    var self = this;
+    var getParent = function(path) {
+        var pathSplit = path.split("/");
+        if(pathSplit.length > 2) {
+            pathSplit.pop();
+            return pathSplit.join("/");
+        } else {
+            return "/";
+        }
+    }
+    var checkRecursive = function(path) {
+        var boscoConfig = [path, ".bosco", "bosco.json"].join("/");
+        if(self.exists(boscoConfig)) return path;
+        if(path == "/") return ".";
+        return checkRecursive(getParent(path));
+    }
+    return checkRecursive(path.resolve("."));
+}
+
 Bosco.prototype.getOrg = function() {
 	return this.config.get('github:organization');
 }
 
 Bosco.prototype.getOrgPath = function() {
-	return [path.resolve("."),this.getOrg()].join("/");
+	return path.resolve(this.getWorkspacePath());
 }
 
 Bosco.prototype.getRepoPath = function(repo) {
-	return [this.getOrgPath(),repo].join("/");
+    // Strip out / to support full github references
+    var repoName;
+    if(repo.indexOf("/") < 0) {
+        repoName = repo;
+    } else {
+        repoName = repo.split("/")[1];
+    }
+	return [path.resolve(this.getWorkspacePath()),repoName].join("/");
+}
+
+// To support change outlined in issue #12
+Bosco.prototype.getOldOrgPath = function() {
+	return [path.resolve(this.getWorkspacePath()),this.getOrg()].join("/");
+}
+Bosco.prototype.getOldRepoPath = function(repo) {
+	return [this.getOldOrgPath(),repo].join("/");
 }
 
 Bosco.prototype.getRepoUrl = function(repo) {
-	return ['git@github.com:',this.getOrg(),"/",repo,'.git'].join("");
+    var org;
+    if(repo.indexOf("/") < 0) {
+        org = this.getOrg() + "/";
+    }
+	return ['git@github.com:',org ? org : "",repo,'.git'].join("");
 }
 
 Bosco.prototype.warn = function(msg, args) {

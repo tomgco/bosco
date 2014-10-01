@@ -1,0 +1,37 @@
+.TH "BOSCO\-PS" "3" "September 2014" "" ""
+.SH "NAME"
+\fBbosco-ps\fR \- List all of the running Node and Docker processes\.
+.SH SYNOPSIS
+.P
+.RS 2
+.nf
+bosco ps
+bosco ps \-r <repoPattern>
+.fi
+.RE
+.SH DESCRIPTION
+.P
+This command shows all of the Node and Docker processes launched via the \fBbosco run\fR command\.
+.P
+Node and Docker processes are displayed in two separate lists, they can then be stopped via the \fBbosco stop\fR command\.
+.SH COMMAND LINE OPTIONS
+.SS \-r, \-\-repo
+.RS 0
+.IP \(bu 2
+Default: \.*
+.IP \(bu 2
+Type: String
+
+.RE
+.P
+This sets a regex string to use to filter the repostory list\.
+.SH SEE ALSO
+.RS 0
+.IP \(bu 2
+bosco help run
+.IP \(bu 2
+bosco help stop
+.IP \(bu 2
+bosco help tail
+
+.RE

@@ -13,9 +13,9 @@ var moment = require('moment');
 var utils;
 
 module.exports = {
-	name:'summary',
+	name:'activity',
 	description:'Outputs a summary of activity on the repos',
-	example:'bosco summary -r <repoPattern> --since 2014-09-22T23:36:26-07:00',
+	example:'bosco activity -r <repoPattern> --since 2014-09-22T23:36:26-07:00',
 	cmd:cmd,
 	options: [{
     option: 'since',
@@ -31,7 +31,7 @@ function cmd(bosco, args, next) {
 	var since = bosco.options.since;
 
 	if (!since) {
-		bosco.warn('Using --since argument as last 24 hours since no option was passed. You may be experiencing https://github.com/TSLEducation/bosco/issues/10');
+		bosco.warn('Using --since argument as last 24 hours since no option was passed.');
 		since = moment().subtract(1, 'day').format();
 	}
 
@@ -78,7 +78,7 @@ function repoActivity(bosco, orgPath, repo, since, next) {
 				bosco.error(orgPath.blue + " >> " + stderr);
 			} else {
 				if (!stdout.length) return next();
-				
+
 				figlet(repo, function(err, data) {
 					if (!err) bosco.log(data);
 					else bosco.log(repo);
@@ -87,7 +87,7 @@ function repoActivity(bosco, orgPath, repo, since, next) {
 					if (_.contains(stdout, '\n' + firstCommit)) bosco.log('Repo was created'.green);
 				});
 			}
-			
+
 			next(err);
 		});
   });

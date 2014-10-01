@@ -36,6 +36,14 @@ function cmd(bosco, args, next) {
 
     var ignoredRepos = bosco.config.get('github:ignoredRepos') || [];
 
+    if(!bosco.config.get('github:team')) {
+        // The user does not have a team, so just treat the repos config
+        // as manually edited
+        bosco.log("No team set, so using repos in config as manually managed list ...");
+        var repos = bosco.config.get("github:repos");
+        return fetch(bosco, repos, repoRegex, args, next);
+    }
+
     function fetchTeamProfile(err, res, teamJson) {
 
     	if(teamJson.message) {
@@ -88,15 +96,8 @@ function cmd(bosco, args, next) {
 }
 
 function fetch(bosco, repos, repoRegex, args, next) {
-	var checkOrg = function(cb) {
-		orgPath = bosco.getOrgPath();
-		if(!bosco.exists(orgPath)) {
-			bosco.log("Creating organization folder " + orgPath.magenta);
-			mkdirp(orgPath, cb);
-		} else {
-			cb();
-		}
-	}
+
+	var orgPath = bosco.getOrgPath();
 
 	var saveRepos = function(cb) {
 		bosco.config.set("github:repos",repos);
@@ -137,7 +138,7 @@ function fetch(bosco, repos, repoRegex, args, next) {
 
 	}
 
-	async.series([checkOrg, saveRepos, getRepos], function(err) {
+	async.series([saveRepos, getRepos], function(err) {
 		bosco.log("Complete");
 		if(next) next();
 	});

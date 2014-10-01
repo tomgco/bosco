@@ -4,6 +4,7 @@ var _ = require('lodash'),
 	path = require("path"),
 	colors = require('colors'),
 	jsdiff = require('diff'),
+	mime = require('mime'),
 	utils;
 
 module.exports = {
@@ -45,7 +46,12 @@ function cmd(bosco, args) {
 			if(asset.type == 'html' && !confirmation[asset.tag][asset.assetType]) return;
 			if(asset.type == 'plain' && !confirmation[asset.tag][asset.assetType]) return;
 
-			toPush.push({content:asset.content, path:key, type:asset.type});
+			toPush.push({
+				content:asset.content,
+				path:key,
+				type:asset.type,
+				mimeType:mime.lookup(key)
+			});
 
 		});
 
@@ -53,7 +59,12 @@ function cmd(bosco, args) {
 		// saveS3record(toPush);
 
 		// Add index
-		toPush.push({content:staticAssets.formattedAssets, path:(bosco.options.environment + "/" + bosco.options.build + "/index.html"), type:'html'});
+		toPush.push({
+			content:staticAssets.formattedAssets,
+			path:(bosco.options.environment + "/" + bosco.options.build + "/index.html"),
+			type:'html',
+			mimeType:'text/html'
+		});
 
 		async.mapSeries(toPush, pushToS3, next);
 	}
@@ -77,7 +88,7 @@ function cmd(bosco, args) {
 		if(!bosco.knox) return bosco.warn("Knox AWS not configured for environment " + bosco.options.envrionment + " - so not pushing " + file.path + " to S3.");
 		var buffer = new Buffer(file.content);
 		var headers = {
-		  'Content-Type': file.type == 'js' ? 'application/javascript': 'text/' + file.type,
+		  'Content-Type': file.mimeType,
 		  'Cache-Control': ('max-age=' + (maxAge == 0 ? "0, must-revalidate" : maxAge))
 		};
 		bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){
@@ -202,6 +213,3 @@ function cmd(bosco, args) {
 	}
 
 }
-
-
-

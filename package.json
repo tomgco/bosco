@@ -1,6 +1,6 @@
 {
   "name": "bosco",
-  "version": "0.1.13",
+  "version": "0.2.11",
   "description": "Bosco will take care of your microservices, just don't try and use him on a plane.",
   "main": "index.js",
   "scripts": {
@@ -19,9 +19,13 @@
   "bin": {
     "bosco": "./bin/bosco.js"
   },
+  "directories": {
+    "man": "./man",
+    "bin": "./bin"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TSLEducation/bosco.git"
+    "url": "https://github.com/tes/bosco.git"
   },
   "author": "clifton.cunningham@tes.co.uk",
   "license": "MIT",
@@ -34,12 +38,17 @@
     "commander": "^2.3.0",
     "dateformat": "^1.0.8-1.2.3",
     "diff": "^1.0.8",
+    "dockerode": "^2.0.3",
+    "event-stream": "^3.1.7",
     "figlet": "~1.1.0",
     "gulp": "^3.8.7",
     "gulp-git": "^0.5.0",
+    "gulp-mocha": "^1.1.0",
     "handlebars": "^2.0.0-alpha.4",
     "knox": "^0.9.0",
     "lodash": "^2.4.1",
+    "lodash-node": "^2.4.1",
+    "mime": "^1.2.11",
     "mkdirp": "^0.5.0",
     "moment": "^2.8.3",
     "multimeter": "^0.1.1",
@@ -53,15 +62,19 @@
     "sf": "^0.1.7",
     "tail": "^0.4.0",
     "uglify-js": "^2.4.15",
-    "watch": "TSLEducation/watch"
+    "watch": "tes/watch"
   },
   "devDependencies": {
     "assert": "^1.1.1",
     "blanket": "^1.1.6",
     "coveralls": "^2.11.1",
     "expect.js": "^0.3.1",
+    "gulp": "^3.8.8",
+    "gulp-marked-man": "^0.3.1",
+    "gulp-util": "^3.0.1",
     "mocha": "^1.21.4",
-    "mocha-lcov-reporter": "0.0.1"
+    "mocha-lcov-reporter": "0.0.1",
+    "through2": "^0.6.2"
   },
   "config": {
     "blanket": {

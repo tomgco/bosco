@@ -43,9 +43,9 @@ describe("Bosco Static Asset Handling", function() {
     this.slow(5000);
 
     it('should load static assets in un-minified cdn mode, deduping where necessary', function(done) {
-    
+
         var options = {
-            repos: ["project1","project2"], 
+            repos: ["project1","project2"],
             minify: false,
             tagFilter: null,
             watchBuilds: false,
@@ -55,7 +55,7 @@ describe("Bosco Static Asset Handling", function() {
         var localBosco = boscoMock()
         var utils = StaticUtils(localBosco);
 
-        utils.getStaticAssets(options, function(err, assets) {            
+        utils.getStaticAssets(options, function(err, assets) {
 
             expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
             expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
@@ -74,9 +74,9 @@ describe("Bosco Static Asset Handling", function() {
     });
 
      it('should load static assets in minified cdn mode, deduping where necessary', function(done) {
-    
+
         var options = {
-            repos: ["project1","project2"], 
+            repos: ["project1","project2"],
             minify: true,
             tagFilter: null,
             watchBuilds: false,
@@ -108,9 +108,9 @@ describe("Bosco Static Asset Handling", function() {
     });
 
    it('should load static assets in minified cdn mode, filtering by tag if specified', function(done) {
-    
+
         var options = {
-            repos: ["project1","project2"], 
+            repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
             watchBuilds: false,
@@ -135,9 +135,9 @@ describe("Bosco Static Asset Handling", function() {
     });
 
   it('should not parse sass templates when not minifying as this is done in cdn command to allow live reload', function(done) {
-    
+
         var options = {
-            repos: ["project2"], 
+            repos: ["project2"],
             minify: false,
             tagFilter: 'top',
             watchBuilds: false,
@@ -157,9 +157,9 @@ describe("Bosco Static Asset Handling", function() {
     });
 
    it('should parse sass templates when minifying', function(done) {
-    
+
         var options = {
-            repos: ["project1","project2"], 
+            repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
             watchBuilds: false,
@@ -179,9 +179,9 @@ describe("Bosco Static Asset Handling", function() {
     });
 
   it('should create a manifest when minified that will have all of the files', function(done) {
-    
+
         var options = {
-            repos: ["project1","project2"], 
+            repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
             watchBuilds: false,
@@ -195,17 +195,42 @@ describe("Bosco Static Asset Handling", function() {
             expect(assets).to.have.keys('test/manifest/top.js.txt');
             expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project1/public/js/top1.js');
             expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/top2.js');
-            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/jquery-1.12.0-min.js');            
+            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/jquery-1.12.0-min.js');
             done();
 
         });
 
     });
 
+    it('manifest should contain all specified html files', function(done) {
+
+          var options = {
+              repos: ["project2"],
+              minify: true,
+              tagFilter: 'upload',
+              watchBuilds: false,
+              reloadOnly: false
+          }
+
+          var utils = StaticUtils(boscoMock());
+
+          utils.getStaticAssets(options, function(err, assets) {
+
+              var manifest = assets['test/manifest/upload.html.txt'].content.toString();
+
+              expect(assets).to.have.keys('test/manifest/upload.html.txt');
+              expect(manifest).to.contain('project2/public/html/html1.html');
+              expect(manifest).to.contain('project2/public/html/html2.html');
+              done();
+
+          });
+
+    });
+
   it('should create a source map when minifying javascript', function(done) {
-    
+
         var options = {
-            repos: ["project1","project2"], 
+            repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
             watchBuilds: false,
@@ -216,7 +241,7 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
             expect(assets).to.have.keys('test/js/top.js.map');
-            expect(assets['test/js/top.77917b1.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');            
+            expect(assets['test/js/top.77917b1.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
             done();
 
         });
@@ -232,9 +257,9 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
   this.slow(5000);
 
   it('should execute bespoke build commands and use output', function(done) {
-    
+
         var options = {
-            repos: ["project3"], 
+            repos: ["project3"],
             minify: true,
             tagFilter: null,
             watchBuilds: false,
@@ -260,9 +285,9 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
     });
 
   it('should execute bespoke build commands and use output, and execute the watch command in watch mode', function(done) {
-    
+
         var options = {
-            repos: ["project3"], 
+            repos: ["project3"],
             minify: true,
             tagFilter: null,
             watchBuilds: true,
@@ -287,11 +312,11 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
     });
 
 it('should execute bespoke build commands and use output, and execute the watch command in watch mode and not minified', function(done) {
-    
+
         this.timeout(5000);
 
         var options = {
-            repos: ["project3"], 
+            repos: ["project3"],
             minify: false,
             tagFilter: null,
             watchBuilds: true,

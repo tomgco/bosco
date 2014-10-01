@@ -1,103 +1,144 @@
-
 var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
 var path = require('path');
-var http = require('http');
-var pm2 = require('pm2');
+var NodeRunner = require('../src/RunWrappers/Node');
+var DockerRunner = require('../src/RunWrappers/Docker');
+var runningServices = [];
 
 module.exports = {
-	name:'run',
-	description:'Runs all of the microservices (or subset based on regex pattern) using pm2',
-	example:'bosco run -r <repoPattern>',
-	cmd:cmd
+    name: 'run',
+    description: 'Runs all of the microservices (or subset based on regex pattern)',
+    example: 'bosco run -r <repoPattern>',
+    cmd: cmd
 }
 
 function cmd(bosco, args) {
 
-	var repoPattern = bosco.options.repo;
-	var repoRegex = new RegExp(repoPattern);
-	var repos = bosco.config.get('github:repos');
-	var runningServices = {};
+    var repoPattern = bosco.options.repo;
+    var repoRegex = new RegExp(repoPattern);
+    var repoTag = bosco.options.tag;
+    var repos = bosco.config.get('github:repos');
 
-	// Connect or launch PM2
-	pm2.connect(function(err) {
+    var initialiseRunners = function(next) {
+        var runners = [NodeRunner, DockerRunner];
+        async.map(runners, function loadRunner(runner, cb) {
+            runner.init(bosco, cb);
+        }, next);
+    }
 
-		var startRunnableServices = function(running) {
-			async.map(repos, function(repo, next) {
-				var pkg, basePath, repoPath = bosco.getRepoPath(repo), packageJson = [repoPath,"package.json"].join("/");
-				if(repo.match(repoRegex) && bosco.exists(packageJson)) {
-					pkg = require(packageJson);
-					if(_.contains(running, repo)) {
-						bosco.warn(repo + " already running, use 'bosco stop " + repo + "'");
-						return next();
-					}
-					if(pkg.scripts && pkg.scripts.start) {
-						runService(repo, pkg.scripts, repoPath, next);
-					} else {
-						next();
-					}
-				} else {
-					next();
-				}
+    var getRunConfig = function(repo) {
 
-			}, function(err) {
-				if (err) {
-					bosco.error(err);
-					process.exit(1);
-				}
-				process.exit(0);
-			});
+        var pkg, svc, basePath,
+            repoPath = bosco.getRepoPath(repo),
+            packageJson = [repoPath, "package.json"].join("/"),
+            boscoService = [repoPath, "bosco-service.json"].join("/"),
+            svcConfig = {};
 
-		}
+        if (bosco.exists(packageJson)) {
+            pkg = require(packageJson);
+            svcConfig = {
+                name: repo,
+                cwd: repoPath
+            };
+            if (pkg.scripts && pkg.scripts.start) {
+                svcConfig = _.extend(svcConfig, {
+                    service: {
+                        type: 'node',
+                        start: pkg.scripts.start
+                    }
+                });
+            }
+        }
 
-		var getRunningServices = function(next) {
-			pm2.list(function(err, list) {
-				next(err, _.pluck(list,'name'));				
-			});
-		}
+        if (bosco.exists(boscoService)) {
+            var svc = require(boscoService);
+            if(svc.tags) {
+                svcConfig = _.extend(svcConfig, {tags: svc.tags, port: svc.service});
+            }
+            if (svc.service) {
+                if (svc.service.type == 'docker') {
+                    svcConfig = _.extend(svcConfig, {
+                        service: svc.service
+                    });
+                } else {
+                    if (svc.service.start) {
+                        svcConfig = _.extend(svcConfig, {
+                            service: {
+                                type: 'node',
+                                start: svc.service.start
+                            }
+                        });
+                    }
+                }
+            }
+        }
 
-		var runService = function(repo, scripts, repoPath, next) {
-			bosco.log("Starting " + repo + " @ " + repoPath + " via " + scripts.start.blue);
-			run(repo, scripts, repoPath, next);
-		}
+        return svcConfig;
 
-		var run = function(repo, scripts, repoPath, next) {		
-			
-			// Remove node from the start script as not req'd for PM2
-			var start = scripts.start, startArr;			
-			if(start.split(" ")[0] == "node") {
-				 startArr = start.split(" ");
-				 startArr.shift();				 
-				 start = startArr.join(" ");
-			}	
+    }
 
-			var ext = path.extname(start);
-			if(!path.extname(start)) {
-				ext = ".js";
-				start = start + ".js";
-			}
+    var getRunList = function(next) {
+        var runList = [];
+        repos.forEach(function(repo) {
+            var svcConfig = getRunConfig(repo);
+            if ((!repoTag && repo.match(repoRegex)) || (repoTag && _.contains(svcConfig.tags, repoTag))) {
+              if(svcConfig && svcConfig.service) runList.push(svcConfig);
+            };
+        });
+        next(null, runList);
+    }
 
-			var executeCommand = false;
-			if (ext != ".js") {
-				executeCommand = true;
-			}
+    var startRunnableServices = function(next) {
 
-			// Node 0.10.x has a problem with cluster mode
-			if (process.version.match(/0.10/)) {
-				executeCommand = true;
-			}
+        getRunList(function(err, runList) {
+            async.mapSeries(runList, function(runConfig, cb) {
+                if(runConfig.service && runConfig.service.type == 'docker') {
+                    if(_.contains(runningServices, DockerRunner.getFqn(runConfig))) {
+                        bosco.warn("Service " + runConfig.name.green + " is already running ...");
+                        return cb();
+                    }
+                    return DockerRunner.start(runConfig, cb);
+                }
 
-			pm2.start(start, { name: repo, cwd: repoPath, watch: true, executeCommand: executeCommand }, next);
-		}
+                if(runConfig.service && runConfig.service.type == 'node') {
+                    if(_.contains(runningServices, runConfig.name)) {
+                        bosco.warn("Service " + runConfig.name.green + " is already running ...");
+                        return cb();
+                    }
+                    return NodeRunner.start(runConfig, cb);
+                }
+                cb();
+            }, function(err) {
+                if (err) {
+                    bosco.error(err);
+                    process.exit(1);
+                }
+                process.exit(0);
+            });
+        })
 
-		bosco.log("Run each mircoservice " + args);
+    }
 
-		getRunningServices(function(err, running) {
-			startRunnableServices(running);	
-		});
+    var getRunningServices = function(next) {
+        NodeRunner.list(false, function(err, nodeRunning) {
+            DockerRunner.list(false, function(err, dockerRunning) {
+                runningServices = _.union(nodeRunning, dockerRunning);
+                next();
+            });
+        });
+    }
 
-	});
+    var runNodeService = function(repo, scripts, repoPath, next) {
+        bosco.log("Starting " + repo + " @ " + repoPath + " via " + scripts.start.blue);
+        runNode(repo, scripts, repoPath, next);
+    }
+
+    bosco.log("Run each mircoservice " + args);
+
+    async.series([initialiseRunners, getRunningServices, startRunnableServices], function(err) {
+        bosco.log("Complete");
+        process.exit(0);
+    })
 
 }
-	

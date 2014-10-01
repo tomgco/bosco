@@ -32,9 +32,9 @@ module.exports = function(bosco) {
             });
 
             async.mapSeries(services, function(service, cb) {
-                
+
                 doBuild(service, options, function(err) {
-                    createAssetList(service, options.minify, options.tagFilter, cb);    
+                    createAssetList(service, options.minify, options.tagFilter, cb);
                 });
 
             }, function(err, assetList) {
@@ -42,10 +42,10 @@ module.exports = function(bosco) {
                 var staticAssets = {};
 
                 assetList.forEach(function(asset) {
-                    _.forOwn(asset, function(value, key) {                        
-                        staticAssets[key] = value;                        
+                    _.forOwn(asset, function(value, key) {
+                        staticAssets[key] = value;
                     });
-                });               
+                });
 
                 // Dedupe
                 removeDuplicates(staticAssets, function(err, staticAssets) {
@@ -57,7 +57,7 @@ module.exports = function(bosco) {
                             });
                         });
                     } else {
-                    	createAssetHtmlFiles(staticAssets, next);	
+                    	createAssetHtmlFiles(staticAssets, next);
                     }
                 });
 
@@ -77,27 +77,18 @@ module.exports = function(bosco) {
             staticBuild = {},
             assetHelper = AssetHelper.getAssetHelper(boscoRepo, tagFilter);
 
-        if (boscoRepo.assets && boscoRepo.assets.js) {
-            _.forOwn(boscoRepo.assets.js, function(value, tag) {
-                if (value) {
-                    value.forEach(function(asset) {
-                        assetKey = boscoRepo.name + "/" + asset;
-                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, 'js');
-                    });
-                }
-            });
-        }
+				if (boscoRepo.assets) {
+						_.forEach(_.pick(boscoRepo.assets, ['js', 'css', 'img', 'html']), function (assets, type) {
+								_.forOwn(assets, function (value, tag) {
+										if (!value) return;
 
-        if (boscoRepo.assets && boscoRepo.assets.css) {
-            _.forOwn(boscoRepo.assets.css, function(value, tag) {
-                if (value) {
-                    value.forEach(function(asset) {
-                        assetKey = boscoRepo.name + "/" + asset;
-                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, 'css');
-                    });
-                }
-            });
-        }
+										_.forEach(value, function (asset) {
+												assetKey = boscoRepo.name + "/" + asset;
+												assetHelper.addAsset(staticAssets, assetKey, asset, tag, type);
+										});
+								});
+						});
+				}
 
         // Create build entry
         if (boscoRepo.assets && boscoRepo.assets.build) {
@@ -105,7 +96,7 @@ module.exports = function(bosco) {
             staticBuild.name = boscoRepo.name;
             staticBuild.repoPath = boscoRepo.repoPath;
             staticBuild.basePath = boscoRepo.basePath;
-            staticBuild.path = boscoRepo.repoPath + boscoRepo.basePath;
+            staticBuild.path = path.resolve(boscoRepo.repoPath, boscoRepo.basePath);
             staticBuild.type = 'build';
             staticAssets['build:' + staticBuild.name] = staticBuild;
         }
@@ -129,7 +120,7 @@ module.exports = function(bosco) {
             boscoRepo = _.merge(boscoRepo, boscoConfig);
 
             if (boscoRepo.assets && boscoRepo.assets.basePath) {
-                boscoRepo.path += boscoRepo.assets.basePath;
+                boscoRepo.path = path.join(boscoRepo.path, boscoRepo.assets.basePath);
                 boscoRepo.basePath = boscoRepo.assets.basePath;
             }
         }

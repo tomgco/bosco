@@ -18,7 +18,9 @@ function cmd(bosco, args) {
 
 	var minify = _.contains(args,'minify');
 	var port = bosco.config.get('cdn:port') || 7334;
-	var serverUrl = "http://localhost:" + port + "/";
+	var hostname = bosco.config.get('cdn:hostname') || 'localhost';
+
+	var serverUrl = "http://"+hostname+":" + port + "/";
 
 	bosco.log("Starting pseudo CDN on port: " + (port+"").blue);
 
@@ -29,15 +31,18 @@ function cmd(bosco, args) {
 
 		var server = http.createServer(function(request, response) {
 
-		  var url = request.url.replace("/","");
+			var url = request.url.replace("/","");
 
-		  if(staticAssets[url]) {
+			if(staticAssets[url]) {
+				var asset = staticAssets[url];
+
 				response.writeHead(200, {
-					"Content-Type": "text/" + staticAssets[url].type,
+					"Content-Type": asset.mimeType,
 					"Cache-Control": "no-cache, must-revalidate",
 					"Pragma": "no-cache",
 					"Expires": "Sat, 21 May 1952 00:00:00 GMT"
 				});
+
 				getContent(staticAssets[url], function(err, content) {
 					if(err) {
 						response.writeHead(500, {"Content-Type": "text/html"});
@@ -45,7 +50,8 @@ function cmd(bosco, args) {
 					} else {
 						response.end(content);
 					}
-				})
+				});
+
 		  } else {
 		  	if (request.url == '/repos') {
 		  		response.writeHead(200, {"Content-Type": "text/html"});
@@ -87,8 +93,17 @@ function cmd(bosco, args) {
 	      var fileKey = watchSet[f];
 	      if(!minify) {
 	      	if(fileKey) {
-		      	staticAssets[fileKey].content = fs.readFileSync(staticAssets[fileKey].path);
-		      	bosco.log("Reloaded " + fileKey);
+						fs.readFile(staticAssets[fileKey].path, function (err, data) {
+							if (err) {
+								bosco.log("Error reloading "+fileKey);
+								bosco.log(err.toString());
+								return;
+							}
+
+							staticAssets[fileKey].data = data;
+							staticAssets[fileKey].content = data.toString();
+		      		bosco.log("Reloaded " + fileKey);
+						});
 	      	}
 		  } else {
 		  	if(fileKey) {
@@ -122,7 +137,7 @@ function cmd(bosco, args) {
 		if(asset.extname == '.scss') {
 			sass.render(asset.content, next);
 		} else {
-			next(null, asset.content);
+			next(null, asset.data || asset.content);
 		}
 	}
 

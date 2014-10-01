@@ -4,7 +4,7 @@ var _ = require('lodash');
 
 module.exports = {
 	name:'s3delete',
-	description:'Deletes a published asset set from S3 - must be one you have published previously',
+	description:'Deletes a published asset set from S3',
 	example:'bosco -e <environmment> s3delete <build>',
 	cmd:cmd
 }
@@ -12,17 +12,12 @@ module.exports = {
 var tag = "", noprompt = false;
 
 function cmd(bosco, args) {
-	
+
 	if(!bosco.knox) bosco.error("You don't appear to have any S3 config for this environment?");
-	var pushed = bosco.config.get('S3:published') || [];
 	var toDelete = args[0] || "Not specified"
 
-	if(!toDelete || !_.contains(pushed, toDelete)) {
-		return bosco.error("Unable to delete:" + toDelete.blue + " as it is not in your push list.")	
-	}
-
 	bosco.knox.list({ prefix: bosco.options.environment + '/' + toDelete }, function(err, data) {
-		
+
 		var files = _.pluck(data.Contents, 'Key');
 		if(files.length == 0) return bosco.error("There doesn't appear to be any files matching that push.")
 
@@ -31,17 +26,13 @@ function cmd(bosco, args) {
 			if(err || !confirmed) return;
 			bosco.knox.deleteMultiple(files, function(err, res) {
 				if(err) return bosco.error(err.message);
-				if(res.statusCode == '200') {			
-					bosco.log("Completed deleting " + toDelete.blue);				
-					pushed = _.without(pushed, toDelete);
-					var envConfig = bosco.config.stores.environment;	
-					envConfig.store.S3 = {published: pushed};				
-					bosco.config.save();					
+				if(res.statusCode == '200') {
+					bosco.log("Completed deleting " + toDelete.blue);
 				};
 			});
 
 		});
-		
+
 
 	});
 
@@ -63,5 +54,5 @@ function cmd(bosco, args) {
 	  	 });
 	}
 
-	
+
 }

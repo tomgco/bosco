@@ -1,6 +1,6 @@
 # Bosco
 
-[![Build Status](https://travis-ci.org/TSLEducation/bosco.svg?branch=master)](https://travis-ci.org/TSLEducation/bosco)  [![Coverage Status](https://img.shields.io/coveralls/TSLEducation/bosco.svg)](https://coveralls.io/r/TSLEducation/bosco?branch=master)
+[![Build Status](https://travis-ci.org/tes/bosco.svg?branch=master)](https://travis-ci.org/tes/bosco)  [![Coverage Status](https://img.shields.io/coveralls/tes/bosco.svg)](https://coveralls.io/r/tes/bosco?branch=master)
 
 Bosco is a utility knife to help manage the complexity that using microservices, which naturally results in a large number of code repositories, brings with it.  Inspired by the Github 'setup', e.g. can a developer run one simple command and get up and running?
 
@@ -20,7 +20,7 @@ It will ask initially for:
 |Configuration|Description|
 |:-----------------|-----------|
 |Github name|Your username|
-|Github Organization|The organization it will query for repos, e.g. TSLEducation.|
+|Github Organization|The organization it will query for repos, e.g. tes.|
 |Github Auth Key|A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).|
 |Github Team|This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners|
 
@@ -46,7 +46,7 @@ This is then saved in a configuration file locally on disk, default is in .bosco
       }
   }
   "github": {
-    "organization": "TSLEducation",
+    "organization": "tes",
     "authToken": "2266b8xxxxxxxxxxxxxxxxxxxxxa84a5f9",
     "team": "southampton-buildings",
     "user": "cliftonc"
@@ -58,7 +58,7 @@ Bosco will also include any configuration in a file in the .bosco folder with th
 
 ## Command List
 
-Commands in Bosco are defined via specific command files within the 'commands' folder: [https://github.com/TSLEducation/bosco/tree/master/commands](commands).
+Commands in Bosco are defined via specific command files within the 'commands' folder: [https://github.com/tes/bosco/tree/master/commands](commands).
 
 To get a list of installed commands in your installation just type 'bosco':
 
@@ -228,7 +228,7 @@ If passed the minify parameter it will minify the JS as it does if pushing to s3
 
 In CDN mode you can just visit the index page, default: [Bosco Index](http://localhost:7334/) and it will list all the files for you.
 
-The html fragments for [compoxure](https://github.com/TSLEducation/compoxure) in local mode (or the raw asset files) can be built by following a simple convention:
+The html fragments for [compoxure](https://github.com/tes/compoxure) in local mode (or the raw asset files) can be built by following a simple convention:
 
 ```
 http://localhost:7334/<environment>/<build>/html/tag.type.html
@@ -266,7 +266,7 @@ This command requires that you have configured your AWS details for S3.  Best to
 
 ```
 
-To then access the html fragments for [compoxure](https://github.com/TSLEducation/compoxure), it follows a simple convention:
+To then access the html fragments for [compoxure](https://github.com/tes/compoxure), it follows a simple convention:
 
 ```
 <cdn>/<environment>/<build>/<type>/<tag>.<fragmentType>.<js|css|html|map|txt>
@@ -336,10 +336,47 @@ It is strongly recommended that you pull all 'core' libraries like jQuery into a
 
 Note that if you use the external build option then the files inside this project don't get included in the duplicate check.
 
-
 ## Local Commands
 
 To create your own Bosco commands for your project (ones that you don't want to submit back to core via a pull request), simply create a 'commands' folder in the root of your Bosco workspace and add commands to it.  You can use any of the core commands as a starting point.
 
 At TES we have a github project that is a 'default' Bosco workspace that contains local commands and configuration that teams use as their workspace.
 
+### Options and Args in new commands
+
+There are two ways of passing input through to a command: options and args.
+
+#### Options (e.g. Command Line Options)
+
+Options are specified via - switches, and are typically applied across more than one command.  For example, -e development.
+
+```
+bosco -e development s3push
+bosco -e development cdn minify
+```
+
+To add a new option you need to submit a pull request to Bosco core, as these are applied across all commands (they can't be added locally in a Bosco working folder - yet!).
+
+Within a command these are then accessed via the global Bosco object, by their long name (see /bin/bosco.js).
+
+```
+var environment = bosco.options.environment;
+```
+
+#### Arguments (to specific commands)
+
+Arguments are an array of strings that follow the command.
+
+For example:
+
+```
+bosco cdn minify
+```
+
+In the above command, the command is cdn, the args are: ["minify"]
+
+To use in a command, you typically scan the array for their presence and set a variable (as in most instances they actually represent a Boolean vs a string).
+
+```
+var minify = _.contains(args,'minify');
+```

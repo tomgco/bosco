@@ -15,6 +15,12 @@
             "top":[
                 "css/top2.scss"
             ]
+        },
+        "html": {
+            "upload": [
+                "html/html1.html",
+                "html/html2.html"
+            ]
         }
     }
-}   
+}
