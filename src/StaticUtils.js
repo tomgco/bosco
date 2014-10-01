@@ -78,7 +78,7 @@ module.exports = function(bosco) {
             assetHelper = AssetHelper.getAssetHelper(boscoRepo, tagFilter);
 
 				if (boscoRepo.assets) {
-						_.forEach(_.pick(boscoRepo.assets, ['js', 'css', 'img', 'html']), function (assets, type) {
+						_.forEach(_.pick(boscoRepo.assets, ['js', 'css', 'img', 'html', 'swf']), function (assets, type) {
 								_.forOwn(assets, function (value, tag) {
 										if (!value) return;
 
