@@ -78,8 +78,10 @@ var globalOptions = [
   }
 ];
 
-var localCommandsOptions = getOptionsForCommandsOnPath(Bosco.localCommandFolder);
-var commandOptions = getOptionsForCommandsOnPath(Bosco.globalCommandFolder);
+var bosco = new Bosco();
+
+var localCommandsOptions = getOptionsForCommandsOnPath(bosco.getLocalCommandFolder());
+var commandOptions = getOptionsForCommandsOnPath(bosco.getGlobalCommandFolder());
 
 var allBoscoCommands = _.union(globalOptions, localCommandsOptions, commandOptions);
 
@@ -104,5 +106,4 @@ if(program.completion) {
     completion.print(program.completion);
 }
 
-// Launch
-new Bosco(options);
+bosco.init(options);

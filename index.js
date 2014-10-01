@@ -18,7 +18,11 @@ var sf = require('sf');
 
 prompt.message = 'Bosco'.green;
 
-function Bosco(options) {
+function Bosco() {}
+util.inherits(Bosco, events.EventEmitter);
+module.exports = Bosco;
+
+Bosco.prototype.init = function(options) {
 
     var self = this;
 
@@ -29,13 +33,23 @@ function Bosco(options) {
     };
 
     self.options = _.defaults(options, self._defaults);
-    self.options.envConfigFile = self.getWorkspacePath() + '/.bosco/' + options.environment + '.json';
+    self.options.envConfigFile = self.getWorkspacePath() + '/.bosco/' + self.options.environment + '.json';
     self.options.defaultsConfigFile = self.getWorkspacePath() + '/.bosco/defaults.json';
     self.options.cpus = require('os').cpus().length;
 
     self.config = require('nconf');
     self.prompt = prompt;
     self.progress = progress;
+
+    events.EventEmitter.call(this);
+
+    self.run();
+
+}
+
+Bosco.prototype.run = function() {
+
+    var self = this;
 
     self._init(function(err) {
 
@@ -69,18 +83,7 @@ function Bosco(options) {
         self._cmd();
 
     });
-
-    events.EventEmitter.call(this);
-
 }
-
-util.inherits(Bosco, events.EventEmitter);
-
-// Additional exports
-Bosco.globalCommandFolder = [__dirname, '/', 'commands', '/'].join('');
-Bosco.localCommandFolder = [path.resolve('.'), '/', 'commands', '/'].join('');
-
-module.exports = Bosco;
 
 Bosco.prototype._init = function(next) {
 
@@ -215,8 +218,8 @@ Bosco.prototype._cmd = function() {
     var self = this,
         commands = self.options.args,
         command = commands.shift(),
-        commandModule = [Bosco.globalCommandFolder, command, '.js'].join(''),
-        localCommandModule = [Bosco.localCommandFolder, command, '.js'].join('');
+        commandModule = [self.getGlobalCommandFolder(), command, '.js'].join(''),
+        localCommandModule = [self.getLocalCommandFolder(), command, '.js'].join('');
 
     if (self.exists(commandModule)) {
         require(commandModule).cmd(self, commands);
@@ -430,6 +433,16 @@ Bosco.prototype.getOldOrgPath = function() {
 }
 Bosco.prototype.getOldRepoPath = function(repo) {
     return [this.getOldOrgPath(), repo].join('/');
+}
+
+// Additional exports
+Bosco.prototype.getGlobalCommandFolder = function() {
+    return [__dirname, '/', 'commands', '/'].join('');
+}
+
+Bosco.prototype.getLocalCommandFolder = function() {
+    var self = this;
+    return [self.getWorkspacePath(), '/', 'commands', '/'].join('');
 }
 
 Bosco.prototype.getRepoUrl = function(repo) {
