@@ -57,37 +57,44 @@ Runner.prototype.start = function(options, next) {
 
     var self = this;
     var dockerFqn = self.getFqn(options);
+    var createAndRun = function(err) {
+        if (err) return next(err);
+
+        createContainer(dockerFqn, options, function(err, container) {
+            if (err) return next(err);
+
+            runContainer(dockerFqn, options, container, next);
+        });
+    };
 
     locateImage(dockerFqn, function(err, image) {
+        if (err || image) return createAndRun(err);
 
-        if (!image) {
-            // Image not available
-            pullImage(dockerFqn, function(err, image) {
-                createContainer(dockerFqn, options, function(err, container) {
-                    runContainer(dockerFqn, options, container, next);
-                });
-            });
-        } else {
-            createContainer(dockerFqn, options, function(err, container) {
-                runContainer(dockerFqn, options, container, next);
-            });
-        }
-
+        // Image not available
+        pullImage(dockerFqn, createAndRun);
     })
-
 }
 
 Runner.prototype.getFqn = function(options) {
-    var dockerFqn = "";
-    if (options.service.registry) dockerFqn += options.service.registry + "/";
-    if (options.service.username) dockerFqn += options.service.username + "/";
-    dockerFqn += options.service.name + ':' + (options.service.version || "latest");
-    return dockerFqn;
+    var dockerFqn = "", service = options.service;
+    if (service.docker && service.docker.image) {
+        dockerFqn = service.docker.image;
+        if (dockerFqn.indexOf(':') === -1) {
+            dockerFqn += ':latest';
+        }
+        return dockerFqn;
+    }
+
+    if (service.registry) dockerFqn += service.registry + "/";
+    if (service.username) dockerFqn += service.username + "/";
+    return dockerFqn + service.name + ':' + (service.version || "latest");
 }
 
 function createContainer(fqn, options, next) {
 
     var optsCreate = {
+        'name': options.service.name,
+        'Image': fqn,
         'Hostname': '',
         'User': '',
         'AttachStdin': false,
@@ -97,11 +104,20 @@ function createContainer(fqn, options, next) {
         'OpenStdin': false,
         'StdinOnce': false,
         'Env': null,
-        'Image': fqn
+        'Volumes': null
     };
 
-    docker.createContainer(optsCreate, next);
+    if (options.service.docker && options.service.docker.create) {
+        optsCreate = _.extend(optsCreate, options.service.docker.create);
+    }
 
+    var doCreate = function(err) {
+        if (err && err.statusCode !== 404) return next(err);
+        docker.createContainer(optsCreate, next);
+    };
+    var container = docker.getContainer(optsCreate.name);
+    if (container) return container.remove(doCreate);
+    doCreate();
 }
 
 function runContainer(fqn, options, container, next) {
@@ -111,10 +127,13 @@ function runContainer(fqn, options, container, next) {
     var optsRun = {
         'Dns': options.service.dns || ['8.8.8.8', '8.8.4.4'],
         'PortBindings': options.service.ports,
-        'Image': fqn,
-        'Volumes': {},
-        'VolumesFrom': ''
+        'NetworkMode': 'bridge',
+        'VolumesFrom': null
     };
+
+    if (options.service.docker && options.service.docker.start) {
+      optsRun = _.extend(optsRun, options.service.docker.start);
+    }
 
     container.start(optsRun, function(err, data) {
         if (err) {
