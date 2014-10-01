@@ -16,7 +16,11 @@ module.exports = {
 	name:'summary',
 	description:'Outputs a summary of activity on the repos',
 	example:'bosco summary -r <repoPattern> --since 2014-09-22T23:36:26-07:00',
-	cmd:cmd
+	cmd:cmd,
+	options: [{
+    option: 'since',
+    syntax: ['-s, --since [since]', 'Use for commands that need a start date such as activity']
+  }]
 }
 
 function cmd(bosco, args, next) {
@@ -24,7 +28,7 @@ function cmd(bosco, args, next) {
 	var repoPattern = bosco.options.repo;
 	var repoRegex = new RegExp(repoPattern);
 
-	var since = args['since'];
+	var since = bosco.options.since;
 
 	if (!since) {
 		bosco.warn('Using --since argument as last 24 hours since no option was passed. You may be experiencing https://github.com/TSLEducation/bosco/issues/10');
