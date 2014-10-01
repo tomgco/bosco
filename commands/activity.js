@@ -16,7 +16,11 @@ module.exports = {
 	name:'activity',
 	description:'Outputs a summary of activity on the repos',
 	example:'bosco activity -r <repoPattern> --since 2014-09-22T23:36:26-07:00',
-	cmd:cmd
+	cmd:cmd,
+	options: [{
+    option: 'since',
+    syntax: ['-s, --since [since]', 'Use for commands that need a start date such as activity']
+  }]
 }
 
 function cmd(bosco, args, next) {

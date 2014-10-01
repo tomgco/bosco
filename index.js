@@ -20,6 +20,9 @@ var sf = require('sf');
 
 prompt.message = "Bosco".green;
 
+Bosco.getGlobalCommandFolder = [__dirname,"/","commands","/"].join('');
+Bosco.getLocalCommandFolder = [path.resolve("."),"/","commands","/"].join('');
+
 function Bosco(options) {
 
  var self = this;
@@ -204,8 +207,8 @@ Bosco.prototype._cmd = function() {
 	var self = this,
 		commands = self.options.args,
 		command = commands.shift(),
-		commandModule = [__dirname,"/","commands","/",command,'.js'].join(""),
-		localCommandModule = [path.resolve("."),"/","commands","/",command,'.js'].join("");
+		commandModule = [Bosco.getGlobalCommandFolder, command, '.js'].join(""),
+		localCommandModule = [Bosco.getLocalCommandFolder, command, '.js'].join("");
 
 	if(self.exists(commandModule)) {
 		require(commandModule).cmd(self, commands);

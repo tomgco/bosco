@@ -9,38 +9,96 @@ var Bosco = require('../index');
 var _ = require('lodash');
 var pkg = require('../package.json');
 var completion = require('../src/completion');
+var async = require('async');
+var fs = require('fs');
+var path = require('path');
 
-program
-    .version(pkg.version)
-    .usage('[options] <command>')
-    .option('-c, --configFile [file]', 'Use specific config file')
-    .option('-e, --environment [environment]', 'Set environment to use')
-    .option('-b, --build [build]', 'Set build identifier to use')
-    .option('-r, --repo [pattern]', 'Use a specific repository (parsed as regexp)')
-    .option('-t, --tag [tag]', 'Use repositories tagged with tag (exact match)')
-    .option('-n, --noprompt', 'Do not prompt for confirmation')
-    .option('-f, --force', 'Force over ride on publish even if no changes')
-    .option('-s, --since', 'Use for commands that need a start date such as activity')
-    .option('--completion [shell]', 'Generate the shell completion code')
-    .option('--shellCommands', 'Generate commands for shell completion mode [used internally]')
-    .parse(process.argv);
+// Go over every command in the global and local commands folder and add the options
+program.boscoOptionsArray = function(boscoOptionsArray) {
+  if (!boscoOptionsArray || !boscoOptionsArray.length) return this;
 
-var options = {
-    configFile: program.configFile,
-    noprompt: program.noprompt,
-    build: program.build || 'default',
-    environment: program.environment || "local",
-    repo: program.repo || ".*",
-    args: program.args,
-    force: program.force,
-    since: program.since,
-    tag: program.tag,
-    program: program,
-    shellCommands: program.shellCommands,
-    version: pkg.version
+  var _this = this;
+
+  _.forEach(boscoOptionsArray, function(boscoOption) {
+    if (!boscoOption.option || !boscoOption.syntax || boscoOption.syntax.length < 2) throw new Error('Error parsing bosco command');
+
+    _this.option(boscoOption.syntax[0], boscoOption.syntax[1], boscoOption.syntax[2]);
+  });
+  
+  return _this;
+}
+
+var getOptionsForCommandsOnPath = function(folderPath) {
+  var wrappedFiles = _(fs.readdirSync(folderPath));
+
+  var wrappedCommandsArray = wrappedFiles.map(function(filename) {
+    if (path.extname(filename) !== '.js') return null;
+
+    var commandFile = require(path.join(folderPath, filename));
+    return commandFile.options;
+  });
+
+  return wrappedCommandsArray.flatten().compact().value();
 };
 
-if (program.completion) {
+var globalOptions = [
+  {
+    option: 'configFile',
+    syntax: ['-c, --configFile [file]', 'Use specific config file']
+  },
+  {
+    option: 'environment',
+    syntax: ['-e, --environment [environment]', 'Set environment to use', 'local']
+  },
+  {
+    option: 'build',
+    syntax: ['-b, --build [build]', 'Set build identifier to use', 'default']
+  },
+  {
+    option: 'repo',
+    syntax: ['-r, --repo [pattern]', 'Use a specific repository (parsed as regexp)', '.*']
+  },
+  {
+    option: 'noprompt',
+    syntax: ['-n, --noprompt', 'Do not prompt for confirmation']
+  },
+  {
+    option: 'force',
+    syntax: ['-f, --force', 'Force over ride on publish even if no changes']  
+  },
+  {
+    option: 'completion',
+    syntax: ['--completion [shell]','Generate the shell completion code']
+  },
+  {
+    option: 'shellCommands',
+    syntax: ['--shellCommands','Generate commands for shell completion mode [used internally]']
+  }
+];
+
+var localCommandsOptions = getOptionsForCommandsOnPath(Bosco.getLocalCommandFolder);
+var commandOptions = getOptionsForCommandsOnPath(Bosco.getGlobalCommandFolder);
+
+var allBoscoCommands = _.union(globalOptions, localCommandsOptions, commandOptions);
+
+program
+  .version(pkg.version)
+  .usage('[options] <command>')
+  .boscoOptionsArray(allBoscoCommands)
+  .parse(process.argv);
+
+var options = {
+  program: program,
+  version: pkg.version,
+  args: program.args
+};
+
+// Add all parsed options to the Bosco options
+_.forEach(allBoscoCommands, function(boscoOption){
+  options[boscoOption.option] = program[boscoOption.option];
+});
+
+if(program.completion) {
     completion.print(program.completion);
 }
 
