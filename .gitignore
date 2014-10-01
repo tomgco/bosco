@@ -7,3 +7,4 @@ tes
 ./bosco.json
 .bosco
 npm-debug.log
+coverage
