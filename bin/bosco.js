@@ -1,38 +1,40 @@
 #!/usr/bin/env node
 
+'use strict';
+
 /**
  * Bosco command line tool
  */
-
 var program = require('commander');
 var Bosco = require('../index');
 var _ = require('lodash');
 var pkg = require('../package.json');
 var completion = require('../src/completion');
-var async = require('async');
 var fs = require('fs');
 var path = require('path');
 
 // Go over every command in the global and local commands folder and add the options
 program.boscoOptionsArray = function(boscoOptionsArray) {
-  if (!boscoOptionsArray || !boscoOptionsArray.length) return this;
+  if (!boscoOptionsArray || !boscoOptionsArray.length) { return this; }
 
   var _this = this;
 
   _.forEach(boscoOptionsArray, function(boscoOption) {
-    if (!boscoOption.option || !boscoOption.syntax || boscoOption.syntax.length < 2) throw new Error('Error parsing bosco command');
+    if (!boscoOption.option || !boscoOption.syntax || boscoOption.syntax.length < 2) {
+        throw new Error('Error parsing bosco command');
+    }
 
     _this.option(boscoOption.syntax[0], boscoOption.syntax[1], boscoOption.syntax[2]);
   });
-  
+
   return _this;
-}
+};
 
 var getOptionsForCommandsOnPath = function(folderPath) {
   var wrappedFiles = _(fs.readdirSync(folderPath));
 
   var wrappedCommandsArray = wrappedFiles.map(function(filename) {
-    if (path.extname(filename) !== '.js') return null;
+    if (path.extname(filename) !== '.js') { return null; }
 
     var commandFile = require(path.join(folderPath, filename));
     return commandFile.options;
@@ -64,7 +66,7 @@ var globalOptions = [
   },
   {
     option: 'force',
-    syntax: ['-f, --force', 'Force over ride on publish even if no changes']  
+    syntax: ['-f, --force', 'Force over ride on publish even if no changes']
   },
   {
     option: 'completion',
@@ -76,8 +78,8 @@ var globalOptions = [
   }
 ];
 
-var localCommandsOptions = getOptionsForCommandsOnPath(Bosco.getLocalCommandFolder);
-var commandOptions = getOptionsForCommandsOnPath(Bosco.getGlobalCommandFolder);
+var localCommandsOptions = getOptionsForCommandsOnPath(Bosco.localCommandFolder);
+var commandOptions = getOptionsForCommandsOnPath(Bosco.globalCommandFolder);
 
 var allBoscoCommands = _.union(globalOptions, localCommandsOptions, commandOptions);
 
@@ -102,4 +104,5 @@ if(program.completion) {
     completion.print(program.completion);
 }
 
-var bosco = new Bosco(options);
+// Launch
+new Bosco(options);
