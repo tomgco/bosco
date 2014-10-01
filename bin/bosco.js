@@ -31,6 +31,8 @@ program.boscoOptionsArray = function(boscoOptionsArray) {
 };
 
 var getOptionsForCommandsOnPath = function(folderPath) {
+  if (!fs.existsSync(folderPath)) return [];
+
   var wrappedFiles = _(fs.readdirSync(folderPath));
 
   var wrappedCommandsArray = wrappedFiles.map(function(filename) {
