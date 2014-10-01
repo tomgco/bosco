@@ -14,8 +14,6 @@ var async = require('async');
 var mkdirp = require('mkdirp');
 var knox = require('knox');
 var request = require('request');
-var colors = require('colors');
-var dateformat = require('dateformat');
 var sf = require('sf');
 
 prompt.message = 'Bosco'.green;
@@ -43,7 +41,7 @@ function Bosco(options) {
 
         self._checkVersion();
 
-        if (err) return console.log(err);
+        if (err) { return console.log(err); }
 
         var quotes, quotePath = self.config.get('quotes') || './quotes.json';
         try {
@@ -67,14 +65,14 @@ function Bosco(options) {
 
         self.staticUtils = require('./src/StaticUtils')(self);
 
-        self.log("Initialised using [" + self.options.configFile.magenta + "] in environment [" + self.options.environment.green + "]");
+        self.log('Initialised using [' + self.options.configFile.magenta + '] in environment [' + self.options.environment.green + ']');
         self._cmd();
 
     });
 
     events.EventEmitter.call(this);
 
-};
+}
 
 util.inherits(Bosco, events.EventEmitter);
 
@@ -86,8 +84,7 @@ module.exports = Bosco;
 
 Bosco.prototype._init = function(next) {
 
-    var self = this,
-        configFile = self.options.configFile;
+    var self = this;
 
     var loadConfig = function() {
         self.config.env()
@@ -112,7 +109,7 @@ Bosco.prototype._init = function(next) {
         if (self._checkRepoPath()) {
             return self._moveRepoPath(function(err) {
                 if (err) return self.error(err.message);
-                self.log("Folders all moved - please check the old organization folder and delete manually, once you have done this you can use Bosco normally.");
+                self.log('Folders all moved - please check the old organization folder and delete manually, once you have done this you can use Bosco normally.');
             });
         }
 
@@ -123,8 +120,8 @@ Bosco.prototype._init = function(next) {
             });
         } else {
             if (!self.config.get('github:organization')) {
-                self.error("It looks like you are in a micro service folder or something is wrong with your config?\n");
-                next("error");
+                self.error('It looks like you are in a micro service folder or something is wrong with your config?\n');
+                next('error');
             } else {
                 next();
             }
@@ -146,7 +143,7 @@ Bosco.prototype._checkConfig = function(next) {
             mkdirp(configPath, cb);
         } else {
             cb();
-        };
+        }
     }
 
     var checkConfig = function(cb) {
@@ -155,7 +152,7 @@ Bosco.prototype._checkConfig = function(next) {
             prompt.get({
                 properties: {
                     confirm: {
-                        description: "Do you want to create a new configuration file in the current folder (y/N)?".white
+                        description: 'Do you want to create a new configuration file in the current folder (y/N)?'.white
                     }
                 }
             }, function(err, result) {
@@ -191,25 +188,25 @@ Bosco.prototype._initialiseConfig = function(next) {
     prompt.get({
         properties: {
             githubUser: {
-                description: "Enter your github user name:".white
+                description: 'Enter your github user name:'.white
             },
             github: {
-                description: "Enter the name of the github organization you want to use:".white
+                description: 'Enter the name of the github organization you want to use:'.white
             },
             auth: {
-                description: "Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens):".white
+                description: 'Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens):'.white
             },
             team: {
-                description: "Enter the team name that will be used to filter the repository list (optional - defaults to Owners):".white
+                description: 'Enter the team name that will be used to filter the repository list (optional - defaults to Owners):'.white
             }
         }
     }, function(err, result) {
         self.config.set('github:user', result.githubUser);
         self.config.set('github:organization', result.github);
         self.config.set('github:authToken', result.auth);
-        self.config.set('github:team', result.team || "Owners");
+        self.config.set('github:team', result.team || 'Owners');
         self.config.set('github:ignoredRepos', []);
-        console.log("\r");
+        console.log('\r');
         self.config.save(next);
     });
 };
@@ -218,8 +215,8 @@ Bosco.prototype._cmd = function() {
     var self = this,
         commands = self.options.args,
         command = commands.shift(),
-        commandModule = [Bosco.globalCommandFolder, command, '.js'].join(""),
-        localCommandModule = [Bosco.localCommandFolder, command, '.js'].join("");
+        commandModule = [Bosco.globalCommandFolder, command, '.js'].join(''),
+        localCommandModule = [Bosco.localCommandFolder, command, '.js'].join('');
 
     if (self.exists(commandModule)) {
         require(commandModule).cmd(self, commands);
@@ -239,19 +236,15 @@ Bosco.prototype._cmd = function() {
 
 Bosco.prototype._shellCommands = function() {
 
-    var self = this,
-        cmdPath = [__dirname, 'commands'].join("/"),
-        localPath = path.join(path.resolve("."), "commands");
+    var cmdPath = [__dirname, 'commands'].join('/'),
+        localPath = path.join(path.resolve('.'), 'commands');
 
     var showCommands = function(cPath, files, next) {
-        var showCommand = function(cmd) {
-            return (cmd.name);
-        }
-        var cmdString = "";
+        var cmdString = '';
         files.forEach(function(file) {
-            cmdString += file.replace(".js", "") + " ";
+            cmdString += file.replace('.js', '') + ' ';
         });
-        next(null, cmdString.split(" "));
+        next(null, cmdString.split(' '));
     }
 
     async.series([
@@ -263,14 +256,14 @@ Bosco.prototype._shellCommands = function() {
             },
             function(next) {
                 fs.readdir(localPath, function(err, files) {
-                    if (!files || files.length == 0) return next();
+                    if (!files || files.length === 0) return next();
                     showCommands(localPath, files, next)
                 })
             }
         ],
         function(err, files) {
             files = _.uniq(_.flatten(files));
-            console.log("Available commands: " + files.join(" "));
+            console.log('Available commands: ' + files.join(' '));
             process.exit(0);
         });
 }
@@ -278,8 +271,8 @@ Bosco.prototype._shellCommands = function() {
 Bosco.prototype._commands = function() {
 
     var self = this,
-        cmdPath = [__dirname, 'commands'].join("/"),
-        localPath = path.join(path.resolve("."), "commands");
+        cmdPath = [__dirname, 'commands'].join('/'),
+        localPath = path.join(path.resolve('.'), 'commands');
 
     var showTable = function(tableName, cPath, files, next) {
 
@@ -289,7 +282,7 @@ Bosco.prototype._commands = function() {
         });
 
         var showCommand = function(cmd) {
-            table.push([cmd.name, cmd.example || ""]);
+            table.push([cmd.name, cmd.example || '']);
         }
 
         files.map(function(file) {
@@ -300,24 +293,24 @@ Bosco.prototype._commands = function() {
             showCommand(require(file))
         });
         console.log(table.toString());
-        console.log("\r");
+        console.log('\r');
         next();
     }
 
-    console.log("\r");
-    self.warn("Hey, to use bosco, you need to enter one of the following commands:")
+    console.log('\r');
+    self.warn('Hey, to use bosco, you need to enter one of the following commands:')
 
     async.series([
 
             function(next) {
                 fs.readdir(cmdPath, function(err, files) {
-                    showTable("Core", cmdPath, files, next)
+                    showTable('Core', cmdPath, files, next)
                 })
             },
             function(next) {
                 fs.readdir(localPath, function(err, files) {
-                    if (!files || files.length == 0) return next();
-                    showTable("Local", localPath, files, next)
+                    if (!files || files.length === 0) return next();
+                    showTable('Local', localPath, files, next)
                 })
             },
             function(next) {
@@ -331,12 +324,13 @@ Bosco.prototype._commands = function() {
                 wait();
             },
             function(next) {
-                console.log("You can also specify these parameters:")
+                console.log('You can also specify these parameters:')
                 console.log(self.options.program.help());
+                next();
             }
         ],
-        function(err) {
-
+        function() {
+            // Do nothing
         });
 
 
@@ -346,7 +340,7 @@ Bosco.prototype._checkVersion = function() {
     // Check the version in the background
     var self = this;
     self._checkingVersion = true;
-    var npmUrl = "http://registry.npmjs.org/bosco";
+    var npmUrl = 'http://registry.npmjs.org/bosco';
     request({
         url: npmUrl,
         timeout: 1000
@@ -355,8 +349,8 @@ Bosco.prototype._checkVersion = function() {
             var jsonBody = JSON.parse(body);
             var version = jsonBody['dist-tags'].latest;
             if (self.options.version !== version) {
-                self.error("There is a newer version (Remote: " + version.green + " <> Local: " + self.options.version.yellow + ") of Bosco available, you should upgrade!");
-                console.log("\r");
+                self.error('There is a newer version (Remote: ' + version.green + ' <> Local: ' + self.options.version.yellow + ') of Bosco available, you should upgrade!');
+                console.log('\r');
             }
         }
         self._checkingVersion = false;
@@ -382,7 +376,7 @@ Bosco.prototype._moveRepoPath = function(next) {
     prompt.get({
         properties: {
             confirm: {
-                description: "I need to move your repositories from the old organisation path to this folder, can I proceed [y/N]?".white
+                description: 'I need to move your repositories from the old organisation path to this folder, can I proceed [y/N]?'.white
             }
         }
     }, function(err, result) {
@@ -390,7 +384,7 @@ Bosco.prototype._moveRepoPath = function(next) {
             message: 'Did not confirm'
         });
         if (result.confirm == 'Y' || result.confirm == 'y') {
-            self.log("Moving repositories - this may take some time ...");
+            self.log('Moving repositories - this may take some time ...');
             var repos = self.config.get('github:repos');
             async.map(repos, function(repo, cb) {
                 fs.rename(self.getOldRepoPath(repo), self.getRepoPath(repo), cb)
@@ -404,11 +398,11 @@ Bosco.prototype._moveRepoPath = function(next) {
 }
 
 Bosco.prototype.getWorkspacePath = function() {
-    for (var p = path.resolve(".");; p = path.resolve(p, '..')) {
-        if (this.exists(path.join(p, ".bosco", "bosco.json"))) return p;
-        if (p === "/") break;
+    for (var p = path.resolve('.');; p = path.resolve(p, '..')) {
+        if (this.exists(path.join(p, '.bosco', 'bosco.json'))) return p;
+        if (p === '/') break;
     }
-    return ".";
+    return '.';
 }
 
 Bosco.prototype.getOrg = function() {
@@ -422,40 +416,40 @@ Bosco.prototype.getOrgPath = function() {
 Bosco.prototype.getRepoPath = function(repo) {
     // Strip out / to support full github references
     var repoName;
-    if (repo.indexOf("/") < 0) {
+    if (repo.indexOf('/') < 0) {
         repoName = repo;
     } else {
-        repoName = repo.split("/")[1];
+        repoName = repo.split('/')[1];
     }
-    return [path.resolve(this.getWorkspacePath()), repoName].join("/");
+    return [path.resolve(this.getWorkspacePath()), repoName].join('/');
 }
 
 // To support change outlined in issue #12
 Bosco.prototype.getOldOrgPath = function() {
-    return [path.resolve(this.getWorkspacePath()), this.getOrg()].join("/");
+    return [path.resolve(this.getWorkspacePath()), this.getOrg()].join('/');
 }
 Bosco.prototype.getOldRepoPath = function(repo) {
-    return [this.getOldOrgPath(), repo].join("/");
+    return [this.getOldOrgPath(), repo].join('/');
 }
 
 Bosco.prototype.getRepoUrl = function(repo) {
     var org;
-    if (repo.indexOf("/") < 0) {
-        org = this.getOrg() + "/";
+    if (repo.indexOf('/') < 0) {
+        org = this.getOrg() + '/';
     }
-    return ['git@github.com:', org ? org : "", repo, '.git'].join("");
+    return ['git@github.com:', org ? org : '', repo, '.git'].join('');
 }
 
 Bosco.prototype.warn = function(msg, args) {
-    this._log("Bosco".yellow, msg, args);
+    this._log('Bosco'.yellow, msg, args);
 }
 
 Bosco.prototype.log = function(msg, args) {
-    this._log("Bosco".cyan, msg, args);
+    this._log('Bosco'.cyan, msg, args);
 }
 
 Bosco.prototype.error = function(msg, args) {
-    this._log("Bosco".red, msg, args);
+    this._log('Bosco'.red, msg, args);
 }
 
 Bosco.prototype._log = function(identifier, msg, args) {
