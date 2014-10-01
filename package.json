@@ -84,8 +84,5 @@
     "blanket": {
       "pattern": "src"
     }
-  },
-  "pre-conmmit": [
-    "lint"
-  ]
+  }
 }
