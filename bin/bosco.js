@@ -37,8 +37,9 @@ var getOptionsForCommandsOnPath = function(folderPath) {
 
   var wrappedCommandsArray = wrappedFiles.map(function(filename) {
     if (path.extname(filename) !== '.js') { return null; }
-
-    var commandFile = require(path.join(folderPath, filename));
+    var file = path.join(folderPath, filename);
+    if (!fs.existsSync(file)) { return null; } // Unknown why Jenkins can't find this
+    var commandFile = require(file);
     return commandFile.options;
   });
 

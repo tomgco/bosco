@@ -215,6 +215,7 @@ Bosco.prototype._initialiseConfig = function(next) {
 };
 
 Bosco.prototype._cmd = function() {
+
     var self = this,
         commands = self.options.args,
         command = commands.shift(),
@@ -239,8 +240,9 @@ Bosco.prototype._cmd = function() {
 
 Bosco.prototype._shellCommands = function() {
 
-    var cmdPath = [__dirname, 'commands'].join('/'),
-        localPath = path.join(path.resolve('.'), 'commands');
+    var self = this,
+        cmdPath = self.getGlobalCommandFolder(),
+        localPath =  self.getLocalCommandFolder();
 
     var showCommands = function(cPath, files, next) {
         var cmdString = '';
@@ -274,8 +276,8 @@ Bosco.prototype._shellCommands = function() {
 Bosco.prototype._commands = function() {
 
     var self = this,
-        cmdPath = [__dirname, 'commands'].join('/'),
-        localPath = path.join(path.resolve('.'), 'commands');
+        cmdPath = self.getGlobalCommandFolder(),
+        localPath =  self.getLocalCommandFolder();
 
     var showTable = function(tableName, cPath, files, next) {
 
@@ -405,7 +407,7 @@ Bosco.prototype.getWorkspacePath = function() {
         if (this.exists(path.join(p, '.bosco', 'bosco.json'))) return p;
         if (p === '/') break;
     }
-    return '.';
+    return path.resolve('.');
 }
 
 Bosco.prototype.getOrg = function() {
