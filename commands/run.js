@@ -129,11 +129,6 @@ function cmd(bosco, args) {
         });
     }
 
-    var runNodeService = function(repo, scripts, repoPath, next) {
-        bosco.log("Starting " + repo + " @ " + repoPath + " via " + scripts.start.blue);
-        runNode(repo, scripts, repoPath, next);
-    }
-
     bosco.log("Run each mircoservice " + args);
 
     async.series([initialiseRunners, getRunningServices, startRunnableServices], function(err) {

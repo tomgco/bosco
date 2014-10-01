@@ -83,15 +83,6 @@ function cmd(bosco, args) {
         })
     }
 
-    var stopNodeService = function(repo, script, repoPath, next) {
-        bosco.log("Stopping " + repo + " @ " + repoPath + " via " + script.blue);
-        pm2.stop(repo, function(err, proc) {
-            pm2.delete(repo, function(err, proc) {
-                next(err);
-            });
-        });
-    }
-
     bosco.log("Stop each mircoservice " + args);
 
     async.series([initialiseRunners, getRunningServices, stopRunningServices], function(err) {
