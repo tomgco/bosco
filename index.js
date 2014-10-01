@@ -375,23 +375,11 @@ Bosco.prototype._moveRepoPath = function(next) {
 }
 
 Bosco.prototype.getWorkspacePath = function() {
-    var self = this;
-    var getParent = function(path) {
-        var pathSplit = path.split("/");
-        if(pathSplit.length > 2) {
-            pathSplit.pop();
-            return pathSplit.join("/");
-        } else {
-            return "/";
-        }
+    for (var p = path.resolve(".");; p = path.resolve(p, '..')) {
+        if (this.exists(path.join(p, ".bosco", "bosco.json"))) return p;
+        if (p === "/") break;
     }
-    var checkRecursive = function(path) {
-        var boscoConfig = [path, ".bosco", "bosco.json"].join("/");
-        if(self.exists(boscoConfig)) return path;
-        if(path == "/") return ".";
-        return checkRecursive(getParent(path));
-    }
-    return checkRecursive(path.resolve("."));
+    return ".";
 }
 
 Bosco.prototype.getOrg = function() {
