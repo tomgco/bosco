@@ -1,4 +1,5 @@
 # Bosco
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/tes/bosco?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Build Status](https://travis-ci.org/tes/bosco.svg?branch=master)](https://travis-ci.org/tes/bosco)  [![Coverage Status](https://img.shields.io/coveralls/tes/bosco.svg)](https://coveralls.io/r/tes/bosco?branch=master)
 
