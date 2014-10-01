@@ -86,7 +86,6 @@
     }
   },
   "pre-conmmit": [
-    "lint",
-    "test"
+    "lint"
   ]
 }
