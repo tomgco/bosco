@@ -355,7 +355,7 @@ bosco -e development s3push
 bosco -e development cdn minify
 ```
 
-To add a new option you need to submit a pull request to Bosco core, as these are applied across all commands (they can't be added locally in a Bosco working folder - yet!).
+Bosco commands can specify one or more options they are interested in and they will be parsed at runtime. You can see an example on the activity command source file.
 
 Within a command these are then accessed via the global Bosco object, by their long name (see /bin/bosco.js).
 
