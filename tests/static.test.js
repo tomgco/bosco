@@ -66,6 +66,8 @@ describe("Bosco Static Asset Handling", function() {
                                     'project1/js/top1.js',
                                     'project2/js/bottom2.js',
                                     'project2/js/top2.js',
+                                    'project2/img/bab.jpg',
+                                    'project2/swf/flash.swf',
                                     'project2/css/top2.scss');
             done();
 
