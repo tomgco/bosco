@@ -43,21 +43,16 @@ module.exports = function(bosco) {
 
                 assetList.forEach(function(asset) {
                     _.forOwn(asset, function(value, key) {
-                        console.log('static asset', key);
                         staticAssets[key] = value;
                     });
                 });
 
                 // Dedupe
                 removeDuplicates(staticAssets, function(err, staticAssets) {
-                    _.forOwn(staticAssets, function (value, key) { console.log('de-duped static asset', key); });
-
                     // Now go and minify
                     if (options.minify) {
                         getLastCommitForAssets(staticAssets, function(err, staticAssets) {
-                            _.forOwn(staticAssets, function (value, key) { console.log('getLastCommitForAssets', key); });
                             minify(staticAssets, function(err, staticAssets) {
-                                _.forOwn(staticAssets, function (value, key) { console.log('minify', key); });
                                 createAssetHtmlFiles(staticAssets, next);
                             });
                         });
@@ -88,7 +83,7 @@ module.exports = function(bosco) {
                     if (!value) return;
 
                     _.forEach(value, function (asset) {
-                        assetKey = boscoRepo.name + "/" + asset;
+                        assetKey = path.join(boscoRepo.name, asset);
                         assetHelper.addAsset(staticAssets, assetKey, asset, tag, type);
                     });
                 });

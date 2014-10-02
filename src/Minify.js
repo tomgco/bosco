@@ -20,30 +20,30 @@ module.exports = function(bosco) {
       // Create simple collections of css and js
       var jsAssets = {},
           cssAssets = {};
-      _.map(staticAssets, function(asset) {
-          if (asset.type == 'js') {
-              jsAssets[asset.tag] = jsAssets[asset.tag] || [];
-              jsAssets[asset.tag].push(asset.path);
-          } else if (asset.type == 'css') {
-              cssAssets[asset.tag] = cssAssets[asset.tag] || [];
-              cssAssets[asset.tag].push(asset.path);
+      _.map(staticAssets, function(asset, key) {
+          if (asset.type === 'js') {
+              if (!(asset.tag in jsAssets)) jsAssets[asset.tag] = {};
+              jsAssets[asset.tag][key] = asset.path;
+          } else if (asset.type === 'css') {
+              if (!(asset.tag in cssAssets)) cssAssets[asset.tag] = {};
+              cssAssets[asset.tag][key] = asset.path;
           }
       });
 
       async.parallel([
 
               function pcompileJs(next) {
-                  compileJs(jsAssets, next);
+                  compileJs(staticAssets, jsAssets, next);
               },
               function pcompileCss(next) {
-                  compileCss(cssAssets, next);
+                  compileCss(staticAssets, cssAssets, next);
               },
               function manifest(next) {
                   createManifest(staticAssets, next);
               }
           ],
-          function(err, assets) {
-              next(err, _.merge(assets[0], assets[1], assets[2]));
+          function(err) {
+              next(err, staticAssets);
           });
 
   }
@@ -57,7 +57,7 @@ module.exports = function(bosco) {
           var manifestLine,
               manifestFile = createKey(value.tag, value.type, 'manifest', 'txt');
 
-          manifest[manifestFile] = manifest[manifestFile] || {
+          staticAssets[manifestFile] = staticAssets[manifestFile] || {
               content: "",
               type: 'plain',
               assetType: value.type,
@@ -66,10 +66,15 @@ module.exports = function(bosco) {
               files: []
           };
 
-          manifest[manifestFile].content += value.repo + value.basePath + "/" + value.asset + ', Hash: ' + createHash(value.content) + ', Last commit: ' + value.commit;
-          manifest[manifestFile].files.push({
-              key: createKey(value.repo + value.basePath + "/" + value.asset, '', 'src', ''),
-              relativePath: value.repo + value.basePath + "/" + value.asset,
+          var repoPath = value.repo || '';
+          var basePath = value.basePath || '';
+          var assetPath = value.asset || '';
+          var relativePath = path.join(repoPath, basePath, assetPath);
+
+          staticAssets[manifestFile].content += relativePath + ', Hash: ' + createHash(value.content) + ', Last commit: ' + value.commit;
+          staticAssets[manifestFile].files.push({
+              key: createKey(relativePath, '', 'src', ''),
+              relativePath: relativePath,
               content: value.content,
               path: value.path,
               type: value.type
@@ -77,19 +82,17 @@ module.exports = function(bosco) {
 
       });
 
-      next(null, manifest);
+      next(null);
 
   }
 
-  function compileJs(jsAssets, next) {
-
-      var compiledAssets = {};
+  function compileJs(staticAssets, jsAssets, next) {
 
       _.forOwn(jsAssets, function(files, tag) {
 
           var compiled;
 
-          bosco.log("Compiling " + files.length + " " + tag.blue + " JS assets ...");
+          bosco.log("Compiling " + _.size(files) + " " + tag.blue + " JS assets ...");
 
           var uglifyConfig = bosco.config.get('js:uglify');
 
@@ -101,8 +104,12 @@ module.exports = function(bosco) {
                 sourceMapIncludeSources: true
             };
 
+          for (var key in files) {
+            delete staticAssets[key];
+          }
+
           try {
-            compiled = UglifyJS.minify(files, uglifyOptions);
+            compiled = UglifyJS.minify(_.values(files), uglifyOptions);
           } catch (ex) {
               bosco.error("There was an error minifying files in " + tag.blue + ", error:");
               console.log(ex.message + "\n");
@@ -112,49 +119,54 @@ module.exports = function(bosco) {
           }
 
           var mapKey = createKey(tag, 'js', 'js', 'map');
-          compiledAssets[mapKey] = compiledAssets[mapKey] || {};
-          compiledAssets[mapKey].path = "";
-          compiledAssets[mapKey].extname = ".map";
-          compiledAssets[mapKey].tag = tag;
-          compiledAssets[mapKey].type = 'js';
-          compiledAssets[mapKey].content = compiled.map;
+          staticAssets[mapKey] = staticAssets[mapKey] || {};
+          staticAssets[mapKey].path = "";
+          staticAssets[mapKey].extname = ".map";
+          staticAssets[mapKey].tag = tag;
+          staticAssets[mapKey].type = 'js';
+          staticAssets[mapKey].content = compiled.map;
 
           var hash = createHash(compiled.code);
           var minKey = createKey(tag, hash, 'js', 'js');
-          compiledAssets[minKey] = compiledAssets[minKey] || {};
-          compiledAssets[minKey].path = "";
-          compiledAssets[minKey].extname = ".js";
-          compiledAssets[minKey].tag = tag;
-          compiledAssets[minKey].type = 'js';
-          compiledAssets[minKey].hash = hash;
-          compiledAssets[minKey].content = compiled.code;
+          staticAssets[minKey] = staticAssets[minKey] || {};
+          staticAssets[minKey].path = "";
+          staticAssets[minKey].extname = ".js";
+          staticAssets[minKey].tag = tag;
+          staticAssets[minKey].type = 'js';
+          staticAssets[minKey].hash = hash;
+          staticAssets[minKey].content = compiled.code;
 
       });
 
-      next(null, compiledAssets);
+      next(null);
 
   }
 
-  function compileCss(cssAssets, next) {
+  function compileCss(staticAssets, cssAssets, next) {
 
       var compiledCss = [];
       var compiledAssets = {};
 
-      _.forOwn(cssAssets, function(files, tag) {
+      var compiledCss = _.map(cssAssets, function(files, tag) {
           var compiled = {
               css: "",
               scss: ""
           };
-          files.forEach(function(file) {
+
+          _.forOwn(files, function(file, key) {
+              delete staticAssets[key];
+
               if (path.extname(file) == '.css') {
                   compiled.css += fs.readFileSync(file);
               } else if (path.extname(file) == '.scss') {
                   compiled.scss += fs.readFileSync(file);
               }
           });
+
           compiled.count = files.length
           compiled.tag = tag;
-          compiledCss.push(compiled);
+
+          return compiled;
       });
 
       async.map(compiledCss, function(css, next) {
@@ -177,20 +189,20 @@ module.exports = function(bosco) {
 
               var hash = createHash(cssContent);
               var assetKey = createKey(css.tag, hash, 'css', 'css');
-              compiledAssets[assetKey] = compiledAssets[assetKey] || {};
-              compiledAssets[assetKey].path = "";
-              compiledAssets[assetKey].extname = ".css";
-              compiledAssets[assetKey].tag = css.tag;
-              compiledAssets[assetKey].type = 'css';
-              compiledAssets[assetKey].hash = hash;
-              compiledAssets[assetKey].content = cssContent;
+              staticAssets[assetKey] = staticAssets[assetKey] || {};
+              staticAssets[assetKey].path = "";
+              staticAssets[assetKey].extname = ".css";
+              staticAssets[assetKey].tag = css.tag;
+              staticAssets[assetKey].type = 'css';
+              staticAssets[assetKey].hash = hash;
+              staticAssets[assetKey].content = cssContent;
 
               next();
           });
 
       }, function(err) {
           if (err) return bosco.warn("No CSS assets: " + err.message);
-          next(null, compiledAssets);
+          next(null);
       });
 
   }

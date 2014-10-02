@@ -35,7 +35,7 @@ ul
 	<h2>HTML Fragments</h2>
 	<ul>
 	{{#each html}}
-	  <li><a href="/{{this}}">{{this}}</a></li>
+	  <li><a href="{{url}}">{{asset}}</a></li>
 	{{/each}}
 	</ul>
 </div>
@@ -43,7 +43,7 @@ ul
 	<h2>Manifest Files</h2>
 	<ul>
 	{{#each plain}}
-	  <li><a class='assets' href="/{{this}}">{{this}}</a></li>
+	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
 	{{/each}}
 	</ul>
 </div>
@@ -51,7 +51,7 @@ ul
 	<h2>Javascript Files</h2>
 	<ul>
 	{{#each js}}
-	  <li><a class='assets' href="/{{this}}">{{this}}</a></li>
+	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
 	{{/each}}
 	</ul>
 </div>
@@ -59,7 +59,7 @@ ul
 	<h2>CSS Files</h2>
 	<ul>
 	{{#each css}}
-	  <li><a class='assets' href="/{{this}}">{{this}}</a></li>
+	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
 	{{/each}}
 	</ul>
 </div>
@@ -67,7 +67,7 @@ ul
 	<h2>Images</h2>
 	<ul>
 	{{#each img}}
-	  <li><a class='assets' href="/{{this}}">{{this}}</a></li>
+	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
 	{{/each}}
 	</ul>
 </div>
@@ -75,7 +75,7 @@ ul
 	<h2>Flash</h2>
 	<ul>
 	{{#each swf}}
-	<li><a class='assets' href="/{{this}}">{{this}}</a></li>
+	<li><a class='assets' href="{{url}}">{{asset}}</a></li>
 	{{/each}}
 	</ul>
 </div>

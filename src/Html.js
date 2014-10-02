@@ -15,10 +15,6 @@ module.exports = function(bosco) {
 
         var htmlAssets = {};
 
-        var cdnPort = bosco.config.get('cdn:port') || "7334";
-        var cdnHostname = bosco.config.get('cdn:hostname') || 'localhost';
-        var cdnUrl = bosco.config.get('aws:cdn') ? bosco.config.get('aws:cdn') : 'http://'+ cdnHostname +':' + cdnPort;
-
         _.forOwn(staticAssets, function(asset, key) {
             var html;
             var htmlFile = createKey(asset.tag, asset.type, 'html', 'html');
@@ -35,13 +31,13 @@ module.exports = function(bosco) {
 
             if (isJavascript(asset)) {
                 htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', {
-                    'url': cdnUrl + "/" + key
+                    'url': bosco.getAssetCdnUrl(key)
                 });
             }
 
             if (isStylesheet(asset)) {
                 htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', {
-                    'url': cdnUrl + "/" + key
+                    'url': bosco.getAssetCdnUrl(key)
                 });
             }
         });
@@ -83,7 +79,10 @@ module.exports = function(bosco) {
                 assets[asset.type] = [];
             }
 
-            assets[asset.type].push(key);
+            assets[asset.type].push({
+                asset: key,
+                url: bosco.getAssetCdnUrl(key)
+            });
         });
 
         assets.user = bosco.config.get('github:user');

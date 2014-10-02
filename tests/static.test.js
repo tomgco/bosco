@@ -21,6 +21,9 @@ var boscoMock = function() {
       getRepoPath: function(repo) {
           return __dirname + "/TestOrganisation/" + repo
       },
+      getAssetCdnUrl: function (asset) {
+          return 'http://my-awesome-cdn.example.com/' + asset;
+      },
       exists: function(file) {
           return fs.existsSync(file);
       },

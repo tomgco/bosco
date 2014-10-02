@@ -49,7 +49,7 @@ module.exports = function(bosco) {
     }
 
     function createKey(tag, hash, type, extension) {
-        return bosco.options.environment + '/' + (bosco.options.build ? bosco.options.build + '/' : '') + type + '/' + tag + (hash ? '.' + hash : '') + (extension ? '.' + extension : '');
+        return path.join(type, tag + (hash ? '.' + hash : '') + (extension ? '.' + extension : ''));
     }
 
     function checksum(str, algorithm, encoding) {

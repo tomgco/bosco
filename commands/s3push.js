@@ -36,21 +36,21 @@ function cmd(bosco, args) {
 
 		var toPush = [];
 		_.forOwn(staticAssets, function(asset, key) {
-
 			if(tag && tag !== asset.tag) return;
 			if(!asset.content) return;
 
 			// Check confirmation by type and key
-			if(asset.type == 'js' && !confirmation[asset.tag][asset.type]) return;
-			if(asset.type == 'css' && !confirmation[asset.tag][asset.type]) return;
-			if(asset.type == 'html' && !confirmation[asset.tag][asset.assetType]) return;
-			if(asset.type == 'plain' && !confirmation[asset.tag][asset.assetType]) return;
+			var tagConfirmation = confirmation[asset.tag];
+			if(asset.type == 'js' && !(tagConfirmation && tagConfirmation[asset.type])) return;
+			if(asset.type == 'css' && !(tagConfirmation && tagConfirmation[asset.type])) return;
+			if(asset.type == 'html' && !(tagConfirmation && tagConfirmation[asset.assetType])) return;
+			if(asset.type == 'plain' && !(tagConfirmation && tagConfirmation[asset.assetType])) return;
 
 			toPush.push({
-				content:asset.content,
-				path:key,
-				type:asset.type,
-				mimeType:mime.lookup(key)
+				content:  asset.content,
+				path:     getS3Filename(key),
+				type:     asset.type,
+				mimeType: mime.lookup(key)
 			});
 
 		});
@@ -61,7 +61,7 @@ function cmd(bosco, args) {
 		// Add index
 		toPush.push({
 			content:staticAssets.formattedAssets,
-			path:(bosco.options.environment + "/" + bosco.options.build + "/index.html"),
+			path: getS3Filename('index.html'),
 			type:'html',
 			mimeType:'text/html'
 		});
@@ -130,7 +130,7 @@ function cmd(bosco, args) {
 
 		async.mapSeries(manifestFiles, function(file, cb) {
 			bosco.log("Pulling previous version of " + file.file.blue + " from S3");
-			bosco.knox.getFile(file.file, function(err, res){
+			bosco.knox.getFile(getS3Filename(file.file), function(err, res){
 				var currFile = "", isError;
 				if(!err && res.statusCode == 404) return cb(null, true);
 				if(err || res.statusCode !== 200) {
@@ -212,4 +212,13 @@ function cmd(bosco, args) {
 		go();
 	}
 
+	function getS3Filename(file) {
+		if (bosco.options.build) {
+			file = bosco.options.build + '/' + file;
+		}
+
+		file = bosco.options.environment + '/' + file;
+
+		return file;
+	}
 }
