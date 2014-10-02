@@ -407,7 +407,7 @@ Bosco.prototype.getWorkspacePath = function() {
         if (this.exists(path.join(p, '.bosco', 'bosco.json'))) return p;
         if (p === '/') break;
     }
-    return '.';
+    return path.resolve('.');
 }
 
 Bosco.prototype.getOrg = function() {
