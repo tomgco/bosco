@@ -83,6 +83,7 @@ var globalOptions = [
 
 var bosco = new Bosco();
 
+console.log('CWD ' + path.resolve('.'));
 console.log('LOCAL ' + bosco.getLocalCommandFolder());
 
 var localCommandsOptions = getOptionsForCommandsOnPath(bosco.getLocalCommandFolder());
