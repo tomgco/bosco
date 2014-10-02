@@ -39,6 +39,7 @@ var getOptionsForCommandsOnPath = function(folderPath) {
     if (path.extname(filename) !== '.js') { return null; }
     var file = path.join(folderPath, filename);
     if (!fs.existsSync(file)) { return null; } // Unknown why Jenkins can't find this
+    console.dir('OPENING COMMAND: ' + file);
     var commandFile = require(file);
     return commandFile.options;
   });
@@ -82,6 +83,8 @@ var globalOptions = [
 ];
 
 var bosco = new Bosco();
+
+console.log('LOCAL ' + bosco.getLocalCommandFolder());
 
 var localCommandsOptions = getOptionsForCommandsOnPath(bosco.getLocalCommandFolder());
 var commandOptions = getOptionsForCommandsOnPath(bosco.getGlobalCommandFolder());
