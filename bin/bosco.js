@@ -38,7 +38,6 @@ var getOptionsForCommandsOnPath = function(folderPath) {
   var wrappedCommandsArray = wrappedFiles.map(function(filename) {
     if (path.extname(filename) !== '.js') { return null; }
     var file = folderPath + filename;
-    console.dir('OPENING COMMAND: ' + file);
     var commandFile = require(file);
     return commandFile.options;
   });
@@ -82,9 +81,6 @@ var globalOptions = [
 ];
 
 var bosco = new Bosco();
-
-console.log('CWD ' + path.resolve('.'));
-console.log('LOCAL ' + bosco.getLocalCommandFolder());
 
 var localCommandsOptions = getOptionsForCommandsOnPath(bosco.getLocalCommandFolder());
 var commandOptions = getOptionsForCommandsOnPath(bosco.getGlobalCommandFolder());
