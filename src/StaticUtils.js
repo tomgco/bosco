@@ -8,12 +8,12 @@ var hb = require('handlebars');
 
 module.exports = function(bosco) {
 
-	var AssetHelper = require('./AssetHelper')(bosco);
-	var minify = require('./Minify')(bosco).minify;
-	var removeDuplicates = require('./Duplicates')(bosco).removeDuplicates;
-	var doBuild = require('./ExternalBuild')(bosco).doBuild;
-	var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
-	var html = require('./Html')(bosco);
+  var AssetHelper = require('./AssetHelper')(bosco);
+  var minify = require('./Minify')(bosco).minify;
+  var removeDuplicates = require('./Duplicates')(bosco).removeDuplicates;
+  var doBuild = require('./ExternalBuild')(bosco).doBuild;
+  var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
+  var html = require('./Html')(bosco);
     var createAssetHtmlFiles = html.createAssetHtmlFiles;
     var attachFormattedRepos = html.attachFormattedRepos;
 
@@ -43,21 +43,26 @@ module.exports = function(bosco) {
 
                 assetList.forEach(function(asset) {
                     _.forOwn(asset, function(value, key) {
+                        console.log('static asset', key);
                         staticAssets[key] = value;
                     });
                 });
 
                 // Dedupe
                 removeDuplicates(staticAssets, function(err, staticAssets) {
+                    _.forOwn(staticAssets, function (value, key) { console.log('de-duped static asset', key); });
+
                     // Now go and minify
                     if (options.minify) {
                         getLastCommitForAssets(staticAssets, function(err, staticAssets) {
+                            _.forOwn(staticAssets, function (value, key) { console.log('getLastCommitForAssets', key); });
                             minify(staticAssets, function(err, staticAssets) {
+                                _.forOwn(staticAssets, function (value, key) { console.log('minify', key); });
                                 createAssetHtmlFiles(staticAssets, next);
                             });
                         });
                     } else {
-                    	createAssetHtmlFiles(staticAssets, next);
+                      createAssetHtmlFiles(staticAssets, next);
                     }
                 });
 
@@ -77,18 +82,18 @@ module.exports = function(bosco) {
             staticBuild = {},
             assetHelper = AssetHelper.getAssetHelper(boscoRepo, tagFilter);
 
-				if (boscoRepo.assets) {
-						_.forEach(_.pick(boscoRepo.assets, ['js', 'css', 'img', 'html', 'swf']), function (assets, type) {
-								_.forOwn(assets, function (value, tag) {
-										if (!value) return;
+        if (boscoRepo.assets) {
+            _.forEach(_.pick(boscoRepo.assets, ['js', 'css', 'img', 'html', 'swf']), function (assets, type) {
+                _.forOwn(assets, function (value, tag) {
+                    if (!value) return;
 
-										_.forEach(value, function (asset) {
-												assetKey = boscoRepo.name + "/" + asset;
-												assetHelper.addAsset(staticAssets, assetKey, asset, tag, type);
-										});
-								});
-						});
-				}
+                    _.forEach(value, function (asset) {
+                        assetKey = boscoRepo.name + "/" + asset;
+                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, type);
+                    });
+                });
+            });
+        }
 
         // Create build entry
         if (boscoRepo.assets && boscoRepo.assets.build) {
