@@ -9,8 +9,12 @@ var runningServices = [];
 module.exports = {
     name: 'run',
     description: 'Runs all of the microservices (or subset based on regex pattern)',
-    example: 'bosco run -r <repoPattern>',
-    cmd: cmd
+    example: 'bosco run -r <repoPattern> -t <tag>',
+    cmd: cmd,
+    options: [{
+        option: 'tag',
+        syntax: ['-t, --tag [tag]', 'Filter by a tag defined within bosco-service.json']
+    }]
 }
 
 function cmd(bosco, args) {
@@ -19,6 +23,8 @@ function cmd(bosco, args) {
     var repoRegex = new RegExp(repoPattern);
     var repoTag = bosco.options.tag;
     var repos = bosco.config.get('github:repos');
+
+    console.log(repoTag);
 
     var initialiseRunners = function(next) {
         var runners = [NodeRunner, DockerRunner];
