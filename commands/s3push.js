@@ -37,20 +37,27 @@ function cmd(bosco, args) {
 		var toPush = [];
 		_.forOwn(staticAssets, function(asset, key) {
 			if(tag && tag !== asset.tag) return;
-			if(!asset.content) return;
+			if(isContentEmpty(asset)) {
+				bosco.log('Skipping asset: ' + key.blue + ' (content empty)');
+				return;
+			}
 
 			// Check confirmation by type and key
-			var tagConfirmation = confirmation[asset.tag];
-			if(asset.type == 'js' && !(tagConfirmation && tagConfirmation[asset.type])) return;
-			if(asset.type == 'css' && !(tagConfirmation && tagConfirmation[asset.type])) return;
-			if(asset.type == 'html' && !(tagConfirmation && tagConfirmation[asset.assetType])) return;
-			if(asset.type == 'plain' && !(tagConfirmation && tagConfirmation[asset.assetType])) return;
+			if (!isPushConfirmed(confirmation, asset)) {
+				bosco.log('Skipping asset: ' + key.blue + ' (not confirmed)');
+				return;
+			}
+
+			var s3Filename = getS3Filename(key);
+			var mimeType = asset.mimeType || mime.lookup(key);
+
+			bosco.log('Staging publish: ' + s3Filename.blue + ' ('+ mimeType +')');
 
 			toPush.push({
-				content:  asset.content,
-				path:     getS3Filename(key),
+				content:  getS3Content(asset),
+				path:     s3Filename,
 				type:     asset.type,
-				mimeType: mime.lookup(key)
+				mimeType: mimeType
 			});
 
 		});
@@ -86,7 +93,7 @@ function cmd(bosco, args) {
 	var pushToS3 = function(file, next) {
 
 		if(!bosco.knox) return bosco.warn("Knox AWS not configured for environment " + bosco.options.envrionment + " - so not pushing " + file.path + " to S3.");
-		var buffer = new Buffer(file.content);
+		var buffer = file.content;
 		var headers = {
 		  'Content-Type': file.mimeType,
 		  'Cache-Control': ('max-age=' + (maxAge == 0 ? "0, must-revalidate" : maxAge))
@@ -210,6 +217,54 @@ function cmd(bosco, args) {
 		})
 	} else {
 		go();
+	}
+
+	function isCompiledAsset(asset) {
+		if (asset.type === 'js') return true;
+		if (asset.type === 'css') return true;
+
+		return false;
+	}
+
+	function isSummaryAsset(asset) {
+		if (asset.type === 'html') return true;
+		if (asset.type === 'plain') return true;
+
+		return false;
+	}
+
+	function isPushConfirmed(confirmation, asset) {
+		if (isCompiledAsset(asset)) {
+			return isCompiledAssetConfirmed(confirmation, asset);
+		}
+
+		if (isSummaryAsset(asset)) {
+			return isSummaryAssetConfirmed(confirmation, asset);
+		}
+
+		return true;
+	}
+
+	function isCompiledAssetConfirmed(confirmation, asset) {
+		if (!confirmation[asset.tag]) return true;
+		if (confirmation[asset.tag][asset.type]) return false;
+
+		return true;
+	}
+
+	function isSummaryAssetConfirmed(confirmation, asset) {
+		if (!confirmation[asset.tag]) return true;
+		if (confirmation[asset.tag][asset.assetType]) return false;
+
+		return true;
+	}
+
+	function getS3Content(file) {
+		return file.data || new Buffer(file.content);
+	}
+
+	function isContentEmpty(file) {
+		return !(file.data || file.content);
 	}
 
 	function getS3Filename(file) {

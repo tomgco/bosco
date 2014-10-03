@@ -30,16 +30,15 @@ module.exports = function(bosco) {
           }
       });
 
-      async.parallel([
 
+      _.assign(staticAssets, createManifest(staticAssets));
+
+      async.parallel([
               function pcompileJs(next) {
                   compileJs(staticAssets, jsAssets, next);
               },
               function pcompileCss(next) {
                   compileCss(staticAssets, cssAssets, next);
-              },
-              function manifest(next) {
-                  createManifest(staticAssets, next);
               }
           ],
           function(err) {
@@ -48,16 +47,15 @@ module.exports = function(bosco) {
 
   }
 
-  function createManifest(staticAssets, next) {
-
-      var manifest = {};
+  function createManifest(staticAssets) {
+      var manifests = {};
 
       _.forOwn(staticAssets, function(value, key) {
 
           var manifestLine,
               manifestFile = createKey(value.tag, value.type, 'manifest', 'txt');
 
-          staticAssets[manifestFile] = staticAssets[manifestFile] || {
+          manifests[manifestFile] = manifests[manifestFile] || {
               content: "",
               type: 'plain',
               assetType: value.type,
@@ -71,19 +69,17 @@ module.exports = function(bosco) {
           var assetPath = value.asset || '';
           var relativePath = path.join(repoPath, basePath, assetPath);
 
-          staticAssets[manifestFile].content += relativePath + ', Hash: ' + createHash(value.content) + ', Last commit: ' + value.commit;
-          staticAssets[manifestFile].files.push({
+          manifests[manifestFile].content += relativePath + ', Hash: ' + createHash(value.content) + ', Last commit: ' + value.commit;
+          manifests[manifestFile].files.push({
               key: createKey(relativePath, '', 'src', ''),
               relativePath: relativePath,
               content: value.content,
               path: value.path,
               type: value.type
           });
-
       });
 
-      next(null);
-
+      return manifests;
   }
 
   function compileJs(staticAssets, jsAssets, next) {

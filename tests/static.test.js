@@ -63,9 +63,9 @@ describe("Bosco Static Asset Handling", function() {
             expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
             expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
-            expect(assets).to.have.keys('test/html/top.js.html',
-                                    'test/html/bottom.js.html',
-                                    'test/html/top.css.html',
+            expect(assets).to.have.keys('html/top.js.html',
+                                    'html/bottom.js.html',
+                                    'html/top.css.html',
                                     'project1/js/top1.js',
                                     'project2/js/bottom2.js',
                                     'project2/js/top2.js',
@@ -89,23 +89,28 @@ describe("Bosco Static Asset Handling", function() {
         }
         var localBosco = boscoMock()
         var utils = StaticUtils(localBosco);
-
         utils.getStaticAssets(options, function(err, assets) {
 
             expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
             expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
-            expect(assets).to.have.keys('test/html/bottom.js.html',
-                                  'test/html/top.js.html',
-                                  'test/html/top.css.html',
-                                  'test/js/bottom.js.map',
-                                  'test/js/bottom.f1fb2d8.js',
-                                  'test/js/top.js.map',
-                                  'test/js/top.9788b8b.js',
-                                  'test/css/top.b1c537b.css',
-                                  'test/manifest/bottom.js.txt',
-                                  'test/manifest/top.js.txt',
-                                  'test/manifest/top.css.txt'  );
+            var assetKeys = Object.keys(assets);
+            expect(assetKeys).to.contain('html/bottom.js.html');
+            expect(assetKeys).to.contain('html/top.js.html');
+            expect(assetKeys).to.contain('html/top.css.html');
+            expect(assetKeys).to.contain('project2/img/bab.jpg');
+            expect(assetKeys).to.contain('project2/html/html1.html');
+            expect(assetKeys).to.contain('project2/html/html2.html');
+            expect(assetKeys).to.contain('project2/swf/flash.swf');
+            expect(assetKeys).to.contain('js/bottom.js.map');
+            expect(assetKeys).to.contain('js/bottom.f1fb2d8.js');
+            expect(assetKeys).to.contain('js/top.js.map');
+            expect(assetKeys).to.contain('js/top.9788b8b.js');
+            expect(assetKeys).to.contain('css/top.b1c537b.css');
+            expect(assetKeys).to.contain('manifest/bottom.js.txt');
+            expect(assetKeys).to.contain('manifest/top.js.txt');
+            expect(assetKeys).to.contain('manifest/top.css.txt');
+
             done();
 
         });
@@ -126,20 +131,20 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('test/html/top.js.html',
-                                      'test/html/top.css.html',
-                                      'test/js/top.js.map',
-                                      'test/js/top.77917b1.js',
-                                      'test/css/top.b1c537b.css',
-                                      'test/manifest/top.js.txt',
-                                      'test/manifest/top.css.txt' );
+            expect(assets).to.have.keys('html/top.js.html',
+                                      'html/top.css.html',
+                                      'js/top.js.map',
+                                      'js/top.77917b1.js',
+                                      'css/top.b1c537b.css',
+                                      'manifest/top.js.txt',
+                                      'manifest/top.css.txt' );
             done();
 
         });
 
     });
 
-  it('should not parse sass templates when not minifying as this is done in cdn command to allow live reload', function(done) {
+    it('should not parse sass templates when not minifying as this is done in cdn command to allow live reload', function(done) {
 
         var options = {
             repos: ["project2"],
@@ -175,8 +180,8 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('test/css/top.b1c537b.css');
-            expect(assets['test/css/top.b1c537b.css'].content.toString()).to.contain('#main{width:5em}')
+            expect(Object.keys(assets)).to.have.contain('css/top.b1c537b.css');
+            expect(assets['css/top.b1c537b.css'].content.toString()).to.contain('#main{width:5em}')
             done();
 
         });
@@ -197,10 +202,10 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('test/manifest/top.js.txt');
-            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project1/public/js/top1.js');
-            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/top2.js');
-            expect(assets['test/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/jquery-1.12.0-min.js');
+            expect(assets).to.have.keys('manifest/top.js.txt');
+            expect(assets['manifest/top.js.txt'].content.toString()).to.contain('project1/public/js/top1.js');
+            expect(assets['manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/top2.js');
+            expect(assets['manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/jquery-1.12.0-min.js');
             done();
 
         });
@@ -221,9 +226,9 @@ describe("Bosco Static Asset Handling", function() {
 
           utils.getStaticAssets(options, function(err, assets) {
 
-              var manifest = assets['test/manifest/upload.html.txt'].content.toString();
+              var manifest = assets['manifest/upload.html.txt'].content.toString();
 
-              expect(assets).to.have.keys('test/manifest/upload.html.txt');
+              expect(assets).to.have.keys('manifest/upload.html.txt');
               expect(manifest).to.contain('project2/public/html/html1.html');
               expect(manifest).to.contain('project2/public/html/html2.html');
               done();
@@ -245,8 +250,8 @@ describe("Bosco Static Asset Handling", function() {
         var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
-            expect(assets).to.have.keys('test/js/top.js.map');
-            expect(assets['test/js/top.77917b1.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
+            expect(assets).to.have.keys('js/top.js.map');
+            expect(assets['js/top.77917b1.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
             done();
 
         });
@@ -275,13 +280,13 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('test/html/compiled.js.html',
-                                    'test/html/compiled.css.html',
-                                    'test/js/compiled.js.map',
-                                    'test/js/compiled.12915d7.js',
-                                    'test/css/compiled.bfbcf06.css',
-                                    'test/manifest/compiled.js.txt',
-                                    'test/manifest/compiled.css.txt');
+            expect(assets).to.have.keys('html/compiled.js.html',
+                                    'html/compiled.css.html',
+                                    'js/compiled.js.map',
+                                    'js/compiled.12915d7.js',
+                                    'css/compiled.bfbcf06.css',
+                                    'manifest/compiled.js.txt',
+                                    'manifest/compiled.css.txt');
 
             done();
 
@@ -303,13 +308,13 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('test/html/compiled.js.html',
-                                    'test/html/compiled.css.html',
-                                    'test/js/compiled.js.map',
-                                    'test/js/compiled.12915d7.js',
-                                    'test/css/compiled.bfbcf06.css',
-                                    'test/manifest/compiled.js.txt',
-                                    'test/manifest/compiled.css.txt');
+            expect(assets).to.have.keys('html/compiled.js.html',
+                                    'html/compiled.css.html',
+                                    'js/compiled.js.map',
+                                    'js/compiled.12915d7.js',
+                                    'css/compiled.bfbcf06.css',
+                                    'manifest/compiled.js.txt',
+                                    'manifest/compiled.css.txt');
             done();
 
         });
@@ -332,8 +337,8 @@ it('should execute bespoke build commands and use output, and execute the watch 
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('test/html/compiled.js.html',
-                                  'test/html/compiled.css.html',
+            expect(assets).to.have.keys('html/compiled.js.html',
+                                  'html/compiled.css.html',
                                   'project3/js/compiled.js',
                                   'project3/css/compiled.css');
             done();
