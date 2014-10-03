@@ -63,7 +63,7 @@ Runner.prototype.start = function(options, next) {
         createContainer(dockerFqn, options, function(err, container) {
             if (err) return next(err);
 
-            runContainer(dockerFqn, options, container, next);
+            startContainer(dockerFqn, options, container, next);
         });
     };
 
@@ -107,8 +107,9 @@ function createContainer(fqn, options, next) {
         'Volumes': null
     };
 
-    if (options.service.docker && options.service.docker.create) {
-        optsCreate = _.extend(optsCreate, options.service.docker.create);
+    if (options.service.docker && options.service.docker.Config) {
+        // For example options look in Config in: docker inspect <container_name>
+        optsCreate = _.extend(optsCreate, options.service.docker.Config);
     }
 
     var doCreate = function(err) {
@@ -120,22 +121,20 @@ function createContainer(fqn, options, next) {
     doCreate();
 }
 
-function runContainer(fqn, options, container, next) {
+function startContainer(fqn, options, container, next) {
 
     // We need to get the SSH port?
-
-    var optsRun = {
-        'Dns': options.service.dns || ['8.8.8.8', '8.8.4.4'],
-        'PortBindings': options.service.ports,
+    var optsStart = {
         'NetworkMode': 'bridge',
         'VolumesFrom': null
     };
 
-    if (options.service.docker && options.service.docker.start) {
-      optsRun = _.extend(optsRun, options.service.docker.start);
+    if (options.service.docker && options.service.docker.HostConfig) {
+        // For example options look in HostConfig in: docker inspect <container_name>
+        optsStart = _.extend(optsStart, options.service.docker.HostConfig);
     }
 
-    container.start(optsRun, function(err, data) {
+    container.start(optsStart, function(err, data) {
         if (err) {
             console.error("Failed to start Docker image: " + err.message);
             return next(err);
