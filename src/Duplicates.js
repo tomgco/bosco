@@ -3,10 +3,6 @@ var _ = require('lodash-node');
 
 module.exports = function(bosco) {
 
-    return {
-        removeDuplicates: removeDuplicates
-    }
-
     function removeDuplicates(staticAssets, next) {
 
         var duplicates = [];
@@ -15,7 +11,7 @@ module.exports = function(bosco) {
                 var duplicate = false;
                 if (a.checksum == b.checksum) {
                     if(_.contains(duplicates,b.assetKey) || _.contains(duplicates,a.assetKey)) return;
-                    bosco.warn("Skipping duplicate file: " + a.assetKey + " <> " + b.assetKey);
+                    bosco.warn('Skipping duplicate file: ' + a.assetKey + ' <> ' + b.assetKey);
                     duplicate = true;
                 }
                 return duplicate;
@@ -28,9 +24,9 @@ module.exports = function(bosco) {
                     if (bLib && bLib.name == aLib.name) {
                         if(_.contains(duplicates, b.assetKey) || _.contains(duplicates, a.assetKey)) return;
                         if (bLib.version == aLib.version) {
-                            bosco.warn("Duplicate library version: " + a.assetKey + " <> " + b.assetKey);
+                            bosco.warn('Duplicate library version: ' + a.assetKey + ' <> ' + b.assetKey);
                         } else {
-                            bosco.warn("Duplicate library with different version: " + a.assetKey + " <> " + b.assetKey);
+                            bosco.warn('Duplicate library with different version: ' + a.assetKey + ' <> ' + b.assetKey);
                         }
                         duplicate = true;
                     }
@@ -38,7 +34,7 @@ module.exports = function(bosco) {
                 return duplicate;
             },
             checkLibrary = function(a) {
-                var dashSplit = a.asset.split("-");
+                var dashSplit = a.asset.split('-');
                 if (dashSplit[dashSplit.length - 1] == 'min.js') {
                     return {
                         version: dashSplit[dashSplit.length - 2],
@@ -53,7 +49,7 @@ module.exports = function(bosco) {
 
             if (_.contains(['html', 'img'], avalue.type)) {
                 return;
-            };
+            }
 
             _.forOwn(staticAssets, function(bvalue, bkey) {
 
@@ -76,4 +72,9 @@ module.exports = function(bosco) {
         next(null, staticAssets);
 
     }
+
+     return {
+        removeDuplicates: removeDuplicates
+    }
+
 }

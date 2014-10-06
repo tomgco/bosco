@@ -7,15 +7,7 @@ var sf = require('sf');
 
 module.exports = function(bosco) {
 
-    return {
-        getAssetHelper: getAssetHelper,
-        createKey: createKey,
-        checksum: checksum
-    }
-
     function getAssetHelper(boscoRepo, tagFilter) {
-
-        var repoAssetPath = boscoRepo.basePath || '.';
 
         return {
             addAsset: function(staticAssets, assetKey, asset, tag, type) {
@@ -31,7 +23,7 @@ module.exports = function(bosco) {
                     newAsset.asset = asset;
                     newAsset.repoPath = boscoRepo.repoPath;
                     newAsset.basePath = boscoRepo.basePath;
-                    newAsset.relativePath = path.join(".", boscoRepo.basePath || "", asset);
+                    newAsset.relativePath = path.join('.', boscoRepo.basePath || '', asset);
                     newAsset.path = resolvedPath;
                     newAsset.extname = path.extname(asset);
                     newAsset.tag = tag;
@@ -69,8 +61,15 @@ module.exports = function(bosco) {
                 path: resolvedPath,
                 repo: boscoRepo.name
             }));
-        };
+        }
 
         return resolvedPath;
     }
+
+    return {
+        getAssetHelper: getAssetHelper,
+        createKey: createKey,
+        checksum: checksum
+    }
+
 }

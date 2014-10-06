@@ -2,10 +2,7 @@
  * Wrapper to manage services via PM2
  */
 var _ = require('lodash');
-var async = require('async');
-var fs = require('fs');
 var path = require('path');
-var http = require('http');
 var pm2 = require('pm2');
 require('colors');
 
@@ -37,20 +34,20 @@ Runner.prototype.start = function(options, next) {
 	var self = this;
 	// Remove node from the start script as not req'd for PM2
 	var startCmd = options.service.start, startArr, start;
-	if(startCmd.split(" ")[0] == "node") {
-		 startArr = startCmd.split(" ");
+	if(startCmd.split(' ')[0] == 'node') {
+		 startArr = startCmd.split(' ');
 		 startArr.shift();
-		 start = startArr.join(" ");
+		 start = startArr.join(' ');
 	}
 
 	var ext = path.extname(startCmd);
 	if(!path.extname(start)) {
-		ext = ".js";
-		start = start + ".js";
+		ext = '.js';
+		start = start + '.js';
 	}
 
 	var executeCommand = false;
-	if (ext != ".js") {
+	if (ext != '.js') {
 		executeCommand = true;
 	}
 
@@ -59,8 +56,8 @@ Runner.prototype.start = function(options, next) {
 		executeCommand = true;
 	}
 
-	if(!self.bosco.exists(options.cwd + "/" + start)) {
-		self.bosco.warn("Can't start " + options.name.red + ", as I can't find script: " + start.red);
+	if(!self.bosco.exists(options.cwd + '/' + start)) {
+		self.bosco.warn('Can\'t start ' + options.name.red + ', as I can\'t find script: ' + start.red);
 		return next();
 	}
 
@@ -71,12 +68,13 @@ Runner.prototype.start = function(options, next) {
  * List running services
  */
 Runner.prototype.stop = function(options, next) {
-	this.bosco.log("Stopping " + options.name);
-	pm2.stop(options.name, function(err, proc) {
-		pm2.delete(options.name, function(err, proc) {
+	this.bosco.log('Stopping ' + options.name);
+	pm2.stop(options.name, function(err) {
+        if(err) return next(err);
+ 		pm2.delete(options.name, function(err) {
 		  next(err);
 		});
 	});
 }
 
-module.exports = new Runner;
+module.exports = new Runner();

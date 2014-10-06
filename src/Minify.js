@@ -2,18 +2,14 @@ var _ = require('lodash');
 var fs = require('fs');
 var crypto = require('crypto');
 var path = require('path');
-var UglifyJS = require("uglify-js");
-var sass = require("node-sass");
+var UglifyJS = require('uglify-js');
+var sass = require('node-sass');
 var CleanCSS = require('clean-css');
 var async = require('async');
 
 module.exports = function(bosco) {
 
   var createKey = require('./AssetHelper')(bosco).createKey;
-
-    return {
-      minify: minify
-  }
 
   function minify(staticAssets, next) {
 
@@ -47,20 +43,23 @@ module.exports = function(bosco) {
 
   }
 
+  return {
+      minify: minify
+  }
+
   function createManifest(staticAssets) {
       var manifests = {};
 
-      _.forOwn(staticAssets, function(value, key) {
+      _.forOwn(staticAssets, function(value) {
 
-          var manifestLine,
-              manifestFile = createKey(value.tag, value.type, 'manifest', 'txt');
+          var manifestFile = createKey(value.tag, value.type, 'manifest', 'txt');
 
           manifests[manifestFile] = manifests[manifestFile] || {
-              content: "",
+              content: '',
               type: 'plain',
               assetType: value.type,
               tag: value.tag,
-              extname: ".manifest",
+              extname: '.manifest',
               files: []
           };
 
@@ -88,7 +87,7 @@ module.exports = function(bosco) {
 
           var compiled;
 
-          bosco.log("Compiling " + _.size(files) + " " + tag.blue + " JS assets ...");
+          bosco.log('Compiling ' + _.size(files) + ' ' + tag.blue + ' JS assets ...');
 
           var uglifyConfig = bosco.config.get('js:uglify');
 
@@ -96,7 +95,7 @@ module.exports = function(bosco) {
             output: uglifyConfig ? uglifyConfig.outputOptions : null,
             compressor: uglifyConfig ? uglifyConfig.compressorOptions : null,
             mangle: uglifyConfig ? uglifyConfig.mangle : null,
-                outSourceMap: tag + ".js.map",
+                outSourceMap: tag + '.js.map',
                 sourceMapIncludeSources: true
             };
 
@@ -107,17 +106,17 @@ module.exports = function(bosco) {
           try {
             compiled = UglifyJS.minify(_.values(files), uglifyOptions);
           } catch (ex) {
-              bosco.error("There was an error minifying files in " + tag.blue + ", error:");
-              console.log(ex.message + "\n");
+              bosco.error('There was an error minifying files in ' + tag.blue + ', error:');
+              console.log(ex.message + '\n');
               compiled = {
-                  code: ""
+                  code: ''
               };
           }
 
           var mapKey = createKey(tag, 'js', 'js', 'map');
           staticAssets[mapKey] = staticAssets[mapKey] || {};
-          staticAssets[mapKey].path = "";
-          staticAssets[mapKey].extname = ".map";
+          staticAssets[mapKey].path = '';
+          staticAssets[mapKey].extname = '.map';
           staticAssets[mapKey].tag = tag;
           staticAssets[mapKey].type = 'js';
           staticAssets[mapKey].content = compiled.map;
@@ -125,8 +124,8 @@ module.exports = function(bosco) {
           var hash = createHash(compiled.code);
           var minKey = createKey(tag, hash, 'js', 'js');
           staticAssets[minKey] = staticAssets[minKey] || {};
-          staticAssets[minKey].path = "";
-          staticAssets[minKey].extname = ".js";
+          staticAssets[minKey].path = '';
+          staticAssets[minKey].extname = '.js';
           staticAssets[minKey].tag = tag;
           staticAssets[minKey].type = 'js';
           staticAssets[minKey].hash = hash;
@@ -141,12 +140,11 @@ module.exports = function(bosco) {
   function compileCss(staticAssets, cssAssets, next) {
 
       var compiledCss = [];
-      var compiledAssets = {};
 
-      var compiledCss = _.map(cssAssets, function(files, tag) {
+      compiledCss = _.map(cssAssets, function(files, tag) {
           var compiled = {
-              css: "",
-              scss: ""
+              css: '',
+              scss: ''
           };
 
           _.forOwn(files, function(file, key) {
@@ -167,7 +165,7 @@ module.exports = function(bosco) {
 
       async.map(compiledCss, function(css, next) {
 
-        bosco.log("Compiling " + css.count + " " + css.tag.blue + " CSS assets ...");
+        bosco.log('Compiling ' + css.count + ' ' + css.tag.blue + ' CSS assets ...');
 
           sassRender({key: css.assetKey, content: css.scss}, function(err, code) {
 
@@ -179,15 +177,15 @@ module.exports = function(bosco) {
               cssContent = new CleanCSS(cleanCssConfig.options).minify(cssContent);
             }
 
-              if (err || cssContent.length == 0) return next({
+              if (err || cssContent.length === 0) return next({
                   message: 'No css for tag ' + css.tag
               });
 
               var hash = createHash(cssContent);
               var assetKey = createKey(css.tag, hash, 'css', 'css');
               staticAssets[assetKey] = staticAssets[assetKey] || {};
-              staticAssets[assetKey].path = "";
-              staticAssets[assetKey].extname = ".css";
+              staticAssets[assetKey].path = '';
+              staticAssets[assetKey].extname = '.css';
               staticAssets[assetKey].tag = css.tag;
               staticAssets[assetKey].type = 'css';
               staticAssets[assetKey].hash = hash;
@@ -197,19 +195,19 @@ module.exports = function(bosco) {
           });
 
       }, function(err) {
-          if (err) return bosco.warn("No CSS assets: " + err.message);
+          if (err) return bosco.warn('No CSS assets: ' + err.message);
           next(null);
       });
 
   }
 
   function createHash(code) {
-      var hash = crypto.createHash("sha1").update(code).digest("hex").slice(0, 7);
-      hash = hash.replace(/a/g,"b");
-      hash = hash.replace(/e/g,"f");
-      hash = hash.replace(/i/g,"j");
-      hash = hash.replace(/o/g,"p");
-      hash = hash.replace(/u/g,"v");
+      var hash = crypto.createHash('sha1').update(code).digest('hex').slice(0, 7);
+      hash = hash.replace(/a/g,'b');
+      hash = hash.replace(/e/g,'f');
+      hash = hash.replace(/i/g,'j');
+      hash = hash.replace(/o/g,'p');
+      hash = hash.replace(/u/g,'v');
       return hash;
   }
 

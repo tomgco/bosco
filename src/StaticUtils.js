@@ -1,26 +1,18 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
-var crypto = require("crypto");
-var exec = require('child_process').exec;
 var async = require('async');
-var hb = require('handlebars');
 
 module.exports = function(bosco) {
 
-  var AssetHelper = require('./AssetHelper')(bosco);
-  var minify = require('./Minify')(bosco).minify;
-  var removeDuplicates = require('./Duplicates')(bosco).removeDuplicates;
-  var doBuild = require('./ExternalBuild')(bosco).doBuild;
-  var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
-  var html = require('./Html')(bosco);
+    var AssetHelper = require('./AssetHelper')(bosco);
+    var minify = require('./Minify')(bosco).minify;
+    var removeDuplicates = require('./Duplicates')(bosco).removeDuplicates;
+    var doBuild = require('./ExternalBuild')(bosco).doBuild;
+    var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
+    var html = require('./Html')(bosco);
     var createAssetHtmlFiles = html.createAssetHtmlFiles;
     var attachFormattedRepos = html.attachFormattedRepos;
-
-    return {
-        getStaticAssets: getStaticAssets,
-        getStaticRepos: getStaticRepos
-    }
 
     function getStaticAssets(options, next) {
 
@@ -34,6 +26,7 @@ module.exports = function(bosco) {
             async.mapSeries(services, function(service, cb) {
 
                 doBuild(service, options, function(err) {
+                    if(err) return cb(err);
                     createAssetList(service, options.minify, options.tagFilter, cb);
                 });
 
@@ -106,8 +99,8 @@ module.exports = function(bosco) {
     }
 
     function loadService(repo, next) {
-        var boscoRepo = {}, repoPath = bosco.getRepoPath(repo), basePath, boscoConfig
-            boscoRepoConfig = path.join(repoPath, "bosco-service.json"),
+        var boscoRepo = {}, repoPath = bosco.getRepoPath(repo), boscoConfig,
+            boscoRepoConfig = path.join(repoPath, 'bosco-service.json'),
             repoPackageFile = path.join(repoPath, 'package.json');
 
         boscoRepo.name = repo;
@@ -127,10 +120,15 @@ module.exports = function(bosco) {
 
         if (bosco.exists(repoPackageFile)) {
             // Add the info from the package file to the service and return it
-            boscoRepo.info = JSON.parse(fs.readFileSync(repoPackageFile) || {});;
+            boscoRepo.info = JSON.parse(fs.readFileSync(repoPackageFile) || {});
         }
 
         next(null, boscoRepo);
+    }
+
+    return {
+        getStaticAssets: getStaticAssets,
+        getStaticRepos: getStaticRepos
     }
 
 };

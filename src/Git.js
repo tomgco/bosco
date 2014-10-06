@@ -4,9 +4,6 @@ var async = require('async');
 
 module.exports = function(bosco) {
 
-    return {
-    	getLastCommitForAssets: getLastCommitForAssets
-	}
 
 	function getLastCommitForAssets(staticAssets, next) {
 	    var files = [];
@@ -41,4 +38,8 @@ module.exports = function(bosco) {
 	        });
 	    });
 	}
+
+    return {
+        getLastCommitForAssets: getLastCommitForAssets
+    }
 }
