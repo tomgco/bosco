@@ -258,6 +258,26 @@ describe("Bosco Static Asset Handling", function() {
 
     });
 
+   it('should create a formatted repo list when requested for cdn mode', function(done) {
+
+        var options = {
+            repos: ["project1","project2","project3"],
+            minify: true,
+            tagFilter: null,
+            watchBuilds: false,
+            reloadOnly: false
+        }
+
+        var utils = StaticUtils(boscoMock());
+
+        utils.getStaticRepos(options, function(err, assets) {
+
+            expect(assets).to.have.keys('formattedRepos');
+            done();
+
+        });
+
+    });
 
 });
 
