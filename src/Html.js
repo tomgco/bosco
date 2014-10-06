@@ -25,7 +25,7 @@ module.exports = function(bosco) {
             };
 
             if (isJavascript(asset)) {
-                htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"</script>\n', {
+                htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', {
                     'url': bosco.getAssetCdnUrl(key)
                 });
             }
