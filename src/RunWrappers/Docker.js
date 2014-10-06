@@ -58,7 +58,6 @@ Runner.prototype.start = function(options, next) {
     var dockerFqn = self.getFqn(options);
     var createAndRun = function(err) {
         if (err) return next(err);
-
         DockerUtils.createContainer(docker, dockerFqn, options, function(err, container) {
             if (err) return next(err);
             DockerUtils.startContainer(docker, dockerFqn, options, container, next);

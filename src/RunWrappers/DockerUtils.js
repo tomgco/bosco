@@ -64,8 +64,10 @@ function startContainer(docker, fqn, options, container, next) {
             console.error('Failed to start Docker image: ' + err.message);
             return next(err);
         }
-        console.log('Docker image: ' + fqn + ' now running ...');
-        next();
+        setTimeout(function() {
+            console.log('Docker image: ' + fqn + ' now running ...');
+            next();
+        }, 5000); // Hack delay prior to a check to see if service is running based on ports
     });
 
 }

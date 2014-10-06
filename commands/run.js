@@ -51,13 +51,16 @@ function cmd(bosco, args) {
                     }
                 });
             }
+        } else {
+            svcConfig = {
+                name: repo,
+                cwd: repoPath
+            };
         }
 
         if (bosco.exists(boscoService)) {
             svc = require(boscoService);
-            if(svc.tags) {
-                svcConfig = _.extend(svcConfig, {tags: svc.tags, port: svc.service});
-            }
+            svcConfig = _.extend(svcConfig, {tags: svc.tags, port: svc.service, order: svc.order});
             if (svc.service) {
                 if (svc.service.type == 'docker') {
                     svcConfig = _.extend(svcConfig, {
@@ -88,6 +91,13 @@ function cmd(bosco, args) {
               if(svcConfig && svcConfig.service) runList.push(svcConfig);
             }
         });
+
+        // Sort to always run docker containers first
+        runList = _.sortBy(runList, function(item) {
+            if(item.order) return item.order;
+            return item.type === 'docker' ? 100 : 500
+        });
+
         next(null, runList);
     }
 
