@@ -21,6 +21,7 @@ module.exports = function(bosco) {
                 type: 'html',
                 assetType: asset.type,
                 tag: asset.tag,
+                isMinfiedFragment: true,
                 extname: '.html'
             };
 

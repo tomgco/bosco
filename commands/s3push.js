@@ -201,14 +201,11 @@ function cmd(bosco, args) {
     function isCompiledAsset(asset) {
         if (asset.type === 'js') return true;
         if (asset.type === 'css') return true;
-
         return false;
     }
 
     function isSummaryAsset(asset) {
-        if (asset.type === 'html') return true;
-        if (asset.type === 'plain') return true;
-
+        if(asset.isMinfiedFragment) return true;
         return false;
     }
 
@@ -216,11 +213,9 @@ function cmd(bosco, args) {
         if (isCompiledAsset(asset)) {
             return isCompiledAssetConfirmed(confirmation, asset);
         }
-
         if (isSummaryAsset(asset)) {
             return isSummaryAssetConfirmed(confirmation, asset);
         }
-
         return true;
     }
 
