@@ -1,7 +1,5 @@
 var _ = require('lodash');
 var async = require('async');
-var fs = require('fs');
-var path = require('path');
 var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
 var runningServices = [];
@@ -24,8 +22,6 @@ function cmd(bosco, args) {
     var repoTag = bosco.options.tag;
     var repos = bosco.config.get('github:repos');
 
-    console.log(repoTag);
-
     var initialiseRunners = function(next) {
         var runners = [NodeRunner, DockerRunner];
         async.map(runners, function loadRunner(runner, cb) {
@@ -35,10 +31,10 @@ function cmd(bosco, args) {
 
     var getRunConfig = function(repo) {
 
-        var pkg, svc, basePath,
+        var pkg, svc,
             repoPath = bosco.getRepoPath(repo),
-            packageJson = [repoPath, "package.json"].join("/"),
-            boscoService = [repoPath, "bosco-service.json"].join("/"),
+            packageJson = [repoPath, 'package.json'].join('/'),
+            boscoService = [repoPath, 'bosco-service.json'].join('/'),
             svcConfig = {};
 
         if (bosco.exists(packageJson)) {
@@ -58,7 +54,7 @@ function cmd(bosco, args) {
         }
 
         if (bosco.exists(boscoService)) {
-            var svc = require(boscoService);
+            svc = require(boscoService);
             if(svc.tags) {
                 svcConfig = _.extend(svcConfig, {tags: svc.tags, port: svc.service});
             }
@@ -90,7 +86,7 @@ function cmd(bosco, args) {
             var svcConfig = getRunConfig(repo);
             if ((!repoTag && repo.match(repoRegex)) || (repoTag && _.contains(svcConfig.tags, repoTag))) {
               if(svcConfig && svcConfig.service) runList.push(svcConfig);
-            };
+            }
         });
         next(null, runList);
     }
@@ -101,7 +97,7 @@ function cmd(bosco, args) {
             async.mapSeries(runList, function(runConfig, cb) {
                 if(runConfig.service && runConfig.service.type == 'docker') {
                     if(_.contains(runningServices, DockerRunner.getFqn(runConfig))) {
-                        bosco.warn("Service " + runConfig.name.green + " is already running ...");
+                        bosco.warn('Service ' + runConfig.name.green + ' is already running ...');
                         return cb();
                     }
                     return DockerRunner.start(runConfig, cb);
@@ -109,19 +105,13 @@ function cmd(bosco, args) {
 
                 if(runConfig.service && runConfig.service.type == 'node') {
                     if(_.contains(runningServices, runConfig.name)) {
-                        bosco.warn("Service " + runConfig.name.green + " is already running ...");
+                        bosco.warn('Service ' + runConfig.name.green + ' is already running ...');
                         return cb();
                     }
                     return NodeRunner.start(runConfig, cb);
                 }
                 cb();
-            }, function(err) {
-                if (err) {
-                    bosco.error(err);
-                    process.exit(1);
-                }
-                process.exit(0);
-            });
+            }, next);
         })
 
     }
@@ -135,10 +125,14 @@ function cmd(bosco, args) {
         });
     }
 
-    bosco.log("Run each mircoservice " + args);
+    bosco.log('Run each mircoservice ' + args);
 
     async.series([initialiseRunners, getRunningServices, startRunnableServices], function(err) {
-        bosco.log("Complete");
+        if (err) {
+            bosco.error(err);
+            return process.exit(1);
+        }
+        bosco.log('Complete');
         process.exit(0);
     })
 

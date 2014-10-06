@@ -1,32 +1,31 @@
-
 var _ = require('lodash');
 var async = require('async');
-var fs = require('fs');
-var path = require('path');
-var http = require('http');
 var pm2 = require('pm2');
 var Tail = require('tail').Tail;
 
 module.exports = {
-	name:'tail',
-	description:'Tails the logs from pm2',
-	example:'bosco tail [out|err] -r <repoPattern>',
-	cmd:cmd
+    name:'tail',
+    description:'Tails the logs from pm2',
+    example:'bosco tail [out|err] -r <repoPattern>',
+    cmd:cmd
 }
 
 function cmd(bosco, args) {
 
-	var repoPattern = bosco.options.repo;
-	var repoRegex = new RegExp(repoPattern);
-	var repos = bosco.config.get('github:repos');
-	var runningServices = {};
+    var repoPattern = bosco.options.repo;
+    var repoRegex = new RegExp(repoPattern);
 
-	// Connect or launch PM2
-	pm2.connect(function(err) {
+    // Connect or launch PM2
+    pm2.connect(function(err) {
 
-		var describeRunningServices = function(running) {
-			async.map(running, function(repo, next) {
-				if(repo.match(repoRegex)) {
+        if (err) {
+          bosco.error(err);
+          return;
+        }
+
+        var describeRunningServices = function(running) {
+            async.map(running, function(repo, next) {
+                if(repo.match(repoRegex)) {
           pm2.describe(repo, function(err, list) {
             if (err) {
               bosco.error(err);
@@ -39,37 +38,37 @@ function cmd(bosco, args) {
             bosco.log('Tailing ' + file);
             var tail = new Tail(file);
 
-            tail.on("line", function(data) {
-              console.log(repo + " " + data);
+            tail.on('line', function(data) {
+              console.log(repo + ' ' + data);
             });
 
-            tail.on("error", function(error) {
+            tail.on('error', function(error) {
               bosco.error(error);
             });
           });
         } else {
           next();
         }
-			}, function(err) {
-				if (err) {
-					bosco.error(err);
-					process.exit(1);
-				}
-				process.exit(0);
-			});
-		}
+            }, function(err) {
+                if (err) {
+                    bosco.error(err);
+                    process.exit(1);
+                }
+                process.exit(0);
+            });
+        }
 
-		var getRunningServices = function(next) {
-			pm2.list(function(err, list) {
-				next(err, _.pluck(list,'name'));
-			});
-		}
+        var getRunningServices = function(next) {
+            pm2.list(function(err, list) {
+                next(err, _.pluck(list,'name'));
+            });
+        }
 
-		getRunningServices(function(err, running) {
-			describeRunningServices(running);
-		});
+        getRunningServices(function(err, running) {
+            describeRunningServices(running);
+        });
 
-	});
+    });
 
 }
 

@@ -1,7 +1,5 @@
 var _ = require('lodash');
 var async = require('async');
-var fs = require('fs');
-var http = require('http');
 var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
 var runningServices = [];
@@ -30,10 +28,10 @@ function cmd(bosco, args) {
 
         async.map(repos, function(repo, next) {
 
-            var pkg, svc, basePath,
+            var pkg, svc,
                 repoPath = bosco.getRepoPath(repo),
-                packageJson = [repoPath, "package.json"].join("/"),
-                boscoService = [repoPath, "bosco-service.json"].join("/");
+                packageJson = [repoPath, 'package.json'].join('/'),
+                boscoService = [repoPath, 'bosco-service.json'].join('/');
 
             if (repo.match(repoRegex)) {
 
@@ -48,7 +46,7 @@ function cmd(bosco, args) {
                 }
 
                 if (bosco.exists(boscoService)) {
-                    var svc = require(boscoService);
+                    svc = require(boscoService);
                     if (svc.service) {
                         if (svc.service.type == 'docker') {
                             if (_.contains(runningServices, DockerRunner.getFqn(svc))) {
@@ -68,7 +66,7 @@ function cmd(bosco, args) {
 
             next();
 
-        }, function(err) {
+        }, function() {
             process.exit(0);
         });
 
@@ -83,10 +81,10 @@ function cmd(bosco, args) {
         })
     }
 
-    bosco.log("Stop each mircoservice " + args);
+    bosco.log('Stop each mircoservice ' + args);
 
-    async.series([initialiseRunners, getRunningServices, stopRunningServices], function(err) {
-        bosco.log("Complete");
+    async.series([initialiseRunners, getRunningServices, stopRunningServices], function() {
+        bosco.log('Complete');
         process.exit(0);
     })
 

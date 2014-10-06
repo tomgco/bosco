@@ -1,68 +1,64 @@
 
 var request = require('request');
-var fs = require('fs');
 var _ = require('lodash');
-var asciify = require('asciify');
-var git = require('gulp-git');
 var async = require('async');
-var mkdirp = require('mkdirp');
 var exec = require('child_process').exec;
 var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
 
 module.exports = {
-	name:'clone',
-	description:'Gets an list of all repos in your team and runs git clone for each',
-	example: 'bosco clone',
-	help: getHelp(),
-	cmd:cmd
+    name:'clone',
+    description:'Gets an list of all repos in your team and runs git clone for each',
+    example: 'bosco clone',
+    help: getHelp(),
+    cmd:cmd
 }
 
 function cmd(bosco, args, next) {
 
-	var options = {
-	    headers: {
-	        'User-Agent': 'Bosco-You-Fool'
-	    },
-	    auth: {
-	        user: bosco.config.get('github:authToken') + ':x-oauth-basic'
-	    },
-	    proxy: process.env.http_proxy ? process.env.http_proxy : undefined,
-	    json: true
-	};
+    var options = {
+        headers: {
+            'User-Agent': 'Bosco-You-Fool'
+        },
+        auth: {
+            user: bosco.config.get('github:authToken') + ':x-oauth-basic'
+        },
+        proxy: process.env.http_proxy ? process.env.http_proxy : undefined,
+        json: true
+    };
 
-	var repoPattern = bosco.options.repo;
-	var repoRegex = new RegExp(repoPattern);
+    var repoPattern = bosco.options.repo;
+    var repoRegex = new RegExp(repoPattern);
 
     var ignoredRepos = bosco.config.get('github:ignoredRepos') || [];
 
     if(!bosco.config.get('github:team')) {
         // The user does not have a team, so just treat the repos config
         // as manually edited
-        bosco.log("No team set, so using repos in config as manually managed list ...");
-        var repos = bosco.config.get("github:repos");
+        bosco.log('No team set, so using repos in config as manually managed list ...');
+        var repos = bosco.config.get('github:repos');
         return fetch(bosco, repos, repoRegex, args, next);
     }
 
     function fetchTeamProfile(err, res, teamJson) {
 
-    	if(teamJson.message) {
-    		bosco.error("There was a problem talking to the Github: " + teamJson.message);
-    		if(teamJson.message == 'Bad credentials') {
-    			bosco.warn("To create a token visit here: https://github.com/blog/1509-personal-api-tokens")
-    		}
-    		return;
-    	}
+        if(teamJson.message) {
+            bosco.error('There was a problem talking to the Github: ' + teamJson.message);
+            if(teamJson.message == 'Bad credentials') {
+                bosco.warn('To create a token visit here: https://github.com/blog/1509-personal-api-tokens')
+            }
+            return;
+        }
 
         if (err) {
-            return bosco.error("Could not find your team, or you are not a member of any team", err.message);
+            return bosco.error('Could not find your team, or you are not a member of any team', err.message);
         }
 
         var team = _.find(teamJson, {slug: bosco.config.get('github:team')});
 
-        if(!team) return bosco.error("Unable to get team from Github");
+        if(!team) return bosco.error('Unable to get team from Github');
 
-        bosco.log("Fetching repos for " + team.name.magenta);
+        bosco.log('Fetching repos for ' + team.name.magenta);
 
         function fetchTeamRepositories(err, res, reposJson) {
             if (err) {
@@ -97,70 +93,70 @@ function cmd(bosco, args, next) {
 
 function fetch(bosco, repos, repoRegex, args, next) {
 
-	var orgPath = bosco.getOrgPath();
+    var orgPath = bosco.getOrgPath();
 
-	var saveRepos = function(cb) {
-		bosco.config.set("github:repos",repos);
-		bosco.config.save(cb);
-	}
+    var saveRepos = function(cb) {
+        bosco.config.set('github:repos',repos);
+        bosco.config.save(cb);
+    }
 
-	var getRepos = function(cb) {
+    var getRepos = function(cb) {
 
-		var progressbar = bosco.config.get('progress') == 'bar',
-			total = repos.length,
-			pullFlag = false;
+        var progressbar = bosco.config.get('progress') == 'bar',
+            total = repos.length,
+            pullFlag = false;
 
-  		var bar = progressbar ? new bosco.progress('Getting repositories [:bar] :percent :etas', {
-			complete: green,
-  			incomplete: red,
-			width: 50,
-			total: total
-		}) : null;
+          var bar = progressbar ? new bosco.progress('Getting repositories [:bar] :percent :etas', {
+            complete: green,
+              incomplete: red,
+            width: 50,
+            total: total
+        }) : null;
 
-    	async.mapLimit(repos, bosco.options.cpus, function repoGet(repo, repoCb) {
+        async.mapLimit(repos, bosco.options.cpus, function repoGet(repo, repoCb) {
 
-    	  if(!repo.match(repoRegex)) return repoCb();
+          if(!repo.match(repoRegex)) return repoCb();
 
-		  var repoPath = bosco.getRepoPath(repo);
-		  var repoUrl = bosco.getRepoUrl(repo);
+          var repoPath = bosco.getRepoPath(repo);
+          var repoUrl = bosco.getRepoUrl(repo);
 
-		  if(bosco.exists(repoPath)) {
-		  	pullFlag = true;
-		  	if(progressbar) bar.tick();
-		  	repoCb();
-		  } else {
-		  	clone(bosco,  progressbar, bar, repoUrl, orgPath, repoCb);
-		  }
-		}, function(err) {
-			if(pullFlag) bosco.warn("Some repositories already existed, to pull changes use 'bosco pull'");
-			cb(err);
-		})
+          if(bosco.exists(repoPath)) {
+              pullFlag = true;
+              if(progressbar) bar.tick();
+              repoCb();
+          } else {
+              clone(bosco,  progressbar, bar, repoUrl, orgPath, repoCb);
+          }
+        }, function(err) {
+            if(pullFlag) bosco.warn('Some repositories already existed, to pull changes use \'bosco pull\'');
+            cb(err);
+        })
 
-	}
+    }
 
-	async.series([saveRepos, getRepos], function(err) {
-		bosco.log("Complete");
-		if(next) next();
-	});
+    async.series([saveRepos, getRepos], function() {
+        bosco.log('Complete');
+        if(next) next();
+    });
 
 }
 
 function clone(bosco, progressbar, bar, repoUrl, orgPath, next) {
-    if(!progressbar) bosco.log("Cloning " + repoUrl.blue + " into " + orgPath.blue);
-	exec('git clone ' + repoUrl, {
-	  cwd: orgPath
-	}, function(err, stdout, stderr) {
-		if(progressbar) bar.tick();
-		if(err) {
-			if(progressbar) console.log("");
-			bosco.error(repoUrl.blue + " >> " + stderr);
-		} else {
-			if(!progressbar && stdout) bosco.log(repoUrl.blue + " >> " + stdout);
-		}
-		next();
-	});
+    if(!progressbar) bosco.log('Cloning ' + repoUrl.blue + ' into ' + orgPath.blue);
+    exec('git clone ' + repoUrl, {
+      cwd: orgPath
+    }, function(err, stdout, stderr) {
+        if(progressbar) bar.tick();
+        if(err) {
+            if(progressbar) console.log('');
+            bosco.error(repoUrl.blue + ' >> ' + stderr);
+        } else {
+            if(!progressbar && stdout) bosco.log(repoUrl.blue + ' >> ' + stdout);
+        }
+        next();
+    });
 }
 
 function getHelp() {
-	return "This is some example help for the go command."
+    return 'This is some example help for the go command.'
 }

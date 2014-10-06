@@ -1,9 +1,5 @@
-var fs = require('fs');
-var _ = require('lodash');
 var async = require('async');
 var exec = require('child_process').exec;
-var green = '\u001b[42m \u001b[0m';
-var red = '\u001b[41m \u001b[0m';
 
 module.exports = {
   name:'grep',
@@ -13,6 +9,7 @@ module.exports = {
 }
 
 function cmd(bosco, args, next) {
+
   var repoPattern = bosco.options.repo;
   var repoRegex = new RegExp(repoPattern);
   var pattern = args.shift(0);
@@ -20,9 +17,9 @@ function cmd(bosco, args, next) {
   if (!pattern) return bosco.error('A search pattern is required for the grep command');
 
   var repos = bosco.config.get('github:repos');
-  if(!repos) return bosco.error("You are repo-less :( You need to initialise bosco first, try 'bosco clone'.");
+  if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
-  bosco.log("Running grep across all repos...");
+  bosco.log('Running grep across all repos...');
 
   var grepRepos = function(callback) {
 
@@ -31,24 +28,23 @@ function cmd(bosco, args, next) {
       if(!repo.match(repoRegex)) return grepCallback();
 
       var repoPath = bosco.getRepoPath(repo);
-      
+
       grepRepo(bosco, args, pattern, repo, repoPath, grepCallback);
 
-    }, function(err, results) {
-      return results;
-    });
+    }, callback);
 
   };
 
-  grepRepos(function() {
-    if(next) next(null, results);
+  grepRepos(function(err, results) {
+    if(next) next(err, results);
   });
+
 }
 
 var grepRepo = function(bosco, args, pattern, repo, repoPath, callback) {
 
-  var grepCommand = 'git grep --color=always -n "' + pattern + '" ' + args.join(' ');
-  
+  var grepCommand = 'git grep --color=always -n \'' + pattern + '\' ' + args.join(' ');
+
   exec(grepCommand, {
     cwd: repoPath
   }, function(err, stdout, stderr) {
@@ -57,7 +53,7 @@ var grepRepo = function(bosco, args, pattern, repo, repoPath, callback) {
     var result = null;
 
     if (stdout) {
-      bosco.log(repo.blue + ":\n" + stdout);
+      bosco.log(repo.blue + ':\n' + stdout);
       result = {
         repo: repo,
         grep: stdout
@@ -65,6 +61,6 @@ var grepRepo = function(bosco, args, pattern, repo, repoPath, callback) {
     }
 
     callback(null, result);
-    
+
   });
 }

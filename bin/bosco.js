@@ -12,6 +12,7 @@ var pkg = require('../package.json');
 var completion = require('../src/completion');
 var fs = require('fs');
 var path = require('path');
+require('colors'); // No need to define elsewhere
 
 // Go over every command in the global and local commands folder and add the options
 program.boscoOptionsArray = function(boscoOptionsArray) {

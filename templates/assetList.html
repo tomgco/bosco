@@ -2,17 +2,17 @@
 <link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 <style>
 html {
-	margin: 10px;
-	font-family: 'Open Sans', cursive;
-	color: #006633;
+    margin: 10px;
+    font-family: 'Open Sans', cursive;
+    color: #006633;
 }
 h1
 {
-	font-size: 28px;
+    font-size: 28px;
 }
 h2
 {
-	font-size: 22px;
+    font-size: 22px;
 }
 ul
 {
@@ -21,64 +21,64 @@ ul
 }
 .assets
 {
-	font-family: arial;
-	font-size: 14px;
+    font-family: arial;
+    font-size: 14px;
 }
 .col
 {
- 	float: left;
- 	width: 24%;
+     float: left;
+     width: 24%;
  }
 </style>
 <h1>Bosco couldn't find that, how about you try one of these assets or take a look at the list of <a class="" href="/repos">repos</a>?</h1>
 <div class='col'>
-	<h2>HTML Fragments</h2>
-	<ul>
-	{{#each html}}
-	  <li><a href="{{url}}">{{asset}}</a></li>
-	{{/each}}
-	</ul>
+    <h2>HTML Fragments</h2>
+    <ul>
+    {{#each html}}
+      <li><a href="{{url}}">{{asset}}</a></li>
+    {{/each}}
+    </ul>
 </div>
 <div class='col'>
-	<h2>Manifest Files</h2>
-	<ul>
-	{{#each plain}}
-	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
-	{{/each}}
-	</ul>
+    <h2>Manifest Files</h2>
+    <ul>
+    {{#each plain}}
+      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    {{/each}}
+    </ul>
 </div>
 <div class='col'>
-	<h2>Javascript Files</h2>
-	<ul>
-	{{#each js}}
-	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
-	{{/each}}
-	</ul>
+    <h2>Javascript Files</h2>
+    <ul>
+    {{#each js}}
+      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    {{/each}}
+    </ul>
 </div>
 <div class='col'>
-	<h2>CSS Files</h2>
-	<ul>
-	{{#each css}}
-	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
-	{{/each}}
-	</ul>
+    <h2>CSS Files</h2>
+    <ul>
+    {{#each css}}
+      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    {{/each}}
+    </ul>
 </div>
 <div class='col'>
-	<h2>Images</h2>
-	<ul>
-	{{#each img}}
-	  <li><a class='assets' href="{{url}}">{{asset}}</a></li>
-	{{/each}}
-	</ul>
+    <h2>Images</h2>
+    <ul>
+    {{#each img}}
+      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    {{/each}}
+    </ul>
 </div>
 <div class='col'>
-	<h2>Flash</h2>
-	<ul>
-	{{#each swf}}
-	<li><a class='assets' href="{{url}}">{{asset}}</a></li>
-	{{/each}}
-	</ul>
+    <h2>Flash</h2>
+    <ul>
+    {{#each swf}}
+    <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    {{/each}}
+    </ul>
 </div>
 <div style='clear: both;'>
-	Created by: {{user}} on {{date}}
+    Created by: {{user}} on {{date}}
 </div>

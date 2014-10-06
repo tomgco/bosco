@@ -73,7 +73,7 @@ function startContainer(docker, fqn, options, container, next) {
 function pullImage(docker, repoTag, next) {
 
     function handler() {
-        locateImage(repoTag, function(err, image) {
+        locateImage(docker, repoTag, function(err, image) {
             if (err) return next(err);
             next(null, image);
         });
