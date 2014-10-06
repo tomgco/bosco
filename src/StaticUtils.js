@@ -67,7 +67,6 @@ module.exports = function(bosco) {
     function createAssetList(boscoRepo, minified, tagFilter, next) {
 
         var assetKey, staticAssets = {},
-            staticBuild = {},
             assetHelper = AssetHelper.getAssetHelper(boscoRepo, tagFilter);
 
         if (boscoRepo.assets) {
@@ -81,17 +80,6 @@ module.exports = function(bosco) {
                     });
                 });
             });
-        }
-
-        // Create build entry
-        if (boscoRepo.assets && boscoRepo.assets.build) {
-            staticBuild = boscoRepo.assets.build;
-            staticBuild.name = boscoRepo.name;
-            staticBuild.repoPath = boscoRepo.repoPath;
-            staticBuild.basePath = boscoRepo.basePath;
-            staticBuild.path = path.resolve(boscoRepo.repoPath, boscoRepo.basePath);
-            staticBuild.type = 'build';
-            staticAssets['build:' + staticBuild.name] = staticBuild;
         }
 
         next(null, staticAssets);
