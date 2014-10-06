@@ -230,16 +230,12 @@ function cmd(bosco, args) {
 
 	function isCompiledAssetConfirmed(confirmation, asset) {
 		if (!confirmation[asset.tag]) return true;
-		if (confirmation[asset.tag][asset.type]) return false;
-
-		return true;
+		return confirmation[asset.tag][asset.type] ? true : false;
 	}
 
 	function isSummaryAssetConfirmed(confirmation, asset) {
 		if (!confirmation[asset.tag]) return true;
-		if (confirmation[asset.tag][asset.assetType]) return false;
-
-		return true;
+		return confirmation[asset.tag][asset.assetType] ? true : false;
 	}
 
 	function getS3Content(file) {
