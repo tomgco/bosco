@@ -147,15 +147,20 @@ function cmd(bosco, args) {
         });
     }
 
-    bosco.log('Run each mircoservice ' + args);
+    bosco.log('Run each mircoservice ... ');
 
     async.series([initialiseRunners, getRunningServices, startRunnableServices], function(err) {
         if (err) {
             bosco.error(err);
             return process.exit(1);
         }
-        bosco.log('Complete');
-        process.exit(0);
+        bosco.log('All services started.');
+        if(_.contains('cdn',args)) {
+            var cdn = require('./cdn');
+            cdn.cmd(bosco, [], function() {});
+        } else {
+            process.exit(0);
+        }
     })
 
 }
