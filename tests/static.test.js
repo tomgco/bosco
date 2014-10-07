@@ -98,10 +98,10 @@ describe("Bosco Static Asset Handling", function() {
             expect(assetKeys).to.contain('html/bottom.js.html');
             expect(assetKeys).to.contain('html/top.js.html');
             expect(assetKeys).to.contain('html/top.css.html');
-            expect(assetKeys).to.contain('project2/img/bab.jpg');
-            expect(assetKeys).to.contain('project2/html/html1.html');
-            expect(assetKeys).to.contain('project2/html/html2.html');
-            expect(assetKeys).to.contain('project2/swf/flash.swf');
+            expect(assetKeys).to.contain('img/bab.jpg');
+            expect(assetKeys).to.contain('html/html1.html');
+            expect(assetKeys).to.contain('html/html2.html');
+            expect(assetKeys).to.contain('swf/flash.swf');
             expect(assetKeys).to.contain('js/bottom.js.map');
             expect(assetKeys).to.contain('js/bottom.f1fb2d8.js');
             expect(assetKeys).to.contain('js/top.js.map');

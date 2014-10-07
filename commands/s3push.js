@@ -32,6 +32,7 @@ function cmd(bosco, args) {
 
         var toPush = [];
         _.forOwn(staticAssets, function(asset, key) {
+
             if(tag && tag !== asset.tag) return;
             if(isContentEmpty(asset)) {
                 bosco.log('Skipping asset: ' + key.blue + ' (content empty)');
@@ -238,6 +239,7 @@ function cmd(bosco, args) {
     }
 
     function getS3Filename(file) {
+
         if (bosco.options.build) {
             file = bosco.options.build + '/' + file;
         }

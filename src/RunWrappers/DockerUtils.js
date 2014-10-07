@@ -25,7 +25,7 @@ function createContainer(docker, fqn, options, next) {
     }
 
     // Process any variables
-    if(optsCreate.Cmd) processCmdVars(optsCreate);
+    processCmdVars(optsCreate, options.name, options.cwd);
 
     var doCreate = function(err) {
         if (err && err.statusCode !== 404) return next(err);
@@ -51,19 +51,29 @@ function locateImage(docker, repoTag, callback) {
     });
 }
 
-function processCmdVars(options) {
+function processCmdVars(optsCreate, name, cwd) {
 
     // Allow simple variable substitution in Cmds
-    var processedCommands = [],
+    var processedCommands = [], processedBinds = [],
         data = {
-            HOST_IP: getHostIp()
+            HOST_IP: getHostIp(),
+            PATH: cwd
         };
 
-    options.Cmd.forEach(function(cmd) {
-        processedCommands.push(sf(cmd, data));
-    });
+    if(optsCreate.Cmd) {
+        optsCreate.Cmd.forEach(function(cmd) {
+            processedCommands.push(sf(cmd, data));
+        });
+        optsCreate.Cmd = processedCommands;
+    }
 
-    options.Cmd = processedCommands;
+    if(optsCreate.Binds) {
+        optsCreate.Binds.forEach(function(bind) {
+            processedBinds.push(sf(bind, data));
+        });
+        optsCreate.Binds = processedBinds;
+    }
+
 }
 
 function startContainer(docker, fqn, options, container, next) {
@@ -78,6 +88,10 @@ function startContainer(docker, fqn, options, container, next) {
         // For example options look in HostConfig in: docker inspect <container_name>
         optsStart = _.extend(optsStart, options.service.docker.HostConfig);
     }
+
+    // Process any variables
+    processCmdVars(optsStart, options.name, options.cwd);
+
 
     container.start(optsStart, function(err) {
 

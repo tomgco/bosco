@@ -15,7 +15,9 @@ module.exports = function(bosco) {
 
       // Create simple collections of css and js
       var jsAssets = {},
-          cssAssets = {};
+          cssAssets = {},
+          otherAssets = {};
+
       _.map(staticAssets, function(asset, key) {
           if (asset.type === 'js') {
               if (!(asset.tag in jsAssets)) jsAssets[asset.tag] = {};
@@ -23,18 +25,23 @@ module.exports = function(bosco) {
           } else if (asset.type === 'css') {
               if (!(asset.tag in cssAssets)) cssAssets[asset.tag] = {};
               cssAssets[asset.tag][key] = asset.path;
+          } else {
+              if (!(asset.tag in otherAssets)) otherAssets[asset.tag] = {};
+              otherAssets[asset.tag][key] = asset.path;
           }
       });
 
-
       _.assign(staticAssets, createManifest(staticAssets));
 
-      async.parallel([
+      async.series([
               function pcompileJs(next) {
                   compileJs(staticAssets, jsAssets, next);
               },
               function pcompileCss(next) {
                   compileCss(staticAssets, cssAssets, next);
+              },
+              function pcompileOthers(next) {
+                  compileOthers(staticAssets, otherAssets, next);
               }
           ],
           function(err) {
@@ -142,26 +149,28 @@ module.exports = function(bosco) {
 
       var compiledCss = [];
 
-      compiledCss = _.map(cssAssets, function(files, tag) {
+      _.forOwn(cssAssets, function(files, tag) {
+
           var compiled = {
               css: '',
-              scss: ''
+              scss: '',
+              count: 0
           };
+
+          compiled.tag = tag;
 
           _.forOwn(files, function(file, key) {
               delete staticAssets[key];
-
               if (path.extname(file) == '.css') {
                   compiled.css += fs.readFileSync(file);
               } else if (path.extname(file) == '.scss') {
                   compiled.scss += fs.readFileSync(file);
               }
+              compiled.count++;
           });
 
-          compiled.count = files.length
-          compiled.tag = tag;
+          compiledCss.push(compiled)
 
-          return compiled;
       });
 
       async.map(compiledCss, function(css, next) {
@@ -199,6 +208,24 @@ module.exports = function(bosco) {
           if (err) return bosco.warn('No CSS assets: ' + err.message);
           next(null);
       });
+
+  }
+
+   function compileOthers(staticAssets, otherAssets, next) {
+
+      _.forOwn(otherAssets, function(files) {
+
+          _.forOwn(files, function(file, key) {
+
+                var existingAsset = staticAssets[key];
+                delete staticAssets[key];
+                staticAssets[existingAsset.asset] = existingAsset;
+
+            });
+
+      });
+
+      next(null);
 
   }
 
