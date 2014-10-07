@@ -155,7 +155,7 @@ function cmd(bosco, args) {
             return process.exit(1);
         }
         bosco.log('All services started.');
-        if(_.contains('cdn',args)) {
+        if(_.contains(args, 'cdn')) {
             var cdn = require('./cdn');
             cdn.cmd(bosco, [], function() {});
         } else {
