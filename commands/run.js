@@ -12,12 +12,17 @@ module.exports = {
     options: [{
         option: 'tag',
         syntax: ['-t, --tag [tag]', 'Filter by a tag defined within bosco-service.json']
+    },
+    {
+        option: 'watch',
+        syntax: ['-w, --watch', 'Watch the applications started with run for changes, default off']
     }]
 }
 
 function cmd(bosco, args) {
 
     var repoPattern = bosco.options.repo;
+    var watch = bosco.options.watch ? true : false;
     var repoRegex = new RegExp(repoPattern);
     var repoTag = bosco.options.tag;
     var repos = bosco.config.get('github:repos');
@@ -38,6 +43,7 @@ function cmd(bosco, args) {
             svcConfig = {
                 name: repo,
                 cwd: repoPath,
+                watch: watch,
                 service: {}
             };
 

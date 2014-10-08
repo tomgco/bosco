@@ -61,7 +61,7 @@ Runner.prototype.start = function(options, next) {
 		return next();
 	}
 
-	pm2.start(start, { name: options.name, cwd: options.cwd, watch: true, executeCommand: executeCommand }, next);
+	pm2.start(start, { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand }, next);
 }
 
 /**

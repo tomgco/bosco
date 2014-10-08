@@ -41,7 +41,7 @@ function cmd(bosco) {
         });
 
         list.forEach(function(item) {
-            table.push([item.name, item.pid, item.pm2_env.status, item.pm2_env.exec_mode, item.pm2_env.watch]);
+            table.push([item.name, item.pid, item.pm2_env.status, item.pm2_env.exec_mode, item.pm2_env.watch || '']);
         });
 
         console.log(table.toString());
