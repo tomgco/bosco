@@ -21,63 +21,160 @@ ul
 }
 .assets
 {
+    width: 90%;
+    margin: 10px;
     font-family: arial;
     font-size: 14px;
 }
-.col
-{
-     float: left;
-     width: 24%;
- }
+.asset {
+    width: 40%;
+}
+.tag {
+    width: 20%;
+    color: #232323;
+}
+.repo {
+    width: 20%;
+    color: #232323;
+}
+.path {
+    width: 20%;
+    color: #232323;
+}
 </style>
 <h1>Bosco couldn't find that, how about you try one of these assets or take a look at the list of <a class="" href="/repos">repos</a>?</h1>
 <div class='col'>
-    <h2>HTML Fragments</h2>
-    <ul>
-    {{#each html}}
-      <li><a href="{{url}}">{{asset}}</a></li>
+    <h2>Compoxure Fragments</h2>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
+    {{#each fragment-html}}
+      <tr>
+        <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
     {{/each}}
-    </ul>
+    </table>
+</div>
+<div class='col'>
+    <h2>HTML Files</h2>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
+    {{#each html}}
+      <tr>
+        <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
+    {{/each}}
+    </table>
 </div>
 <div class='col'>
     <h2>Manifest Files</h2>
-    <ul>
-    {{#each plain}}
-      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
+        {{#each fragment-plain}}
+      <tr>
+        <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
     {{/each}}
-    </ul>
+    </table>
 </div>
 <div class='col'>
     <h2>Javascript Files</h2>
-    <ul>
-    {{#each js}}
-      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
+        {{#each js}}
+      <tr>
+        <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
     {{/each}}
-    </ul>
+    </table>
 </div>
 <div class='col'>
     <h2>CSS Files</h2>
-    <ul>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
     {{#each css}}
-      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+      <tr>
+       <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
     {{/each}}
-    </ul>
+    </table>
 </div>
 <div class='col'>
     <h2>Images</h2>
-    <ul>
-    {{#each img}}
-      <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
+        {{#each img}}
+      <tr>
+        <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
     {{/each}}
-    </ul>
+    </table>
 </div>
 <div class='col'>
     <h2>Flash</h2>
-    <ul>
-    {{#each swf}}
-    <li><a class='assets' href="{{url}}">{{asset}}</a></li>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
+        {{#each swf}}
+    <tr>
+        <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
     {{/each}}
-    </ul>
+    </table>
 </div>
 <div style='clear: both;'>
     Created by: {{user}} on {{date}}

@@ -206,7 +206,7 @@ function cmd(bosco, args) {
     }
 
     function isSummaryAsset(asset) {
-        if(asset.isMinfiedFragment) return true;
+        if(asset.isMinifiedFragment) return true;
         return false;
     }
 

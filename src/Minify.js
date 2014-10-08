@@ -66,7 +66,7 @@ module.exports = function(bosco) {
               type: 'plain',
               assetType: value.type,
               tag: value.tag,
-              isMinfiedFragment: true,
+              isMinifiedFragment: true,
               extname: '.manifest',
               files: []
           };

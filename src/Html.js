@@ -21,7 +21,7 @@ module.exports = function(bosco) {
                 type: 'html',
                 assetType: asset.type,
                 tag: asset.tag,
-                isMinfiedFragment: true,
+                isMinifiedFragment: true,
                 extname: '.html'
             };
 
@@ -71,12 +71,17 @@ module.exports = function(bosco) {
         var template = hb.compile(templateContent.toString());
 
         _.map(staticAssets, function(asset, key) {
-            if (!Array.isArray(assets[asset.type])) {
-                assets[asset.type] = [];
-            }
 
-            assets[asset.type].push({
+            var assetType = asset.isMinifiedFragment ? 'fragment-' + asset.type : asset.type;
+
+            if (!Array.isArray(assets[assetType])) {
+                assets[assetType] = [];
+            }
+            assets[assetType].push({
                 asset: key,
+                tag: asset.tag,
+                repo: asset.repo || 'Minified',
+                path: asset.relativePath || 'Minified',
                 url: bosco.getAssetCdnUrl(key)
             });
         });
