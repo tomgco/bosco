@@ -13,7 +13,7 @@ describe('Asset Helper', function() {
         var addAsset = require('../src/AssetHelper')(bosco).getAssetHelper({name: 'our-repo', path: '/tmp'}, null).addAsset;
 
         // when
-        addAsset(staticAssets, 'my-key', 'asset.hole', 'tag', 'html');
+        addAsset(staticAssets, 'my-key', 'asset.hole', 'tag', 'html','.');
 
         // expect
         expect(message).equal('Asset my-key not found at path /tmp/asset.hole, declared in our-repo');

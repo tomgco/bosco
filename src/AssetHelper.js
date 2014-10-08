@@ -10,20 +10,20 @@ module.exports = function(bosco) {
     function getAssetHelper(boscoRepo, tagFilter) {
 
         return {
-            addAsset: function(staticAssets, assetKey, asset, tag, type) {
+            addAsset: function(staticAssets, assetKey, asset, tag, type, basePath) {
 
                 if (tagFilter && tag !== tagFilter) return;
 
                 var newAsset = {};
-                var resolvedPath = resolve(boscoRepo, asset, assetKey);
+                var resolvedPath = resolve(boscoRepo, basePath, asset, assetKey);
 
                 if (resolvedPath) {
                     newAsset.mimeType = mime.lookup(asset);
                     newAsset.assetKey = assetKey;
                     newAsset.asset = asset;
                     newAsset.repoPath = boscoRepo.repoPath;
-                    newAsset.basePath = boscoRepo.basePath;
-                    newAsset.relativePath = path.join('.', boscoRepo.basePath || '', asset);
+                    newAsset.basePath = path.join(newAsset.repoPath, basePath);
+                    newAsset.relativePath = path.join('.', basePath || '', asset);
                     newAsset.path = resolvedPath;
                     newAsset.extname = path.extname(asset);
                     newAsset.tag = tag;
@@ -51,9 +51,9 @@ module.exports = function(bosco) {
             .digest(encoding || 'hex')
     }
 
-    function resolve(boscoRepo, asset, assetKey) {
+    function resolve(boscoRepo, basePath, asset, assetKey) {
 
-        var resolvedPath = path.resolve(boscoRepo.path, asset);
+        var resolvedPath = path.join(boscoRepo.path, basePath, asset);
 
         if (!fs.existsSync(resolvedPath)) {
             return bosco.warn(sf('Asset {asset} not found at path {path}, declared in {repo}', {

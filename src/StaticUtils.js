@@ -20,7 +20,7 @@ module.exports = function(bosco) {
 
             // Remove any service that doesnt have an assets child
             services = _.filter(services, function(service) {
-                return service.assets;
+                return service.assets || service.files;
             });
 
             async.mapSeries(services, function(service, cb) {
@@ -67,16 +67,30 @@ module.exports = function(bosco) {
     function createAssetList(boscoRepo, minified, tagFilter, next) {
 
         var assetKey, staticAssets = {},
+            assetBasePath,
             assetHelper = AssetHelper.getAssetHelper(boscoRepo, tagFilter);
 
         if (boscoRepo.assets) {
+            assetBasePath = boscoRepo.assets.basePath || '.';
             _.forEach(_.pick(boscoRepo.assets, ['js', 'css', 'img', 'html', 'swf']), function (assets, type) {
                 _.forOwn(assets, function (value, tag) {
                     if (!value) return;
-
                     _.forEach(value, function (asset) {
                         assetKey = path.join(boscoRepo.name, asset);
-                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, type);
+                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, type, assetBasePath);
+                    });
+                });
+            });
+        }
+
+        if (boscoRepo.files) {
+            _.forOwn(boscoRepo.files, function (assetTypes, tag) {
+                assetBasePath = assetTypes.basePath || '.';
+                _.forEach(_.pick(assetTypes, ['js', 'css', 'img', 'html', 'swf']), function (value, type) {
+                    if (!value) return;
+                    _.forEach(value, function (asset) {
+                        assetKey = path.join(boscoRepo.name, asset);
+                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, type, assetBasePath);
                     });
                 });
             });
@@ -101,7 +115,6 @@ module.exports = function(bosco) {
             boscoRepo = _.merge(boscoRepo, boscoConfig);
 
             if (boscoRepo.assets && boscoRepo.assets.basePath) {
-                boscoRepo.path = path.join(boscoRepo.path, boscoRepo.assets.basePath);
                 boscoRepo.basePath = boscoRepo.assets.basePath;
             }
         }
