@@ -2,6 +2,8 @@
 var request = require('request');
 var _ = require('lodash');
 var async = require('async');
+var fs = require('fs');
+var path = require('path');
 var exec = require('child_process').exec;
 var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
@@ -100,6 +102,27 @@ function fetch(bosco, repos, repoRegex, args, next) {
         bosco.config.save(cb);
     }
 
+    var checkOrphans = function(cb) {
+
+        fs.readdir(bosco.getOrgPath(), function(err, files) {
+
+            var orphans = _.chain(files)
+                            .map(function(file) { return path.join(bosco.getOrgPath(),file) })
+                            .filter(function(file) { return fs.statSync(file).isDirectory() && bosco.exists(path.join(file, '.git')) })
+                            .map(function(file) { return path.relative(bosco.getOrgPath(), file); })
+                            .difference(repos)
+                            .value()
+
+            orphans.forEach(function(orphan) {
+                bosco.warn('I am concerned that you still have the repo ' + orphan.red + ' as it is no longer in the github team, you should probably remove it?');
+            });
+
+            cb();
+
+        });
+
+    }
+
     var getRepos = function(cb) {
 
         var progressbar = bosco.config.get('progress') == 'bar',
@@ -134,7 +157,7 @@ function fetch(bosco, repos, repoRegex, args, next) {
 
     }
 
-    async.series([saveRepos, getRepos], function() {
+    async.series([saveRepos, checkOrphans, getRepos], function() {
         bosco.log('Complete');
         if(next) next();
     });
