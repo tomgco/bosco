@@ -64,12 +64,16 @@ Runner.prototype.start = function(options, next) {
         });
     };
 
-    DockerUtils.locateImage(docker, dockerFqn, function(err, image) {
-        if (err || image) return createAndRun(err);
-
-        // Image not available
+    if (options.service.alwaysPull) {
         DockerUtils.pullImage(docker, dockerFqn, createAndRun);
-    })
+    } else {
+        DockerUtils.locateImage(docker, dockerFqn, function(err, image) {
+            if (err || image) return createAndRun(err);
+
+            // Image not available
+            DockerUtils.pullImage(docker, dockerFqn, createAndRun);
+        })
+    }
 }
 
 Runner.prototype.getFqn = function(options) {
