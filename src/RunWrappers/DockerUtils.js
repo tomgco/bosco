@@ -78,8 +78,7 @@ function processCmdVars(optsCreate, name, cwd) {
 
 }
 
-function startContainer(docker, fqn, options, container, next) {
-
+function startContainer(bosco, docker, fqn, options, container, next) {
     // We need to get the SSH port?
     var optsStart = {
         'NetworkMode': 'bridge',
@@ -94,15 +93,15 @@ function startContainer(docker, fqn, options, container, next) {
     // Process any variables
     processCmdVars(optsStart, options.name, options.cwd);
 
+    bosco.log('Starting ' + options.name.green + ': ' + fqn.magenta + '...');
 
     container.start(optsStart, function(err) {
-
         if (err) {
-            console.error('Failed to start Docker image: ' + err.message);
+            bosco.error('Failed to start Docker image: ' + err.message);
             return next(err);
         }
         var checkPort, attempts = 0;
-         _.forOwn(options.service.docker.HostConfig.PortBindings, function(value) {
+        _.forOwn(options.service.docker.HostConfig.PortBindings, function(value) {
             if(!checkPort && value[0].HostPort) checkPort = value[0].HostPort; // Check first port
         });
 
@@ -111,7 +110,7 @@ function startContainer(docker, fqn, options, container, next) {
             checkRunning(checkPort, function(err, running) {
                 if(running) return next();
                 if(attempts > 50) {
-                    console.log('Could not detect if ' + options.name + ' had started on port ' + checkPort);
+                    bosco.warn('Could not detect if ' + options.name.green + ' had started on port ' + ('' + checkPort).magenta);
                     return next();
                 }
                 setTimeout(isRunning, 200);
@@ -119,9 +118,7 @@ function startContainer(docker, fqn, options, container, next) {
         }
 
         isRunning();
-
     });
-
 }
 
 function pullImage(bosco, docker, repoTag, next) {

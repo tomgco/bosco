@@ -60,7 +60,7 @@ Runner.prototype.start = function(options, next) {
         if (err) return next(err);
         DockerUtils.createContainer(docker, dockerFqn, options, function(err, container) {
             if (err) return next(err);
-            DockerUtils.startContainer(docker, dockerFqn, options, container, next);
+            DockerUtils.startContainer(self.bosco, docker, dockerFqn, options, container, next);
         });
     };
 
