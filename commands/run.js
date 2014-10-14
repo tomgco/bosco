@@ -2,6 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
+var mkdirp = require('mkdirp');
 var runningServices = [];
 
 module.exports = {
@@ -153,9 +154,27 @@ function cmd(bosco, args) {
         });
     }
 
+    var ensurePM2 = function(next) {
+
+        // Ensure that the ~/.pm2 folders exist
+        var folders = [
+            process.env.HOME + '/.pm2/logs',
+            process.env.HOME + '/.pm2/pids'
+        ];
+
+        async.map(folders, function(folder, cb) {
+            mkdirp(folder, function (err) {
+                cb(err);
+            });
+        },function(err) {
+            next(err);
+        });
+
+    }
+
     bosco.log('Run each mircoservice ... ');
 
-    async.series([initialiseRunners, getRunningServices, startRunnableServices], function(err) {
+    async.series([ensurePM2, initialiseRunners, getRunningServices, startRunnableServices], function(err) {
         if (err) {
             bosco.error(err);
             return process.exit(1);
