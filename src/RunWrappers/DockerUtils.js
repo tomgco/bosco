@@ -100,17 +100,18 @@ function startContainer(bosco, docker, fqn, options, container, next) {
             bosco.error('Failed to start Docker image: ' + err.message);
             return next(err);
         }
-        var checkPort, attempts = 0;
+        var checkPort;
         _.forOwn(options.service.docker.HostConfig.PortBindings, function(value) {
             if(!checkPort && value[0].HostPort) checkPort = value[0].HostPort; // Check first port
         });
 
+        var checkTimeout = options.service.checkTimeout || 10000;
+        var checkEnd = Date.now() + checkTimeout;
         var isRunning = function() {
-            attempts++;
             checkRunning(checkPort, function(err, running) {
-                if(running) return next();
-                if(attempts > 50) {
-                    bosco.warn('Could not detect if ' + options.name.green + ' had started on port ' + ('' + checkPort).magenta);
+                if (running) return next();
+                if (Date.now() > checkEnd) {
+                    bosco.warn('Could not detect if ' + options.name.green + ' had started on port ' + ('' + checkPort).magenta + ' after ' + checkTimeout + 'ms');
                     return next();
                 }
                 setTimeout(isRunning, 200);
