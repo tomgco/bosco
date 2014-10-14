@@ -65,13 +65,13 @@ Runner.prototype.start = function(options, next) {
     };
 
     if (options.service.alwaysPull) {
-        DockerUtils.pullImage(docker, dockerFqn, createAndRun);
+        DockerUtils.pullImage(self.bosco, docker, dockerFqn, createAndRun);
     } else {
         DockerUtils.locateImage(docker, dockerFqn, function(err, image) {
             if (err || image) return createAndRun(err);
 
             // Image not available
-            DockerUtils.pullImage(docker, dockerFqn, createAndRun);
+            DockerUtils.pullImage(self.bosco, docker, dockerFqn, createAndRun);
         })
     }
 }

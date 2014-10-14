@@ -1,6 +1,8 @@
 var _ = require('lodash');
 var os = require('os');
 var sf = require('sf');
+var green = '\u001b[42m \u001b[0m';
+var red = '\u001b[41m \u001b[0m';
 
 function createContainer(docker, fqn, options, next) {
 
@@ -122,20 +124,58 @@ function startContainer(docker, fqn, options, container, next) {
 
 }
 
-function pullImage(docker, repoTag, next) {
+function pullImage(bosco, docker, repoTag, next) {
+    var prettyError;
 
     function handler() {
         locateImage(docker, repoTag, function(err, image) {
-            if (err) return next(err);
+            if (err || prettyError) return next(prettyError || err);
             next(null, image);
         });
     }
 
     docker.pull(repoTag, function(err, stream) {
-        if (err) return next(err);
+        var currentLayer;
+        var progress;
+        var previousTotal;
+
+        if (err || prettyError) return next(prettyError || err);
+
+        function newBar(id, total) {
+            if (bosco.config.get('progress') == 'bar') {
+                return new bosco.progress('Downloading ' + id + ' [:bar] :percent :etas', {
+                    complete: green,
+                    incomplete: red,
+                    width: 50,
+                    total: total
+                });
+            } else {
+                var logged = false;
+                return {
+                    tick: function() {
+                        if (!logged) {
+                            bosco.log('Downloading layer ' + id + '...');
+                            logged = true;
+                        }
+                    }
+                }
+            }
+        }
+
         stream.on('data', function(data) {
             var json = JSON.parse(data);
-            console.log(json.status + (json.progress ? ' ' + json.progress : ''));
+
+            if (json.errorDetail) {
+                prettyError = json.error;
+            } else if (json.status === 'Downloading') {
+                if (json.id !== currentLayer) {
+                    progress = newBar(json.id, json.progressDetail.total);
+                    currentLayer = json.id;
+                    previousTotal = 0;
+                }
+                progress.tick(json.progressDetail.current - previousTotal);
+                previousTotal = json.progressDetail.current;
+            }
         })
         stream.once('end', handler);
     });
