@@ -38,14 +38,12 @@ Runner.prototype.start = function(options, next) {
 		 startArr = startCmd.split(' ');
 		 startArr.shift();
 		 start = startArr.join(' ');
+	} else {
+		start = startCmd;
 	}
 
 	var ext = path.extname(startCmd);
-	if(!path.extname(start)) {
-		ext = '.js';
-		start = start + '.js';
-	}
-
+	
 	var executeCommand = false;
 	if (ext != '.js') {
 		executeCommand = true;
