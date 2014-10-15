@@ -23,7 +23,7 @@ function cmd(bosco) {
     }
 
     var getRunningServices = function(next) {
-        NodeRunner.list(true, function(err, nodeRunning) {
+        NodeRunner.listRunning(true, function(err, nodeRunning) {
             if (err) return next(err);
             nodeList = nodeRunning;
             DockerRunner.list(true, function(err, dockerRunning) {
