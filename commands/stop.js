@@ -40,7 +40,7 @@ function cmd(bosco, args) {
                     if (pkg.scripts && pkg.scripts.start) {
                         // Assume node
                         if (_.contains(runningServices, repo)) {
-                            return NodeRunner.stop({name: repo, cwd: repoPath, cmd: pkg.scripts.start}, next);
+                            return NodeRunner.stop({name: repo}, next);
                         }
                     }
                 }
@@ -50,13 +50,13 @@ function cmd(bosco, args) {
                     if (svc.service) {
                         if (svc.service.type == 'docker') {
                             if (_.contains(runningServices, DockerRunner.getFqn(svc))) {
-                                return DockerRunner.stop({name: repo, service: svc.service}, next);
+                                return DockerRunner.stop({name: repo}, next);
                             }
 
                         } else {
                             // Assume node
                             if (_.contains(runningServices, repo)) {
-                                return NodeRunner.stop({name: repo, cwd: repoPath, cmd: pkg.scripts.start}, next);
+                                return NodeRunner.stop({name: repo}, next);
                             }
                         }
                     }
@@ -73,7 +73,7 @@ function cmd(bosco, args) {
     }
 
     var getRunningServices = function(next) {
-        NodeRunner.list(false, function(err, nodeRunning) {
+        NodeRunner.listRunning(false, function(err, nodeRunning) {
             DockerRunner.list(false, function(err, dockerRunning) {
                 runningServices = _.union(nodeRunning, dockerRunning);
                 next();

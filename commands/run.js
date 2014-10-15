@@ -4,6 +4,7 @@ var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
 var mkdirp = require('mkdirp');
 var runningServices = [];
+var notRunningServices = [];
 
 module.exports = {
     name: 'run',
@@ -145,14 +146,30 @@ function cmd(bosco, args) {
 
     }
 
+    var stopNotRunningServices = function(next) {
+        bosco.log('Removing stopped/dead services');
+        
+        async.each(notRunningServices, function(service, cb){
+            NodeRunner.stop({name: service}, cb);
+        }, next);
+    };
+
     var getRunningServices = function(next) {
-        NodeRunner.list(false, function(err, nodeRunning) {
+        NodeRunner.listRunning(false, function(err, nodeRunning) {
             DockerRunner.list(false, function(err, dockerRunning) {
                 runningServices = _.union(nodeRunning, dockerRunning);
                 next();
             });
         });
     }
+
+    var getStoppedServices = function(next) {
+        NodeRunner.listNotRunning(false, function(err, nodeNotRunning) {
+            notRunningServices = nodeNotRunning;
+
+            next();
+        });
+    };
 
     var ensurePM2 = function(next) {
 
@@ -174,7 +191,7 @@ function cmd(bosco, args) {
 
     bosco.log('Run each mircoservice ... ');
 
-    async.series([ensurePM2, initialiseRunners, getRunningServices, startRunnableServices], function(err) {
+    async.series([ensurePM2, initialiseRunners, getRunningServices, getStoppedServices, stopNotRunningServices, startRunnableServices], function(err) {
         if (err) {
             bosco.error(err);
             return process.exit(1);
