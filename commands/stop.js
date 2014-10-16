@@ -50,7 +50,7 @@ function cmd(bosco, args) {
                     if (svc.service) {
                         if (svc.service.type == 'docker') {
                             if (_.contains(runningServices, DockerRunner.getFqn(svc))) {
-                                return DockerRunner.stop({name: repo}, next);
+                                return DockerRunner.stop(svc, next);
                             }
 
                         } else {
