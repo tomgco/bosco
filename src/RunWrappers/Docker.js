@@ -1,4 +1,5 @@
 var url = require('url');
+var fs = require('fs');
 var _ = require('lodash');
 var async = require('async');
 var Docker = require('dockerode');
@@ -12,15 +13,31 @@ Runner.prototype.init = function(bosco, next) {
     if(process.env.DOCKER_HOST) {
         // We are likely on OSX and Boot2docker
         var dockerUrl = url.parse(process.env.DOCKER_HOST || 'tcp://127.0.0.1:3000');
-        this.docker = new Docker({
+        var dockerOpts = {
             host: dockerUrl.hostname,
             port: dockerUrl.port
-        });
+        };
+
+       var dockerCertPath = process.env.DOCKER_CERT_PATH;
+       if(dockerCertPath){
+            dockerOpts = _.extend(dockerOpts, {
+                protocol: 'https',
+                ca: readCert(dockerCertPath, 'ca.pem'),
+                cert: readCert(dockerCertPath, 'cert.pem'),
+                key: readCert(dockerCertPath, 'key.pem')
+            });
+        }
+
+        this.docker = new Docker(dockerOpts);
     } else {
         // Assume we are on linux and so connect on a socket
         this.docker = new Docker({socketPath: '/var/run/docker.sock'});
     }
     next();
+
+    function readCert(certPath, certFile) {
+        return fs.readFileSync(certPath + '/' + certFile, {encoding: 'utf-8'})
+    }
 }
 
 Runner.prototype.list = function(detailed, next) {
