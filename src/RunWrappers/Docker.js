@@ -41,7 +41,7 @@ Runner.prototype.stop = function(options, next) {
     }, function(err, containers) {
         var toStop = [];
         containers.forEach(function(container) {
-            if(container.Image == dockerFqn) {
+            if (self.matchWithoutVersion(container.Image, dockerFqn)) {
                 var cnt = docker.getContainer(container.Id);
                 toStop.push(cnt);
             }
@@ -89,6 +89,12 @@ Runner.prototype.getFqn = function(options) {
     if (service.registry) dockerFqn += service.registry + '/';
     if (service.username) dockerFqn += service.username + '/';
     return dockerFqn + service.name + ':' + (service.version || 'latest');
+}
+
+Runner.prototype.matchWithoutVersion = function(a, b) {
+    a = a.slice(0, a.lastIndexOf(':'));
+    b = b.slice(0, b.lastIndexOf(':'));
+    return a === b;
 }
 
 module.exports = new Runner();

@@ -49,10 +49,13 @@ function cmd(bosco, args) {
                     svc = require(boscoService);
                     if (svc.service) {
                         if (svc.service.type == 'docker') {
-                            if (_.contains(runningServices, DockerRunner.getFqn(svc))) {
+                            var dockerFqn = DockerRunner.getFqn(svc);
+
+                            if (_.some(runningServices, function(runningService) {
+                                return DockerRunner.matchWithoutVersion(runningService, dockerFqn);
+                            })) {
                                 return DockerRunner.stop(svc, next);
                             }
-
                         } else {
                             // Assume node
                             if (_.contains(runningServices, repo)) {
