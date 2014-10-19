@@ -36,31 +36,11 @@ var boscoQuotes = [
 	"I'm glad I didn't know you when I was a kid."
 ];
 	
-var quoteIndex = Math.floor(Math.random() * boscoQuotes.length);
-var quote = boscoQuotes[quoteIndex];
-
 $(function(){
-	var $quoteEl = $('.bubble-center-inner');
+	$('.bosco-img').on('click', function(){
+    var quoteIndex = Math.floor(Math.random() * boscoQuotes.length);
+    var quote = boscoQuotes[quoteIndex];
 
-	$quoteEl.hide().text(quote);
-
-	// Fix the width of the element
-	var elWidth = $quoteEl.width();
-	$quoteEl.width(elWidth);
-
-	$quoteEl.show().text('');
-
-  $quoteEl.typed({
-    strings: [quote],
-    loop: false,
-    showCursor: false
+    alert('Bosco says: ' + quote);
   });
 });
-
-/*
-
-var quote = boscoQuotes[quoteIndex];
-
-var bubble = document.querySelector(".bubble-center");
-bubble.innerText = quote;
-*/
