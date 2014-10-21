@@ -37,10 +37,13 @@ var boscoQuotes = [
 ];
 	
 $(function(){
-	$('.bosco-img').on('click', function(){
-    var quoteIndex = Math.floor(Math.random() * boscoQuotes.length);
-    var quote = boscoQuotes[quoteIndex];
+	var quoteIndex = Math.floor(Math.random() * boscoQuotes.length);
+  var quote = boscoQuotes[quoteIndex];
+  var $bubbleEl = $('.bubble');
 
-    alert('Bosco says: ' + quote);
+  $bubbleEl.typed({
+    strings: [quote],
+    loop: false,
+    showCursor: false
   });
 });

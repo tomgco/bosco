@@ -6,6 +6,7 @@
 		<link rel="stylesheet" type="text/css" href="css/styles.css">
 		<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
 		<script type='text/javascript' src='js/index.js'></script>
+    <script type='text/javascript' src='js/typed.js'></script>
 		<meta charset="utf-8">
 	</head>
 	<body>
@@ -14,31 +15,39 @@
             <a href="https://github.com/tes/bosco">Fork me on GitHub</a>
         </div>
     </div>
-    <div>
-    	<h1 class='header'>BOSCO</h1>
-    </div>
-		<div class='container'>
-			<div>
-				Bosco is a utility knife to help manage the complexity that using microservices, which naturally results in a large number of code repositories, brings with it.
-				<br><br>
-				Bosco is inspired by the Github 'setup', e.g. can a developer run one simple command and get up and running?
-			</div>
-			<h2>Features</h2>
-			<ul>
-				<li>Configurations for Github organizations and teams</li>
-				<li>Aggregation of all static assets to be served locally emulating a CDN functionality</li>
-				<li>Push assets to S3 to be used with <a href='https://github.com/tes/compoxure'>Compoxure</a></li>
-				<li>Detection of duplicate libraries when using the CDN feature</li>
-				<li>Support for local commands to handle your repos</li>
-			</ul>
-		</div>
-		<div class='container-bottom'>
+    <div class='outer-container'>
       <div>
-        <img class='bosco-img' src='images/bosco-complete.png'>
+        <h1 class='header'>BOSCO</h1>
+        <img class='bosco-gif' src="images/bosco.gif">
       </div>
-      <div class='footer'>
-        Pixel Art by <a href='https://twitter.com/darokin'>@darokin</a>
-      </div>  
+      <div class='container'>
+        <h2>
+          Bosco is a utility knife to help manage the complexity that using microservices, which naturally results in a large number of code repositories, brings with it.
+        </h2>
+        <div class='bosco-inspiration'>
+          Bosco is inspired by the Github 'setup', e.g. can a developer run one simple command and get up and running?
+        </div>
+        <div class='separator'></div>
+        <h2 class='features-header'>Features</h2>
+        <ul>
+          <li>Configurations for Github organizations and teams</li>
+          <li>Aggregation of all static assets to be served locally emulating a CDN functionality</li>
+          <li>Push assets to S3 to be used with <a href='https://github.com/tes/compoxure'>Compoxure</a></li>
+          <li>Detection of duplicate libraries when using the CDN feature</li>
+          <li>Support for local commands to handle your repos</li>
+        </ul>
+      </div>
+      <div class='container-bottom'>
+        <div class='bubble-container'>
+          <img class='bosco-img' src='images/bosco-complete.png'>
+          <div>
+            <div class='bubble'></div>
+          </div>
+        </div>
+        <div class='footer'>
+          Pixel Art by <a href='https://twitter.com/darokin'>@darokin</a> | Design by <a href='https://twitter.com/troposdesign'>@troposdesign</a>
+        </div>  
+      </div>
     </div>
 	</body>
 </html>

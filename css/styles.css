@@ -19,54 +19,138 @@ h1
   font-family: TypoPixel; 
 }
 
-.container, .container-bottom 
+h2
+{
+  font-size: 20px;
+  color: #3b424f;
+}
+
+.outer-container
 {
   width: 768px;
-  padding: 20px;
   margin-left: auto;
   margin-right: auto;
 }
 
+.container, .container-bottom 
+{
+  padding: 20px;
+}
+
 .container
 {
-  background-color: #eae5dd;
+  padding: 20px 30px 40px 30px;
+  background-color: #ffffff;
   -webkit-box-shadow: 0px 5px 0px 0px rgba(0,0,0,0.3);
   -moz-box-shadow: 0px 5px 0px 0px rgba(0,0,0,0.3);
   box-shadow: 0px 5px 0px 0px rgba(0,0,0,0.3);
+  border-top: 20px solid #f3f3f3;
 }
 
 .container ul
 {
   line-height: 30px;
+  list-style: none;
+  padding:0;
+  margin:0;
+}
+
+.container li:before
+{
+  content: "■";
+  padding-right:7px;
+  color: #e5e5e5;
+  font-size: 35px;
+  vertical-align: top;
 }
 
 .container-bottom
 {
-  text-align: center;
-  cursor: pointer;
+  padding: 20px;
 }
 
 .header
 {
-  text-align: center;
   font-size: 58px;
+  margin-left: 40px;
   margin-top: 80px;
   color: #f9eb5d;
+  text-shadow: 0px 5px 0px rgba(150, 150, 150, 0.3);
+}
+
+.bosco-gif
+{
+  height: 195px;
+  position: relative;
+  top: -130px;
+  float: right;
 }
 
 .bosco-img
 {
+  float: left;
   margin: 20px 0;
-  height: 100px;
+  height: 120px;
+}
+
+.bosco-inspiration
+{
+  font-size: 18px;
+  color: #555555;
+}
+
+.separator
+{
+  background-color: #e5e5e5;
+  height: 1px;
+  margin: 35px 0;
+}
+
+.features-header
+{
+  text-transform: uppercase;
+}
+
+.bubble-container
+{
+  height: 140px;
+}
+
+.bubble
+{
+  position: relative;
+  float: right;
+  margin-top: 25px;
+  background-color: #222222;
+  font-size: 16px;
+  padding: 20px;
+  color: #fff;
+  width: 75%;
+}
+
+.bubble::after
+{
+  display: block;
+  position: absolute;
+  content: '';
+  border-color: transparent #222222 transparent transparent;
+  border-style: solid;
+  border-width: 10px;
+  height: 0;
+  width: 0;
+  bottom: 30%;
+  left: -20px;
 }
 
 .footer
 {
-  color: #efefef;
+  color: #989898;
+  font-size: 12px;
+  text-align: right;
 }
 
 .footer a
 {
-  color: #DADADA;
+  color: #f9eb5d;
   text-decoration: none;
 }
