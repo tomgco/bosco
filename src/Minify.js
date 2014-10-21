@@ -64,6 +64,7 @@ module.exports = function(bosco) {
           manifests[manifestFile] = manifests[manifestFile] || {
               content: '',
               type: 'plain',
+              mimeType: 'text/plain',
               assetType: value.type,
               tag: value.tag,
               isMinifiedFragment: true,
@@ -127,6 +128,7 @@ module.exports = function(bosco) {
           staticAssets[mapKey].extname = '.map';
           staticAssets[mapKey].tag = tag;
           staticAssets[mapKey].type = 'js';
+          staticAssets[mapKey].mimeType = 'application/javascript';
           staticAssets[mapKey].content = compiled.map;
 
           var hash = createHash(compiled.code);
@@ -137,6 +139,7 @@ module.exports = function(bosco) {
           staticAssets[minKey].tag = tag;
           staticAssets[minKey].type = 'js';
           staticAssets[minKey].hash = hash;
+          staticAssets[minKey].mimeType = 'application/javascript';
           staticAssets[minKey].content = compiled.code;
 
       });
@@ -199,6 +202,7 @@ module.exports = function(bosco) {
               staticAssets[assetKey].tag = css.tag;
               staticAssets[assetKey].type = 'css';
               staticAssets[assetKey].hash = hash;
+              staticAssets[assetKey].mimeType = 'text/css';
               staticAssets[assetKey].content = cssContent;
 
               next();

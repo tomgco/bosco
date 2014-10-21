@@ -30,7 +30,6 @@ function cmd(bosco, args) {
 
             if(staticAssets[url]) {
                 var asset = staticAssets[url];
-
                 response.writeHead(200, {
                     'Content-Type': asset.mimeType,
                     'Cache-Control': 'no-cache, must-revalidate',
