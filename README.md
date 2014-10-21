@@ -7,8 +7,6 @@
 
 Bosco is a utility knife to help manage the complexity that using microservices, which naturally results in a large number of code repositories, brings with it.  Inspired by the Github 'setup', e.g. can a developer run one simple command and get up and running?
 
-<script type="text/javascript" src="https://asciinema.org/a/13142.js" id="asciicast-13142" async></script>
-
 ## Get Started
 
 ```
