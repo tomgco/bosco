@@ -66,8 +66,7 @@
     "request": "^2.40.0",
     "sf": "^0.1.7",
     "tail": "^0.4.0",
-    "uglify-js": "^2.4.15",
-    "watch": "tes/watch"
+    "uglify-js": "^2.4.15"
   },
   "devDependencies": {
     "assert": "^1.1.1",
