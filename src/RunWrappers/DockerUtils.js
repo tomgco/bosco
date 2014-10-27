@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var os = require('os');
 var sf = require('sf');
+var tar = require('tar-fs');
 var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
 
@@ -36,21 +37,6 @@ function createContainer(docker, fqn, options, next) {
     var container = docker.getContainer(optsCreate.name);
     if (container) return container.remove(doCreate);
     doCreate();
-}
-
-function locateImage(docker, repoTag, callback) {
-
-    docker.listImages(function(err, list) {
-        if (err) return callback(err);
-
-        for (var i = 0, len = list.length; i < len; i++) {
-            if (list[i].RepoTags.indexOf(repoTag) !== -1) {
-                return callback(null, docker.getImage(list[i].Id));
-            }
-        }
-
-        return callback();
-    });
 }
 
 function processCmdVars(optsCreate, name, cwd) {
@@ -119,6 +105,70 @@ function startContainer(bosco, docker, fqn, options, container, next) {
         }
 
         isRunning();
+    });
+}
+
+function prepareImage(bosco, docker, fqn, options, next) {
+    if (options.service.docker && options.service.docker.build) {
+        return buildImage(bosco, docker, fqn, options, next);
+    }
+
+    if (options.service.alwaysPull) {
+        return pullImage(bosco, docker, fqn, next);
+    }
+
+    locateImage(docker, fqn, function(err, image) {
+        if (err || image) return next(err, image);
+
+        // Image not available
+        pullImage(bosco, docker, fqn, next);
+    });
+}
+
+function buildImage(bosco, docker, fqn, options, next) {
+    var path = sf(options.service.docker.build, {PATH: options.cwd});
+    // TODO(geophree): obey .dockerignore
+    var tarStream = tar.pack(path);
+    tarStream.once('error', next);
+
+    bosco.log('Building image for ' + options.service.name + ' ...');
+    var lastStream = '';
+    docker.buildImage(tarStream, {t: fqn}, function(err, stream) {
+        if (err) next(err);
+
+        stream.on('data', function(data) {
+            var json = JSON.parse(data);
+            if (json.error) {
+                return bosco.error(json.error);
+            } else if (json.progress) {
+                return;
+            } else if (json.stream) {
+                lastStream = json.stream;
+                bosco.log(lastStream.trim());
+            }
+        });
+        stream.once('end', function() {
+            var id = lastStream.match(/Successfully built ([a-f0-9]+)/);
+            if (id && id[1]) {
+                return next(null, docker.getImage(id[1]));
+            }
+            next(new Error('Id not found in final log line: ' . lastStream));
+        });
+        stream.once('error', next);
+    });
+}
+
+function locateImage(docker, repoTag, callback) {
+    docker.listImages(function(err, list) {
+        if (err) return callback(err);
+
+        for (var i = 0, len = list.length; i < len; i++) {
+            if (list[i].RepoTags.indexOf(repoTag) !== -1) {
+                return callback(null, docker.getImage(list[i].Id));
+            }
+        }
+
+        return callback();
     });
 }
 
@@ -217,8 +267,10 @@ function getHostIp() {
 }
 
 module.exports = {
+    buildImage: buildImage,
+    createContainer: createContainer,
     locateImage: locateImage,
+    prepareImage: prepareImage,
     pullImage: pullImage,
-    startContainer: startContainer,
-    createContainer: createContainer
+    startContainer: startContainer
 }
