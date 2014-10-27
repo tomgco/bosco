@@ -73,34 +73,33 @@ Runner.prototype.start = function(options, next) {
 
     var self = this, docker = self.docker;
     var dockerFqn = self.getFqn(options);
-    var createAndRun = function(err) {
+
+    DockerUtils.prepareImage(self.bosco, docker, dockerFqn, options, function(err) {
         if (err) return next(err);
+
         DockerUtils.createContainer(docker, dockerFqn, options, function(err, container) {
             if (err) return next(err);
+
             DockerUtils.startContainer(self.bosco, docker, dockerFqn, options, container, next);
         });
-    };
-
-    if (options.service.alwaysPull) {
-        DockerUtils.pullImage(self.bosco, docker, dockerFqn, createAndRun);
-    } else {
-        DockerUtils.locateImage(docker, dockerFqn, function(err, image) {
-            if (err || image) return createAndRun(err);
-
-            // Image not available
-            DockerUtils.pullImage(self.bosco, docker, dockerFqn, createAndRun);
-        })
-    }
+    });
 }
 
 Runner.prototype.getFqn = function(options) {
     var dockerFqn = '', service = options.service;
-    if (service.docker && service.docker.image) {
-        dockerFqn = service.docker.image;
+    if (service.docker) {
+        if (service.docker.image) {
+            dockerFqn = service.docker.image;
+        }
+        if (!dockerFqn && service.docker.build) {
+            dockerFqn = 'local/' + service.name;
+        }
         if (dockerFqn.indexOf(':') === -1) {
             dockerFqn += ':latest';
         }
-        return dockerFqn;
+        if (dockerFqn) {
+            return dockerFqn;
+        }
     }
 
     if (service.registry) dockerFqn += service.registry + '/';
