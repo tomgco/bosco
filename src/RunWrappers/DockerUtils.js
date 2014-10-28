@@ -91,6 +91,11 @@ function startContainer(bosco, docker, fqn, options, container, next) {
             if(!checkPort && value[0].HostPort) checkPort = value[0].HostPort; // Check first port
         });
 
+        if (!checkPort) {
+            bosco.warn('Could not detect if ' + options.name.green + ' had started, no port specified');
+            return next();
+        }
+
         var checkTimeout = options.service.checkTimeout || 10000;
         var checkEnd = Date.now() + checkTimeout;
         var isRunning = function() {
