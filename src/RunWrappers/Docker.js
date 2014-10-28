@@ -94,7 +94,7 @@ Runner.prototype.getFqn = function(options) {
         if (!dockerFqn && service.docker.build) {
             dockerFqn = 'local/' + service.name;
         }
-        if (dockerFqn.indexOf(':') === -1) {
+        if (dockerFqn && dockerFqn.indexOf(':') === -1) {
             dockerFqn += ':latest';
         }
         if (dockerFqn) {
