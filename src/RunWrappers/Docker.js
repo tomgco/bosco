@@ -45,7 +45,7 @@ Runner.prototype.list = function(detailed, next) {
     docker.listContainers({
         all: false
     }, function(err, containers) {
-        if(!detailed) return next(err, _.pluck(containers, 'Image'));
+        if(!detailed) return next(err, _.pluck(containers, 'Names'));
         next(err, containers);
     });
 }
@@ -79,7 +79,6 @@ Runner.prototype.start = function(options, next) {
 
         DockerUtils.createContainer(docker, dockerFqn, options, function(err, container) {
             if (err) return next(err);
-
             DockerUtils.startContainer(self.bosco, docker, dockerFqn, options, container, next);
         });
     });

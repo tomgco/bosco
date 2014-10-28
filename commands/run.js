@@ -125,7 +125,7 @@ function cmd(bosco, args) {
         getRunList(function(err, runList) {
             async.mapSeries(runList, function(runConfig, cb) {
                 if (runConfig.service && runConfig.service.type == 'docker') {
-                    if (_.contains(runningServices, DockerRunner.getFqn(runConfig))) {
+                    if (_.contains(runningServices, runConfig.name)) {
                         bosco.warn('Service ' + runConfig.name.green + ' is already running ...');
                         return cb();
                     }
@@ -157,6 +157,7 @@ function cmd(bosco, args) {
     var getRunningServices = function(next) {
         NodeRunner.listRunning(false, function(err, nodeRunning) {
             DockerRunner.list(false, function(err, dockerRunning) {
+                dockerRunning = _.map(_.flatten(dockerRunning), function(item) { return item.replace('/',''); });
                 runningServices = _.union(nodeRunning, dockerRunning);
                 next();
             });

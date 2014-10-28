@@ -49,11 +49,7 @@ function cmd(bosco, args) {
                     svc = require(boscoService);
                     if (svc.service) {
                         if (svc.service.type == 'docker') {
-                            var dockerFqn = DockerRunner.getFqn(svc);
-
-                            if (_.some(runningServices, function(runningService) {
-                                return DockerRunner.matchWithoutVersion(runningService, dockerFqn);
-                            })) {
+                            if (_.contains(runningServices, repo)) {
                                 return DockerRunner.stop(svc, next);
                             }
                         } else {
@@ -78,6 +74,7 @@ function cmd(bosco, args) {
     var getRunningServices = function(next) {
         NodeRunner.listRunning(false, function(err, nodeRunning) {
             DockerRunner.list(false, function(err, dockerRunning) {
+                dockerRunning = _.map(_.flatten(dockerRunning), function(item) { return item.replace('/',''); });
                 runningServices = _.union(nodeRunning, dockerRunning);
                 next();
             })

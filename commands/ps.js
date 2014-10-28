@@ -1,6 +1,7 @@
 
 var async = require('async');
 var Table = require('cli-table');
+var _ = require('lodash');
 var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
 var nodeList = [];
@@ -52,11 +53,15 @@ function cmd(bosco) {
     var printDockerServices = function(name, list) {
 
         var table = new Table({
-            head: [name + ' Service', 'Status','ID'], colWidths: [60,20,20]
+            head: [name + ' Service', 'Status', 'FQN'], colWidths: [25,20,60]
         });
 
         list.forEach(function(item) {
-            table.push([item.Image, item.Status, item.Id.substr(0,12)]);
+            table.push([
+                       _.map(item.Names, function(item) { return item.replace('/',''); }).join(', '),
+                       item.Status,
+                       item.Image
+                    ]);
         });
 
         console.log(table.toString());

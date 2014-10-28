@@ -96,20 +96,9 @@ function startContainer(bosco, docker, fqn, options, container, next) {
             return next();
         }
 
-        var checkTimeout = options.service.checkTimeout || 10000;
-        var checkEnd = Date.now() + checkTimeout;
-        var isRunning = function() {
-            checkRunning(checkPort, function(err, running) {
-                if (running) return next();
-                if (Date.now() > checkEnd) {
-                    bosco.warn('Could not detect if ' + options.name.green + ' had started on port ' + ('' + checkPort).magenta + ' after ' + checkTimeout + 'ms');
-                    return next();
-                }
-                setTimeout(isRunning, 200);
-            });
-        }
+        bosco.warn('Waiting 5 seconds for service to start as we cant tell reliably ...');
 
-        isRunning();
+        setTimeout(next, 5000);
     });
 }
 
@@ -233,26 +222,6 @@ function pullImage(bosco, docker, repoTag, next) {
         stream.once('end', handler);
     });
 
-}
-
-/**
- * Check to see if the process is running by making a connection and
- * seeing if it is immediately closed or stays open long enough for us to close it.
- */
-function checkRunning(port, next) {
-    var net = require('net');
-    var socket = net.createConnection(port);
-    var start = new Date();
-    socket.on('connect', function() {
-        setTimeout(function() { socket.end() }, 100);
-    });
-    socket.on('close', function() {
-        var closed = new Date() - start;
-        next(null, closed > 50 ? true : false);
-    });
-    socket.on('error', function() {
-        next(new Error('Failed to connect'), false);
-    });
 }
 
 function getHostIp() {
