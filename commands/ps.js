@@ -38,6 +38,7 @@ function cmd(bosco) {
     var printNodeServices = function(name, list) {
 
         var table = new Table({
+            chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
             head: [name + ' Service', 'PID', 'Status', 'Mode', 'Watch'], colWidths: [60,10,10,12,10]
         });
 
@@ -53,6 +54,7 @@ function cmd(bosco) {
     var printDockerServices = function(name, list) {
 
         var table = new Table({
+            chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
             head: [name + ' Service', 'Status', 'FQN'], colWidths: [25,20,60]
         });
 

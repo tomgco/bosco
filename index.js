@@ -282,6 +282,7 @@ Bosco.prototype._commands = function() {
     var showTable = function(tableName, cPath, files, next) {
 
         var table = new Table({
+            chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
             head: [tableName, 'Example'],
             colWidths: [12, 60]
         });
