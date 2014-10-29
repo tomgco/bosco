@@ -40,6 +40,10 @@ Runner.prototype.init = function(bosco, next) {
     }
 }
 
+Runner.prototype.disconnect = function(next) {
+    return next();
+}
+
 Runner.prototype.list = function(detailed, next) {
     var self = this, docker = self.docker;
     docker.listContainers({

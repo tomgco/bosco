@@ -15,6 +15,10 @@ Runner.prototype.init = function(bosco, next) {
 	pm2.connect(next);
 }
 
+Runner.prototype.disconnect = function(next) {
+    pm2.disconnect(next);
+}
+
 /**
  * List running services
  */
@@ -62,7 +66,7 @@ Runner.prototype.start = function(options, next) {
 		}
 	} else {
 		start = startCmd;
-	}	
+	}
 
 	var executeCommand = false;
 

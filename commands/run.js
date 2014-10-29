@@ -21,7 +21,7 @@ module.exports = {
     }]
 }
 
-function cmd(bosco, args) {
+function cmd(bosco, args, cb) {
 
     var repoPattern = bosco.options.repo;
     var watch = bosco.options.watch ? true : false;
@@ -33,6 +33,13 @@ function cmd(bosco, args) {
         var runners = [NodeRunner, DockerRunner];
         async.map(runners, function loadRunner(runner, cb) {
             runner.init(bosco, cb);
+        }, next);
+    }
+
+     var disconnectRunners = function(next) {
+        var runners = [NodeRunner, DockerRunner];
+        async.map(runners, function loadRunner(runner, cb) {
+            runner.disconnect(cb);
         }, next);
     }
 
@@ -167,7 +174,6 @@ function cmd(bosco, args) {
     var getStoppedServices = function(next) {
         NodeRunner.listNotRunning(false, function(err, nodeNotRunning) {
             notRunningServices = nodeNotRunning;
-
             next();
         });
     };
@@ -192,17 +198,16 @@ function cmd(bosco, args) {
 
     bosco.log('Run each mircoservice ... ');
 
-    async.series([ensurePM2, initialiseRunners, getRunningServices, getStoppedServices, stopNotRunningServices, startRunnableServices], function(err) {
+    async.series([ensurePM2, initialiseRunners, getRunningServices, getStoppedServices, stopNotRunningServices, startRunnableServices, disconnectRunners], function(err) {
         if (err) {
-            bosco.error(err);
-            return process.exit(1);
+            return bosco.error(err);
         }
         bosco.log('All services started.');
         if(_.contains(args, 'cdn')) {
             var cdn = require('./cdn');
             cdn.cmd(bosco, [], function() {});
         } else {
-            process.exit(0);
+            if(cb) return cb();
         }
     })
 

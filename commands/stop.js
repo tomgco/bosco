@@ -11,22 +11,29 @@ module.exports = {
     cmd: cmd
 }
 
-function cmd(bosco, args) {
+function cmd(bosco, args, next) {
 
     var repoPattern = bosco.options.repo;
     var repoRegex = new RegExp(repoPattern);
     var repos = bosco.config.get('github:repos');
 
-    var initialiseRunners = function(next) {
+    var initialiseRunners = function(cb) {
+        var runners = [NodeRunner, DockerRunner];
+        async.map(runners, function loadRunner(runner, lcb) {
+            runner.init(bosco, lcb);
+        }, cb);
+    }
+
+    var disconnectRunners = function(next) {
         var runners = [NodeRunner, DockerRunner];
         async.map(runners, function loadRunner(runner, cb) {
-            runner.init(bosco, cb);
+            runner.disconnect(cb);
         }, next);
     }
 
-    var stopRunningServices = function() {
+    var stopRunningServices = function(scb) {
 
-        async.map(repos, function(repo, next) {
+        async.map(repos, function(repo, cb) {
 
             var pkg, svc,
                 repoPath = bosco.getRepoPath(repo),
@@ -40,7 +47,7 @@ function cmd(bosco, args) {
                     if (pkg.scripts && pkg.scripts.start) {
                         // Assume node
                         if (_.contains(runningServices, repo)) {
-                            return NodeRunner.stop({name: repo}, next);
+                            return NodeRunner.stop({name: repo}, cb);
                         }
                     }
                 }
@@ -50,12 +57,12 @@ function cmd(bosco, args) {
                     if (svc.service) {
                         if (svc.service.type == 'docker') {
                             if (_.contains(runningServices, repo)) {
-                                return DockerRunner.stop(svc, next);
+                                return DockerRunner.stop(svc, cb);
                             }
                         } else {
                             // Assume node
                             if (_.contains(runningServices, repo)) {
-                                return NodeRunner.stop({name: repo}, next);
+                                return NodeRunner.stop({name: repo}, cb);
                             }
                         }
                     }
@@ -63,29 +70,28 @@ function cmd(bosco, args) {
 
             }
 
-            next();
+            cb();
 
         }, function() {
-            process.exit(0);
+            scb();
         });
 
     }
 
-    var getRunningServices = function(next) {
+    var getRunningServices = function(cb) {
         NodeRunner.listRunning(false, function(err, nodeRunning) {
             DockerRunner.list(false, function(err, dockerRunning) {
                 dockerRunning = _.map(_.flatten(dockerRunning), function(item) { return item.replace('/',''); });
                 runningServices = _.union(nodeRunning, dockerRunning);
-                next();
+                cb();
             })
         })
     }
 
     bosco.log('Stop each mircoservice ' + args);
 
-    async.series([initialiseRunners, getRunningServices, stopRunningServices], function() {
-        bosco.log('Complete');
-        process.exit(0);
-    })
+    async.series([initialiseRunners, getRunningServices, stopRunningServices, disconnectRunners], function() {
+        if(next) return next();
+    });
 
 }
