@@ -83,7 +83,7 @@ Runner.prototype.start = function(options, next) {
 		self.bosco.warn('Can\'t start ' + options.name.red + ', as I can\'t find script: ' + start.red);
 		return next();
 	}
-
+    self.bosco.log('Starting ' + options.name + ' ...');
 	pm2.start(start, { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand }, next);
 }
 
@@ -91,7 +91,8 @@ Runner.prototype.start = function(options, next) {
  * List running services
  */
 Runner.prototype.stop = function(options, next) {
-	this.bosco.log('Stopping ' + options.name);
+    var self = this;
+	self.bosco.log('Stopping ' + options.name);
 	pm2.stop(options.name, function(err) {
         if(err) return next(err);
  		pm2.delete(options.name, function(err) {

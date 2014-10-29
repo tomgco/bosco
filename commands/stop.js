@@ -33,7 +33,7 @@ function cmd(bosco, args, next) {
 
     var stopRunningServices = function(scb) {
 
-        async.map(repos, function(repo, cb) {
+        async.mapSeries(repos, function(repo, cb) {
 
             var pkg, svc,
                 repoPath = bosco.getRepoPath(repo),
