@@ -82,6 +82,7 @@ function startContainer(bosco, docker, fqn, options, container, next) {
     bosco.log('Starting ' + options.name.green + ': ' + fqn.magenta + '...');
 
     container.start(optsStart, function(err) {
+
         if (err) {
             bosco.error('Failed to start Docker image: ' + err.message);
             return next(err);
@@ -96,9 +97,50 @@ function startContainer(bosco, docker, fqn, options, container, next) {
             return next();
         }
 
-        bosco.warn('Waiting 5 seconds for service to start as we cant tell reliably ...');
+        var checkTimeout = options.service.checkTimeout || 10000;
+        var checkEnd = Date.now() + checkTimeout;
 
-        setTimeout(next, 5000);
+        function check() {
+            checkRunning(checkPort, function(err, running) {
+                if(err || !running) {
+                    if (Date.now() > checkEnd) {
+                        process.stdout.write('\n');
+                        bosco.warn('Could not detect if ' + options.name.green + ' had started on port ' + ('' + checkPort).magenta + ' after ' + checkTimeout + 'ms');
+                        return next();
+                    }
+                    process.stdout.write('.');
+                    setTimeout(check, 500);
+                } else {
+                    process.stdout.write('\n');
+                    return next();
+                }
+            });
+        }
+        bosco.log('Waiting for ' + options.name.green + ' to respond on port ' + ('' + checkPort).magenta);
+        check();
+
+    });
+}
+
+/**
+ * Check to see if the process is running by making a connection and
+ * seeing if it is immediately closed or stays open long enough for us to close it.
+ */
+function checkRunning(port, next) {
+    var net = require('net');
+    var socket = net.createConnection(port);
+    var start = new Date();
+    var timer;
+    socket.on('connect', function() {
+        timer = setTimeout(function() { socket.end() }, 200);
+    });
+    socket.on('close', function() {
+        clearTimeout(timer);
+        var closed = new Date() - start;
+        next(null, closed > 100 ? true : false);
+    });
+    socket.on('error', function() {
+        next(new Error('Failed to connect'), false);
     });
 }
 
@@ -175,6 +217,8 @@ function pullImage(bosco, docker, repoTag, next) {
             next(null, image);
         });
     }
+
+    bosco.log('Pulling image ' + repoTag.green + ' ...');
 
     docker.pull(repoTag, function(err, stream) {
         var currentLayer;
