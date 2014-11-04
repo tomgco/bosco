@@ -9,13 +9,19 @@ module.exports = {
     name:'cdn',
     description:'Aggregates all the static assets across all microservices and serves them via a pseudo local CDN url',
     example:'bosco cdn <minify>',
-    cmd:cmd
+    cmd:cmd,
+    options: [{
+        option: 'watch',
+        syntax: ['-w, --watch [regex]', 'Filter by a regex of services to watch (similar to -r in run)']
+    }]
 }
 
 function cmd(bosco, args) {
 
     var minify = _.contains(args,'minify');
     var port = bosco.config.get('cdn:port') || 7334;
+    var repoPattern = bosco.options.watch || '$^';
+    var repoRegex = new RegExp(repoPattern);
 
     bosco.log('Starting pseudo CDN on port: ' + (port+'').blue);
 
@@ -65,19 +71,18 @@ function cmd(bosco, args) {
 
       var watchSet = {};
       _.forOwn(staticAssets, function(asset, key) {
-
+          if(asset.repo && !asset.repo.match(options.repoRegex)) {
+            return;
+          }
           if(!minify) {
             watchSet[asset.path] = key;
             return;
           }
-
           if(asset.extname == '.manifest') {
-
               var manifestFiles = asset.files;
-
-                  manifestFiles.forEach(function(file) {
-                      if(file) { watchSet[file.path] = asset.tag; }
-                  });
+              manifestFiles.forEach(function(file) {
+                  if(file) { watchSet[file.path] = asset.tag; }
+              });
           }
       });
 
@@ -136,12 +141,14 @@ function cmd(bosco, args) {
     }
 
     if(minify) bosco.log('Minifying front end assets, this can take some time ...');
+
     var options = {
         repos: repos,
         minify: minify,
         tagFilter: null,
         watchBuilds: true,
-        reloadOnly: false
+        reloadOnly: false,
+        repoRegex: repoRegex
     }
 
     var executeAsync = {

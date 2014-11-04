@@ -9,10 +9,8 @@ module.exports = function(bosco) {
 		if(!service.build) return next();
 
 		var watchBuilds = options.watchBuilds,
-			reloadOnly = options.reloadOnly;
-
-	    var command = watchBuilds ? (service.build.watch ? service.build.watch.command : service.build.command) : service.build.command;
-	    command = reloadOnly ? 'echo "Not running build as change triggered by external build tool"' : command;
+			reloadOnly = options.reloadOnly,
+			command;
 
 	    var buildFinished = function(err, stdout, stderr) {
 
@@ -26,9 +24,12 @@ module.exports = function(bosco) {
 
 	    }
 
-	    if (watchBuilds) {
+	    if (watchBuilds && service.name.match(options.repoRegex)) {
 
-	        bosco.log('Spawning watch command for ' + service.name.blue + ': ' + command);
+	    		command = service.build.watch ? service.build.watch.command : service.build.command;
+				  command = reloadOnly ? 'echo "Not running build as change triggered by external build tool"' : command;
+
+	        bosco.warn('Spawning watch command for ' + service.name.blue + ': ' + command);
 
 	        var cmdArray = command.split(' ');
 	        command = cmdArray.shift();
@@ -73,6 +74,7 @@ module.exports = function(bosco) {
 
 	    } else {
 
+					command = service.build.command;
 	        bosco.log('Running build command for ' + service.name.blue + ': ' + command);
 	        exec(command, {
 	            cwd: service.repoPath
