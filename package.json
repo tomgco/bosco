@@ -59,6 +59,7 @@
     "multimeter": "^0.1.1",
     "nconf": "^0.6.9",
     "node-sass": "^0.9.3",
+    "parse-link-header": "^0.2.0",
     "pm2": "^0.11.1",
     "prettyjson": "^1.0.0",
     "progress": "^1.1.8",

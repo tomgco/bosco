@@ -4,6 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
 var path = require('path');
+var parse = require('parse-link-header');
 var exec = require('child_process').exec;
 var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
@@ -62,31 +63,43 @@ function cmd(bosco, args, next) {
 
         bosco.log('Fetching repos for ' + team.name.magenta);
 
-        function fetchTeamRepositories(err, res, reposJson) {
-            if (err) {
-                return bosco.error('Problem with request: ' + err.message);
-            }
+		var repos = [];
 
-            if (res.statusCode != '200') {
-                return bosco.error('Received non-ok reponse: ' + res.statusCode);
-            }
+        function fetchTeamRepositories(url, callback) {
 
-            var repos = [];
-            var org = bosco.getOrg();
+			request.get(url, options, function (err, res, reposJson) {
 
-            function obtainRepositoryName(repo) {
-                if(repo.full_name.indexOf(org + '/') !== 0) return;
-                if(_.contains(ignoredRepos,repo.name)) return;
-                repos.push(repo.name);
-            }
+	            if (err) {
+	                return bosco.error('Problem with request: ' + err.message);
+	            }
 
-            reposJson.forEach(obtainRepositoryName);
-            fetch(bosco, repos, repoRegex, args, next);
+	            if (res.statusCode != '200') {
+	                return bosco.error('Received non-ok reponse: ' + res.statusCode);
+	            }
 
+	            var org = bosco.getOrg();
+
+	            function obtainRepositoryName(repo) {
+	                if(repo.full_name.indexOf(org + '/') !== 0) return;
+	                if(_.contains(ignoredRepos, repo.name)) return;
+	                repos.push(repo.name);
+	            }
+
+	            reposJson.forEach(obtainRepositoryName);
+
+                var pagination = parse(res.headers.link);
+
+                if (pagination.next) {
+                    fetchTeamRepositories(pagination.next.url, callback);
+                } else {
+                    callback();
+                }
+			});
         }
 
-        request.get(team.repositories_url + '?per_page=100', options, fetchTeamRepositories);
-
+		fetchTeamRepositories(team.repositories_url + '?per_page=100', function () {
+			fetch(bosco, repos, repoRegex, args, next);
+		});
     }
 
     request.get('https://api.github.com/user/teams', options, fetchTeamProfile);
