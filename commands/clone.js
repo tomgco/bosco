@@ -67,38 +67,45 @@ function cmd(bosco, args, next) {
 
         function fetchTeamRepositories(url, callback) {
 
-			request.get(url, options, function (err, res, reposJson) {
+            var org = bosco.getOrg();
 
-	            if (err) {
-	                return bosco.error('Problem with request: ' + err.message);
-	            }
+            function obtainRepositoryName(repo) {
+                if(repo.full_name.indexOf(org + '/') !== 0) return;
+                if(_.contains(ignoredRepos, repo.name)) return;
+                repos.push(repo.name);
+            }
 
-	            if (res.statusCode != '200') {
-	                return bosco.error('Received non-ok reponse: ' + res.statusCode);
-	            }
+            function fetchReposPage(next) {
+                request.get(url, options, function (err, res, reposJson) {
+                    if (err) err = new Error('Problem with request: ' + err.message);
 
-	            var org = bosco.getOrg();
+                    if (res.statusCode != '200') err = new Error('Received non-ok reponse: ' + res.statusCode);
 
-	            function obtainRepositoryName(repo) {
-	                if(repo.full_name.indexOf(org + '/') !== 0) return;
-	                if(_.contains(ignoredRepos, repo.name)) return;
-	                repos.push(repo.name);
-	            }
+                    if (err) {
+                        bosco.error(err.message);
+                        return next(err);
+                    }
 
-	            reposJson.forEach(obtainRepositoryName);
+                    reposJson.forEach(obtainRepositoryName);
 
-                var pagination = parse(res.headers.link);
+                    var pagination = parse(res.headers.link);
 
-                if (pagination.next) {
-                    fetchTeamRepositories(pagination.next.url, callback);
-                } else {
-                    callback();
-                }
-			});
+                    url = pagination.next ? pagination.next.url : null;
+
+                    next();
+                });
+            }
+
+            // While loop version of async.js
+            async.whilst(
+                function() { return !!url }, // Stop once url is falsy
+                fetchReposPage,
+                callback
+            );
         }
 
-		fetchTeamRepositories(team.repositories_url + '?per_page=100', function () {
-			fetch(bosco, repos, repoRegex, args, next);
+		fetchTeamRepositories(team.repositories_url + '?per_page=100', function (err) {
+			if (!err) fetch(bosco, repos, repoRegex, args, next);
 		});
     }
 
