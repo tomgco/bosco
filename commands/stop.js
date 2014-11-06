@@ -91,7 +91,7 @@ function cmd(bosco, args, next) {
     bosco.log('Stop each mircoservice ' + args);
 
     async.series([initialiseRunners, getRunningServices, stopRunningServices, disconnectRunners], function() {
-        if(next) return next();
+        if(next) return next(null, runningServices);
     });
 
 }

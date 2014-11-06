@@ -16,11 +16,13 @@ function cmd(bosco, args) {
         stop.cmd(bosco, args, next);
     };
 
-    var executeRun = function(next) {
+    var executeRun = function(repos, next) {
+        if(repos.length === 0) return next();
+        bosco.options.list = repos.join(',');
         run.cmd(bosco, args, next);
     };
 
-    async.series([executeStop, executeRun], function(){
+    async.waterfall([executeStop, executeRun], function(){
         // Done
     });
 

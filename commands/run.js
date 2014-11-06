@@ -18,6 +18,10 @@ module.exports = {
     {
         option: 'watch',
         syntax: ['-w, --watch', 'Watch the applications started with run for changes, default off']
+    },
+    {
+        option: 'list',
+        syntax: ['-l, --list [list]', 'Start a list of repos (comma separated).']
     }]
 }
 
@@ -27,7 +31,13 @@ function cmd(bosco, args, cb) {
     var watch = bosco.options.watch ? true : false;
     var repoRegex = new RegExp(repoPattern);
     var repoTag = bosco.options.tag;
-    var repos = bosco.config.get('github:repos');
+
+    var repos;
+    if(bosco.options.list) {
+        repos = bosco.options.list.split(',');
+    } else {
+        repos = bosco.config.get('github:repos');
+    }
 
     var initialiseRunners = function(next) {
         var runners = [NodeRunner, DockerRunner];
