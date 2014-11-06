@@ -1,6 +1,7 @@
 var _ = require('lodash'),
      async = require('async'),
     jsdiff = require('diff'),
+    request = require('request'),
     mime = require('mime');
 
 module.exports = {
@@ -17,6 +18,7 @@ function cmd(bosco, args) {
     if(args.length > 0) tag = args[0];
 
     var cdnUrl = bosco.config.get('aws:cdn') + '/';
+    var compoxureUrl = bosco.config.get('compoxure') ? bosco.config.get('compoxure')[bosco.options.environment] : '';
     var force = bosco.options.force;
     noprompt = bosco.options.noprompt;
 
@@ -80,9 +82,22 @@ function cmd(bosco, args) {
         };
         bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){
           if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
-          bosco.log('Pushed to S3: ' +  cdnUrl + file.path);
-          next(err, {file: file});
+          bosco.log('Pushed to S3: ' + cdnUrl + file.path);
+          if(compoxureUrl && file.type == 'html') {
+            flushCompoxure(cdnUrl + file.path, function(err) {
+                if(err) bosco.error('Error flushing compoxure: ' + err.message);
+                next(err, {file: file});
+            });
+          } else {
+            next(err, {file: file});
+          }
         });
+    }
+
+    var flushCompoxure = function(url, next) {
+        var compoxureKey = s3cxkey(url);
+        bosco.log('Flushing compoxure cache at url: ' + compoxureUrl + compoxureKey);
+        request.del(compoxureUrl + compoxureKey, next);
     }
 
     var confirm = function(message, next) {
@@ -232,6 +247,17 @@ function cmd(bosco, args) {
 
     function getS3Content(file) {
         return file.data || new Buffer(file.content);
+    }
+
+    // Create a Compoxure cache key for a given S3 url
+    function s3cxkey(url) {
+        var key = _.clone(url);
+        key = key.replace('http://','');
+        key = key.replace(/\./g,'_');
+        key = key.replace(/-/g,'_');
+        key = key.replace(/:/g,'_');
+        key = key.replace(/\//g,'_');
+        return key;
     }
 
     function isContentEmpty(file) {
