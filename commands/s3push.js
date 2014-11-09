@@ -1,7 +1,8 @@
 var _ = require('lodash'),
      async = require('async'),
     jsdiff = require('diff'),
-    request = require('request'),
+    http = require('http'),
+    url = require('url'),
     mime = require('mime');
 
 module.exports = {
@@ -84,7 +85,7 @@ function cmd(bosco, args) {
           if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
           bosco.log('Pushed to S3: ' + cdnUrl + file.path);
           if(compoxureUrl && file.type == 'html') {
-            flushCompoxure(cdnUrl + file.path, function(err) {
+            primeCompoxure(cdnUrl + file.path, file.content.toString(), function(err) {
                 if(err) bosco.error('Error flushing compoxure: ' + err.message);
                 next(err, {file: file});
             });
@@ -94,10 +95,59 @@ function cmd(bosco, args) {
         });
     }
 
-    var flushCompoxure = function(url, next) {
-        var compoxureKey = s3cxkey(url);
-        bosco.log('Flushing compoxure cache at url: ' + compoxureUrl + compoxureKey);
-        request.del(compoxureUrl + compoxureKey, next);
+    var primeCompoxure = function(htmlUrl, content, next) {
+
+        var compoxureKey = s3cxkey(htmlUrl);
+        var ttl = 999 * 60 * 60 * 24; // 999 Days
+        var cacheData = {
+            expires: Date.now()+ ttl,
+            content: content,
+            ttl: ttl
+        }
+        var cacheUrl = url.parse(compoxureUrl + compoxureKey);
+        var cacheString = JSON.stringify(cacheData);
+        var headers = {
+          'Content-Type': 'application/json',
+          'Content-Length': cacheString.length
+        };
+        var calledNext = false;
+
+        var options = {
+          host: cacheUrl.hostname,
+          port: cacheUrl.port,
+          path: cacheUrl.path,
+          method: 'POST',
+          headers: headers
+        };
+
+        var req = http.request(options, function(res) {
+          res.setEncoding('utf-8');
+          var responseString = '';
+          res.on('data', function(data) {
+            responseString += data;
+          });
+          res.on('end', function() {
+            bosco.log(res.statusCode + ' ' + responseString);
+            if(!calledNext) {
+                calledNext = true;
+                return next();
+            }
+          });
+        });
+
+        req.on('error', function(e) {
+          // TODO: handle error.
+          bosco.error('There was an error posting fragment to Compoxure: ' + e.message);
+          if(!calledNext) {
+            calledNext = true;
+            return next();
+          }
+        });
+
+        bosco.log('Priming compoxure cache at url: ' + compoxureUrl + compoxureKey);
+        req.write(cacheString);
+        req.end();
+
     }
 
     var confirm = function(message, next) {
