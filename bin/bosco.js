@@ -52,8 +52,16 @@ var globalOptions = [
     syntax: ['-c, --configFile [file]', 'Use specific config file']
   },
   {
+    option: 'configPath',
+    syntax: ['-p, --configPath [folder]', 'Use specific config path']
+  },
+  {
     option: 'environment',
     syntax: ['-e, --environment [environment]', 'Set environment to use', 'local']
+  },
+  {
+    option: 'service',
+    syntax: ['-s, --service', 'Run only with service in cwd (if bosco-service.json file exists in cwd)', false]
   },
   {
     option: 'build',

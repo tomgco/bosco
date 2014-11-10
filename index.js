@@ -27,15 +27,17 @@ Bosco.prototype.init = function(options) {
     var self = this;
 
     self._defaults = {
-        _defaultConfig: [__dirname, 'config/bosco.json'].join('/'),
-        configPath: [self.getWorkspacePath(), '.bosco'].join('/'),
-        configFile: [self.getWorkspacePath(), '.bosco', 'bosco.json'].join('/')
+        _defaultConfig: [__dirname, 'config/bosco.json'].join('/')
     };
 
-    self.options = _.defaults(options, self._defaults);
-    self.options.envConfigFile = self.getWorkspacePath() + '/.bosco/' + self.options.environment + '.json';
-    self.options.defaultsConfigFile = self.getWorkspacePath() + '/.bosco/defaults.json';
+    self.options = _.defaults(_.clone(options), self._defaults);
+    self.options.configPath = options.configPath ? path.resolve(options.configPath) : [self.findWorkspace(), '.bosco'].join('/');
+    self.options.workspace = options.configPath ? path.resolve('..') : path.resolve(self.options.configPath, '..');
+    self.options.configFile = [self.options.configPath, 'bosco.json'].join('/');
+    self.options.envConfigFile = [self.options.configPath, self.options.environment + '.json'].join('/');
+    self.options.defaultsConfigFile = [self.options.configPath, 'defaults.json'].join('/');
     self.options.cpus = require('os').cpus().length;
+    self.options.inService = false;
 
     self.config = require('nconf');
     self.prompt = prompt;
@@ -78,6 +80,8 @@ Bosco.prototype.run = function() {
         }
 
         self.staticUtils = require('./src/StaticUtils')(self);
+
+        self.checkInService();
 
         self.log('Initialised using [' + self.options.configFile.magenta + '] in environment [' + self.options.environment.green + ']');
         self._cmd();
@@ -403,12 +407,17 @@ Bosco.prototype._moveRepoPath = function(next) {
     });
 }
 
-Bosco.prototype.getWorkspacePath = function() {
+Bosco.prototype.findWorkspace = function() {
     for (var p = path.resolve('.');; p = path.resolve(p, '..')) {
         if (this.exists(path.join(p, '.bosco', 'bosco.json'))) return p;
         if (p === '/') break;
     }
     return path.resolve('.');
+}
+
+Bosco.prototype.getWorkspacePath = function() {
+    var self = this;
+    return self.options.workspace;
 }
 
 Bosco.prototype.getOrg = function() {
@@ -434,6 +443,7 @@ Bosco.prototype.getRepoPath = function(repo) {
 Bosco.prototype.getOldOrgPath = function() {
     return [path.resolve(this.getWorkspacePath()), this.getOrg()].join('/');
 }
+
 Bosco.prototype.getOldRepoPath = function(repo) {
     return [this.getOldOrgPath(), repo].join('/');
 }
@@ -444,8 +454,9 @@ Bosco.prototype.getGlobalCommandFolder = function() {
 }
 
 Bosco.prototype.getLocalCommandFolder = function() {
-    var self = this;
-    return [self.getWorkspacePath(), '/', 'commands', '/'].join('');
+    var self = this,
+        workspace = self.options && self.options.workspace ?self.options.workspace : self.findWorkspace();
+    return [workspace, '/', 'commands', '/'].join('');
 }
 
 Bosco.prototype.getRepoUrl = function(repo) {
@@ -497,6 +508,14 @@ Bosco.prototype.getAssetCdnUrl = function (assetUrl) {
     }
 
     return baseUrl + '/' + assetUrl;
+}
+
+Bosco.prototype.checkInService = function() {
+    var self = this, cwd = path.resolve('bosco-service.json');
+    if(self.exists(cwd) && self.options.service) {
+        self.options.inService = true;
+        self.config.set('github:repos', [path.relative('..','.')]);
+    }
 }
 
 Bosco.prototype.warn = function(msg, args) {
