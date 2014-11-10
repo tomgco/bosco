@@ -31,9 +31,11 @@ Bosco.prototype.init = function(options) {
     };
 
     self.options = _.defaults(_.clone(options), self._defaults);
+
     self.options.configPath = options.configPath ? path.resolve(options.configPath) : [self.findWorkspace(), '.bosco'].join('/');
     self.options.workspace = options.configPath ? path.resolve('..') : path.resolve(self.options.configPath, '..');
-    self.options.configFile = [self.options.configPath, 'bosco.json'].join('/');
+    self.options.configFile = options.configFile ? path.resolve(options.configFile) : [self.options.configPath, 'bosco.json'].join('/');
+
     self.options.envConfigFile = [self.options.configPath, self.options.environment + '.json'].join('/');
     self.options.defaultsConfigFile = [self.options.configPath, 'defaults.json'].join('/');
     self.options.cpus = require('os').cpus().length;
