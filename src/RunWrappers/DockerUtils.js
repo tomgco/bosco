@@ -107,9 +107,10 @@ function startContainer(bosco, docker, fqn, options, container, next) {
                         process.stdout.write('\n');
                         bosco.warn('Could not detect if ' + options.name.green + ' had started on port ' + ('' + checkPort).magenta + ' after ' + checkTimeout + 'ms');
                         return next();
+                    } else {
+                        process.stdout.write('.');
+                        setTimeout(check, 500);
                     }
-                    process.stdout.write('.');
-                    setTimeout(check, 500);
                 } else {
                     process.stdout.write('\n');
                     return next();
@@ -134,7 +135,9 @@ function checkRunning(port, next) {
     socket.on('connect', function() {
         timer = setTimeout(function() { socket.end() }, 200);
     });
-    socket.on('close', function() {
+    socket.on('close', function(hadError) {
+        if (hadError) return; // If we are closing due to an error ignore it
+
         clearTimeout(timer);
         var closed = new Date() - start;
         next(null, closed > 100 ? true : false);
