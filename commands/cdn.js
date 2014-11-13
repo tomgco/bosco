@@ -11,6 +11,10 @@ module.exports = {
     example:'bosco cdn <minify>',
     cmd:cmd,
     options: [{
+        option: 'tag',
+        syntax: ['-t, --tag [tag]', 'Filter by a tag defined within bosco-service.json']
+    },
+    {
         option: 'watch',
         syntax: ['-w, --watch [regex]', 'Filter by a regex of services to watch (similar to -r in run)']
     }]
@@ -22,6 +26,7 @@ function cmd(bosco, args) {
     var port = bosco.config.get('cdn:port') || 7334;
     var repoPattern = bosco.options.watch || '$^';
     var repoRegex = new RegExp(repoPattern);
+    var repoTag = bosco.options.tag;
 
     bosco.log('Starting pseudo CDN on port: ' + (port+'').blue);
 
@@ -148,7 +153,8 @@ function cmd(bosco, args) {
         tagFilter: null,
         watchBuilds: true,
         reloadOnly: false,
-        repoRegex: repoRegex
+        repoRegex: repoRegex,
+        repoTag: repoTag
     }
 
     var executeAsync = {
