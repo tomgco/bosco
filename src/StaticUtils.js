@@ -16,15 +16,13 @@ module.exports = function(bosco) {
 
     function getStaticAssets(options, next) {
         var repoTag = options.repoTag;
-        var repoRegex = options.repoRegex;
 
         async.mapSeries(options.repos, loadService, function(err, services) {
 
             // Remove any service that doesnt have an assets child
-            // or doesn't match repo regex or tag
+            // or doesn't match repo tag
             services = _.filter(services, function(service) {
-                return (!repoRegex || service.name.match(repoRegex)) &&
-                    (!repoTag || _.contains(service.tags, repoTag)) &&
+                return (!repoTag  || _.contains(service.tags, repoTag)) &&
                     (service.assets || service.files);
             });
 
