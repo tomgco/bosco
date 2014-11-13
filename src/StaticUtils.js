@@ -15,13 +15,18 @@ module.exports = function(bosco) {
     var attachFormattedRepos = html.attachFormattedRepos;
 
     function getStaticAssets(options, next) {
+        var repoTag = options.repoTag;
 
         async.mapSeries(options.repos, loadService, function(err, services) {
 
             // Remove any service that doesnt have an assets child
+            // or doesn't match repo tag
             services = _.filter(services, function(service) {
-                return service.assets || service.files;
+                return (!repoTag  || _.contains(service.tags, repoTag)) &&
+                    (service.assets || service.files);
             });
+
+
 
             async.mapSeries(services, function(service, cb) {
 
