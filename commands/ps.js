@@ -71,7 +71,7 @@ function cmd(bosco) {
 
     }
 
-    bosco.log('Getting running mircoservices ...');
+    bosco.log('Getting running microservices ...');
 
     async.series([initialiseRunners, getRunningServices], function() {
 

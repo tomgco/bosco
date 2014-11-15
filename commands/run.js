@@ -206,7 +206,7 @@ function cmd(bosco, args, cb) {
 
     }
 
-    bosco.log('Run each mircoservice ... ');
+    bosco.log('Run each microservice ... ');
 
     async.series([ensurePM2, initialiseRunners, getRunningServices, getStoppedServices, stopNotRunningServices, startRunnableServices, disconnectRunners], function(err) {
         if (err) {
