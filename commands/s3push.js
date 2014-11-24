@@ -36,6 +36,7 @@ function cmd(bosco, args) {
         var toPush = [];
         _.forOwn(staticAssets, function(asset, key) {
 
+            if(key == 'formattedAssets') return;
             if(tag && tag !== asset.tag) return;
             if(isContentEmpty(asset)) {
                 bosco.log('Skipping asset: ' + key.blue + ' (content empty)');
@@ -62,13 +63,15 @@ function cmd(bosco, args) {
 
         });
 
-        // Add index
-        toPush.push({
-            content:staticAssets.formattedAssets,
-            path: getS3Filename('index.html'),
-            type:'html',
-            mimeType:'text/html'
-        });
+        // Add index if doing full s3 push
+        if(!bosco.options.service) {
+            toPush.push({
+                content:staticAssets.formattedAssets,
+                path: getS3Filename('index.html'),
+                type:'html',
+                mimeType:'text/html'
+            });
+        }
 
         async.mapSeries(toPush, pushToS3, next);
     }
