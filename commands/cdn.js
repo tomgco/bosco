@@ -2,7 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
 var http = require('http');
-var watch = require('watch');
+var chokidar = require('chokidar');
 var sass = require('node-sass');
 
 module.exports = {
@@ -74,8 +74,8 @@ function cmd(bosco, args) {
 
     var startMonitor = function(staticAssets) {
 
-      var watchSet = {};
-      _.forOwn(staticAssets, function(asset, key) {
+        var watchSet = {};
+        _.forOwn(staticAssets, function(asset, key) {
           if(asset.repo && !asset.repo.match(options.repoRegex)) {
             return;
           }
@@ -89,52 +89,53 @@ function cmd(bosco, args) {
                   if(file) { watchSet[file.path] = asset.tag; }
               });
           }
-      });
+        });
 
-      watch.createMonitor(bosco.getOrgPath(), {ignoreDirectoryPattern: /node_modules/, interval: 500}, function (monitor) {
+        var monitor = chokidar.watch(bosco.getOrgPath(),
+            {   ignored: /node_modules|.git/,
+                usePolling: false
+            });
 
         monitor.on('changed', function (f) {
-          var fileKey = watchSet[f];
-          if(!minify) {
-              if(fileKey) {
-                        fs.readFile(staticAssets[fileKey].path, function (err, data) {
-                            if (err) {
-                                bosco.log('Error reloading '+fileKey);
-                                bosco.log(err.toString());
-                                return;
-                            }
+            var fileKey = watchSet[f];
+            if(!minify) {
+                if(fileKey) {
+                          fs.readFile(staticAssets[fileKey].path, function (err, data) {
+                              if (err) {
+                                  bosco.log('Error reloading '+fileKey);
+                                  bosco.log(err.toString());
+                                  return;
+                              }
 
-                            staticAssets[fileKey].data = data;
-                            staticAssets[fileKey].content = data.toString();
-                            bosco.log('Reloaded ' + fileKey);
-                        });
-              }
-          } else {
-              if(fileKey) {
-                  bosco.log('Recompiling tag ' + fileKey.blue + ' due to change in ' + f.blue);
-                  var options = {
-                    repos: repos,
-                    minify: minify,
-                    tagFilter: fileKey,
-                    watchBuilds: false,
-                    reloadOnly: true
+                              staticAssets[fileKey].data = data;
+                              staticAssets[fileKey].content = data.toString();
+                              bosco.log('Reloaded ' + fileKey);
+                          });
                 }
-                  bosco.staticUtils.getStaticAssets(options, function(err, updatedAssets) {
-                      // Clear old for tag
-                      _.forOwn(staticAssets, function(value, key) {
-                          if(value.tag == fileKey) delete staticAssets[key];
-                      });
-                      // Add new
-                      _.forOwn(updatedAssets, function(value, key) {
-                          staticAssets[key] = value;
-                      });
-                      bosco.log('Reloaded minified assets for tag ' + fileKey.blue);
-                  });
-              }
-          }
-        })
-      });
-
+            } else {
+                if(fileKey) {
+                    bosco.log('Recompiling tag ' + fileKey.blue + ' due to change in ' + f.blue);
+                    var options = {
+                      repos: repos,
+                      minify: minify,
+                      tagFilter: fileKey,
+                      watchBuilds: false,
+                      reloadOnly: true
+                  }
+                    bosco.staticUtils.getStaticAssets(options, function(err, updatedAssets) {
+                        // Clear old for tag
+                        _.forOwn(staticAssets, function(value, key) {
+                            if(value.tag == fileKey) delete staticAssets[key];
+                        });
+                        // Add new
+                        _.forOwn(updatedAssets, function(value, key) {
+                            staticAssets[key] = value;
+                        });
+                        bosco.log('Reloaded minified assets for tag ' + fileKey.blue);
+                    });
+                }
+            }
+        });
     }
 
     var getContent = function(asset, next) {
