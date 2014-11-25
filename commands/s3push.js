@@ -240,6 +240,7 @@ function cmd(bosco, args) {
         var options = {
             repos: repos,
             minify: true,
+            buildNumber: bosco.options.build || 'default',
             tagFilter: tag,
             watchBuilds: false,
             reloadOnly: false
@@ -318,13 +319,7 @@ function cmd(bosco, args) {
     }
 
     function getS3Filename(file) {
-
-        if (bosco.options.build) {
-            file = bosco.options.build + '/' + file;
-        }
-
         file = bosco.options.environment + '/' + file;
-
         return file;
     }
 }

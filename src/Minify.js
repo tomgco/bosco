@@ -20,14 +20,14 @@ module.exports = function(bosco) {
 
       _.map(staticAssets, function(asset, key) {
           if (asset.type === 'js') {
-              if (!(asset.tag in jsAssets)) jsAssets[asset.tag] = {};
-              jsAssets[asset.tag][key] = asset.path;
+              if (!(asset.bundleKey in jsAssets)) jsAssets[asset.bundleKey] = {};
+              jsAssets[asset.bundleKey][key] = asset.path;
           } else if (asset.type === 'css') {
-              if (!(asset.tag in cssAssets)) cssAssets[asset.tag] = {};
-              cssAssets[asset.tag][key] = asset.path;
+              if (!(asset.bundleKey in cssAssets)) cssAssets[asset.bundleKey] = {};
+              cssAssets[asset.bundleKey][key] = asset.path;
           } else {
-              if (!(asset.tag in otherAssets)) otherAssets[asset.tag] = {};
-              otherAssets[asset.tag][key] = asset.path;
+              if (!(asset.bundleKey in otherAssets)) otherAssets[asset.bundleKey] = {};
+              otherAssets[asset.bundleKey][key] = asset.path;
           }
       });
 
@@ -59,10 +59,12 @@ module.exports = function(bosco) {
 
       _.forOwn(staticAssets, function(value) {
 
-          var manifestFile = createKey(value.tag, value.type, 'manifest', 'txt');
+          var manifestFile = createKey(value.serviceName, value.buildNumber, value.tag, value.type, 'manifest', 'txt');
 
           manifests[manifestFile] = manifests[manifestFile] || {
               content: '',
+              serviceName: value.serviceName,
+              buildNumber: value.buildNumber,
               type: 'plain',
               mimeType: 'text/plain',
               assetType: value.type,
@@ -79,7 +81,7 @@ module.exports = function(bosco) {
 
           manifests[manifestFile].content += relativePath + ', Hash: ' + createHash(value.content) + ', Last commit: ' + value.commit;
           manifests[manifestFile].files.push({
-              key: createKey(relativePath, '', 'src', ''),
+              key: createKey(value.serviceName, value.buildNumber, relativePath, '', 'src', ''),
               relativePath: relativePath,
               content: value.content,
               path: value.path,
@@ -92,13 +94,24 @@ module.exports = function(bosco) {
 
   function compileJs(staticAssets, jsAssets, next) {
 
-      _.forOwn(jsAssets, function(files, tag) {
+      _.forOwn(jsAssets, function(files, bundleKey) {
 
-          var compiled;
+          if(files.length === 0) { return; }
 
-          bosco.log('Compiling ' + _.size(files) + ' ' + tag.blue + ' JS assets ...');
+          var compiled, serviceName, buildNumber, tag;
+
+          bosco.log('Compiling ' + _.size(files) + ' ' + bundleKey.blue + ' JS assets ...');
 
           var uglifyConfig = bosco.config.get('js:uglify');
+
+          for (var key in files) {
+            if(!serviceName) {
+              serviceName = staticAssets[key].serviceName;
+              buildNumber = staticAssets[key].buildNumber;
+              tag = staticAssets[key].tag;
+            }
+            delete staticAssets[key];
+          }
 
           var uglifyOptions = {
             output: uglifyConfig ? uglifyConfig.outputOptions : null,
@@ -108,22 +121,21 @@ module.exports = function(bosco) {
                 sourceMapIncludeSources: true
             };
 
-          for (var key in files) {
-            delete staticAssets[key];
-          }
-
           try {
             compiled = UglifyJS.minify(_.values(files), uglifyOptions);
           } catch (ex) {
-              bosco.error('There was an error minifying files in ' + tag.blue + ', error:');
+              bosco.error('There was an error minifying files in ' + bundleKey.blue + ', error:');
               console.log(ex.message + '\n');
               compiled = {
                   code: ''
               };
           }
 
-          var mapKey = createKey(tag, 'js', 'js', 'map');
+          var mapKey = createKey(serviceName, buildNumber, tag, 'js', 'js', 'map');
           staticAssets[mapKey] = staticAssets[mapKey] || {};
+          staticAssets[mapKey].serviceName = serviceName;
+          staticAssets[mapKey].buildNumber = buildNumber;
+          staticAssets[mapKey].path = '';
           staticAssets[mapKey].path = '';
           staticAssets[mapKey].extname = '.map';
           staticAssets[mapKey].tag = tag;
@@ -132,8 +144,10 @@ module.exports = function(bosco) {
           staticAssets[mapKey].content = compiled.map;
 
           var hash = createHash(compiled.code);
-          var minKey = createKey(tag, hash, 'js', 'js');
+          var minKey = createKey(serviceName, buildNumber, tag, hash, 'js', 'js');
           staticAssets[minKey] = staticAssets[minKey] || {};
+          staticAssets[minKey].serviceName = serviceName;
+          staticAssets[minKey].buildNumber = buildNumber;
           staticAssets[minKey].path = '';
           staticAssets[minKey].extname = '.js';
           staticAssets[minKey].tag = tag;
@@ -152,7 +166,7 @@ module.exports = function(bosco) {
 
       var compiledCss = [];
 
-      _.forOwn(cssAssets, function(files, tag) {
+      _.forOwn(cssAssets, function(files) {
 
           var compiled = {
               css: '',
@@ -160,9 +174,10 @@ module.exports = function(bosco) {
               count: 0
           };
 
-          compiled.tag = tag;
-
           _.forOwn(files, function(file, key) {
+              compiled.serviceName = staticAssets[key].serviceName;
+              compiled.buildNumber = staticAssets[key].buildNumber;
+              compiled.tag = staticAssets[key].tag;
               delete staticAssets[key];
               if (path.extname(file) == '.css') {
                   compiled.css += fs.readFileSync(file);
@@ -178,11 +193,11 @@ module.exports = function(bosco) {
 
       async.map(compiledCss, function(css, next) {
 
-        bosco.log('Compiling ' + css.count + ' ' + css.tag.blue + ' CSS assets ...');
+          bosco.log('Compiling ' + css.count + ' ' + css.tag.blue + ' CSS assets ...');
 
           sassRender({key: css.assetKey, content: css.scss}, function(err, code) {
 
-            var cssContent = css.css + code.content;
+            var cssContent = css.css + code.content, serviceName = css.serviceName, buildNumber = css.buildNumber;
 
             var cleanCssConfig = bosco.config.get('css:clean');
 
@@ -195,13 +210,15 @@ module.exports = function(bosco) {
               });
 
               var hash = createHash(cssContent);
-              var assetKey = createKey(css.tag, hash, 'css', 'css');
+              var assetKey = createKey(serviceName, buildNumber, css.tag, hash, 'css', 'css');
               staticAssets[assetKey] = staticAssets[assetKey] || {};
+              staticAssets[assetKey].serviceName = serviceName;
+              staticAssets[assetKey].buildNumber = buildNumber;
               staticAssets[assetKey].path = '';
               staticAssets[assetKey].extname = '.css';
               staticAssets[assetKey].tag = css.tag;
               staticAssets[assetKey].type = 'css';
-              staticAssets[assetKey].hash = hash;
+              staticAssets[assetKey].hash = hash + '.' + buildNumber;
               staticAssets[assetKey].mimeType = 'text/css';
               staticAssets[assetKey].content = cssContent;
 
@@ -219,11 +236,13 @@ module.exports = function(bosco) {
 
       _.forOwn(otherAssets, function(files) {
 
-          _.forOwn(files, function(file, key) {
+          _.forOwn(files, function(file, bundleKey) {
 
-                var existingAsset = staticAssets[key];
-                delete staticAssets[key];
-                staticAssets[existingAsset.asset] = existingAsset;
+                // In this context compilation means 'moving' to the build folder
+                var existingAsset = staticAssets[bundleKey], serviceName = existingAsset.serviceName, buildNumber = existingAsset.buildNumber;
+                var assetKey = bundleKey.replace(serviceName, serviceName + '/' + buildNumber);
+                delete staticAssets[bundleKey];
+                staticAssets[assetKey] = existingAsset;
 
             });
 

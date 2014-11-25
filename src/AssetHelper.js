@@ -10,7 +10,7 @@ module.exports = function(bosco) {
     function getAssetHelper(boscoRepo, tagFilter) {
 
         return {
-            addAsset: function(staticAssets, assetKey, asset, tag, type, basePath) {
+            addAsset: function(staticAssets, buildNumber, assetKey, asset, tag, type, basePath) {
 
                 if (tagFilter && tag !== tagFilter) return;
 
@@ -18,6 +18,8 @@ module.exports = function(bosco) {
                 var resolvedPath = resolve(boscoRepo, basePath, asset, assetKey);
 
                 if (resolvedPath) {
+                    newAsset.serviceName = boscoRepo.serviceName;
+                    newAsset.buildNumber = buildNumber;
                     newAsset.mimeType = mime.lookup(asset);
                     newAsset.assetKey = assetKey;
                     newAsset.asset = asset;
@@ -26,6 +28,7 @@ module.exports = function(bosco) {
                     newAsset.relativePath = path.join('.', basePath || '', asset);
                     newAsset.path = resolvedPath;
                     newAsset.extname = path.extname(asset);
+                    newAsset.bundleKey = boscoRepo.serviceName + '/' + tag;
                     newAsset.tag = tag;
                     newAsset.repo = boscoRepo.name;
                     newAsset.type = type;
@@ -40,8 +43,8 @@ module.exports = function(bosco) {
 
     }
 
-    function createKey(tag, hash, type, extension) {
-        return path.join(type, tag + (hash ? '.' + hash : '') + (extension ? '.' + extension : ''));
+    function createKey(name, buildNumber, tag, hash, type, extension) {
+        return path.join(name, buildNumber, type, tag + (hash ? '.' + hash : '') + (extension ? '.' + extension : ''));
     }
 
     function checksum(str, algorithm, encoding) {

@@ -12,7 +12,7 @@ module.exports = function(bosco) {
 
         _.forOwn(staticAssets, function(asset, key) {
 
-            var htmlFile = createKey(asset.tag, asset.type, 'html', 'html');
+            var htmlFile = createKey(asset.serviceName, asset.buildNumber, asset.tag, asset.type, 'html', 'html');
 
             if (!isJavascript(asset) && !isStylesheet(asset)) return;
 

@@ -149,6 +149,7 @@ function cmd(bosco, args) {
 
     var options = {
         repos: repos,
+        buildNumber: 'local',
         minify: minify,
         tagFilter: null,
         watchBuilds: true,

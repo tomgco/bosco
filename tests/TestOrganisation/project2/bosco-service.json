@@ -1,4 +1,7 @@
 {
+    "service":{
+        "name":"project2"
+    },
     "assets": {
         "basePath": "/public",
         "js": {

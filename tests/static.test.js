@@ -50,6 +50,7 @@ describe("Bosco Static Asset Handling", function() {
         var options = {
             repos: ["project1","project2"],
             minify: false,
+            buildNumber: 'local',
             tagFilter: null,
             watchBuilds: false,
             reloadOnly: false
@@ -63,15 +64,22 @@ describe("Bosco Static Asset Handling", function() {
             expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
             expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
-            expect(assets).to.have.keys('html/top.js.html',
-                                    'html/bottom.js.html',
-                                    'html/top.css.html',
-                                    'project1/js/top1.js',
-                                    'project2/js/bottom2.js',
-                                    'project2/js/top2.js',
-                                    'project2/img/bab.jpg',
-                                    'project2/swf/flash.swf',
-                                    'project2/css/top2.scss');
+            expect(assets).to.have.keys('project1/local/html/bottom.js.html',
+                'project1/local/html/top.js.html',
+                'project2/local/html/bottom.js.html',
+                'project2/local/html/top.js.html',
+                'project2/local/html/top.css.html',
+                'project1/js/bottom1.js',
+                'project1/js/jquery-1.11.0-min.js',
+                'project1/js/top1.js',
+                'project2/js/bottom2.js',
+                'project2/js/top2.js',
+                'project2/css/top2.scss',
+                'project2/img/bab.jpg',
+                'project2/html/html1.html',
+                'project2/html/html2.html',
+                'project2/swf/flash.swf');
+
             done();
 
         });
@@ -82,6 +90,7 @@ describe("Bosco Static Asset Handling", function() {
 
         var options = {
             repos: ["project1","project2"],
+            buildNumber: 'local',
             minify: true,
             tagFilter: null,
             watchBuilds: false,
@@ -94,22 +103,33 @@ describe("Bosco Static Asset Handling", function() {
             expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
             expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
-            var assetKeys = Object.keys(assets);
-            expect(assetKeys).to.contain('html/bottom.js.html');
-            expect(assetKeys).to.contain('html/top.js.html');
-            expect(assetKeys).to.contain('html/top.css.html');
-            expect(assetKeys).to.contain('img/bab.jpg');
-            expect(assetKeys).to.contain('html/html1.html');
-            expect(assetKeys).to.contain('html/html2.html');
-            expect(assetKeys).to.contain('swf/flash.swf');
-            expect(assetKeys).to.contain('js/bottom.js.map');
-            expect(assetKeys).to.contain('js/bottom.f1fb2d8.js');
-            expect(assetKeys).to.contain('js/top.js.map');
-            expect(assetKeys).to.contain('js/top.9788b8b.js');
-            expect(assetKeys).to.contain('css/top.b1c537b.css');
-            expect(assetKeys).to.contain('manifest/bottom.js.txt');
-            expect(assetKeys).to.contain('manifest/top.js.txt');
-            expect(assetKeys).to.contain('manifest/top.css.txt');
+            expect(assets).to.have.keys('project1/local/html/bottom.js.html',
+              'project1/local/html/top.js.html',
+              'project1/local/manifest/bottom.js.txt',
+              'project1/local/manifest/top.js.txt',
+              'project1/local/js/bottom.js.map',
+              'project1/local/js/bottom.bcf91bb.js',
+              'project1/local/js/top.js.map',
+              'project1/local/js/top.71900f7.js');
+
+            expect(assets).to.have.keys('project2/local/html/bottom.js.html',
+              'project2/local/html/top.js.html',
+              'project2/local/html/top.css.html',
+              'project2/local/manifest/bottom.js.txt',
+              'project2/local/manifest/top.js.txt',
+              'project2/local/manifest/top.css.txt',
+              'project2/local/manifest/top.img.txt',
+              'project2/local/manifest/upload.html.txt',
+              'project2/local/manifest/top.swf.txt',
+              'project2/local/js/bottom.js.map',
+              'project2/local/js/bottom.73c6205.js',
+              'project2/local/js/top.js.map',
+              'project2/local/js/top.b9b5b9c.js',
+              'project2/local/css/top.b1c537b.css',
+              'project2/local/img/bab.jpg',
+              'project2/local/swf/flash.swf',
+              'project2/local/html/html1.html',
+              'project2/local/html/html2.html');
 
             done();
 
@@ -123,6 +143,7 @@ describe("Bosco Static Asset Handling", function() {
             repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
+            buildNumber: 'local',
             watchBuilds: false,
             reloadOnly: false
         }
@@ -131,13 +152,22 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('html/top.js.html',
-                                      'html/top.css.html',
-                                      'js/top.js.map',
-                                      'js/top.77917b1.js',
-                                      'css/top.b1c537b.css',
-                                      'manifest/top.js.txt',
-                                      'manifest/top.css.txt' );
+            expect(assets).to.have.keys('project1/local/html/top.js.html',
+                'project2/local/html/top.js.html',
+                'project2/local/html/top.css.html',
+                'project1/local/manifest/top.js.txt',
+                'project2/local/manifest/top.js.txt',
+                'project2/local/manifest/top.css.txt',
+                'project2/local/manifest/top.img.txt',
+                'project2/local/manifest/top.swf.txt',
+                'project1/local/js/top.js.map',
+                'project1/local/js/top.71900f7.js',
+                'project2/local/js/top.js.map',
+                'project2/local/js/top.dc0f5f1.js',
+                'project2/local/css/top.b1c537b.css',
+                'project2/local/img/bab.jpg',
+                'project2/local/swf/flash.swf' );
+
             done();
 
         });
@@ -150,6 +180,7 @@ describe("Bosco Static Asset Handling", function() {
             repos: ["project2"],
             minify: false,
             tagFilter: 'top',
+            buildNumber: 'local',
             watchBuilds: false,
             reloadOnly: false
         }
@@ -158,7 +189,8 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('project2/css/top2.scss');
+            var assetKeys = Object.keys(assets);
+            expect(assetKeys).to.contain('project2/css/top2.scss');
             expect(assets['project2/css/top2.scss'].content.toString()).to.not.contain('#main{width:5em}')
             done();
 
@@ -172,6 +204,7 @@ describe("Bosco Static Asset Handling", function() {
             repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
+            buildNumber: 'local',
             watchBuilds: false,
             reloadOnly: false
         }
@@ -180,8 +213,8 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(Object.keys(assets)).to.have.contain('css/top.b1c537b.css');
-            expect(assets['css/top.b1c537b.css'].content.toString()).to.contain('#main{width:5em}')
+            expect(Object.keys(assets)).to.contain('project2/local/css/top.b1c537b.css');
+            expect(assets['project2/local/css/top.b1c537b.css'].content.toString()).to.contain('#main{width:5em}')
             done();
 
         });
@@ -194,6 +227,7 @@ describe("Bosco Static Asset Handling", function() {
             repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
+            buildNumber: 'local',
             watchBuilds: false,
             reloadOnly: false
         }
@@ -202,10 +236,11 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('manifest/top.js.txt');
-            expect(assets['manifest/top.js.txt'].content.toString()).to.contain('project1/public/js/top1.js');
-            expect(assets['manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/top2.js');
-            expect(assets['manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/jquery-1.12.0-min.js');
+            var assetKeys = Object.keys(assets);
+            expect(assetKeys).to.contain('project1/local/manifest/top.js.txt','project2/local/manifest/top.js.txt');
+            expect(assets['project1/local/manifest/top.js.txt'].content.toString()).to.contain('project1/public/js/top1.js');
+            expect(assets['project2/local/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/top2.js');
+            expect(assets['project2/local/manifest/top.js.txt'].content.toString()).to.contain('project2/public/js/jquery-1.12.0-min.js');
             done();
 
         });
@@ -218,6 +253,7 @@ describe("Bosco Static Asset Handling", function() {
               repos: ["project2"],
               minify: true,
               tagFilter: 'upload',
+              buildNumber: 'local',
               watchBuilds: false,
               reloadOnly: false
           }
@@ -226,9 +262,9 @@ describe("Bosco Static Asset Handling", function() {
 
           utils.getStaticAssets(options, function(err, assets) {
 
-              var manifest = assets['manifest/upload.html.txt'].content.toString();
-
-              expect(assets).to.have.keys('manifest/upload.html.txt');
+              var manifest = assets['project2/local/manifest/upload.html.txt'].content.toString();
+              var assetKeys = Object.keys(assets);
+              expect(assetKeys).to.contain('project2/local/manifest/upload.html.txt');
               expect(manifest).to.contain('project2/public/html/html1.html');
               expect(manifest).to.contain('project2/public/html/html2.html');
               done();
@@ -243,6 +279,7 @@ describe("Bosco Static Asset Handling", function() {
             repos: ["project1","project2"],
             minify: true,
             tagFilter: 'top',
+            buildNumber: 'local',
             watchBuilds: false,
             reloadOnly: false
         }
@@ -250,8 +287,10 @@ describe("Bosco Static Asset Handling", function() {
         var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
-            expect(assets).to.have.keys('js/top.js.map');
-            expect(assets['js/top.77917b1.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
+            var assetKeys = Object.keys(assets);
+            expect(assetKeys).to.contain('project1/local/js/top.js.map','project2/local/js/top.js.map');
+            expect(assets['project1/local/js/top.71900f7.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
+            expect(assets['project2/local/js/top.dc0f5f1.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
             done();
 
         });
@@ -264,6 +303,7 @@ describe("Bosco Static Asset Handling", function() {
             repos: ["project1","project2","project3"],
             minify: true,
             tagFilter: null,
+            buildNumber: 'local',
             watchBuilds: false,
             reloadOnly: false
         }
@@ -271,8 +311,8 @@ describe("Bosco Static Asset Handling", function() {
         var utils = StaticUtils(boscoMock());
 
         utils.getStaticRepos(options, function(err, assets) {
-
-            expect(assets).to.have.keys('formattedRepos');
+            var assetKeys = Object.keys(assets);
+            expect(assetKeys).to.contain('formattedRepos');
             done();
 
         });
@@ -292,6 +332,7 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
             repos: ["project3"],
             minify: true,
             tagFilter: null,
+            buildNumber: 'local',
             watchBuilds: false,
             reloadOnly: false
         }
@@ -299,14 +340,14 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
         var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
-
-            expect(assets).to.have.keys('html/compiled.js.html',
-                                    'html/compiled.css.html',
-                                    'js/compiled.js.map',
-                                    'js/compiled.12915d7.js',
-                                    'css/compiled.bfbcf06.css',
-                                    'manifest/compiled.js.txt',
-                                    'manifest/compiled.css.txt');
+            var assetKeys = Object.keys(assets);
+            expect(assetKeys).to.contain('project3/local/html/compiled.js.html',
+                                    'project3/local/html/compiled.css.html',
+                                    'project3/local/js/compiled.js.map',
+                                    'project3/local/js/compiled.12915d7.js',
+                                    'project3/local/css/compiled.bfbcf06.css',
+                                    'project3/local/manifest/compiled.js.txt',
+                                    'project3/local/manifest/compiled.css.txt');
 
             done();
 
@@ -320,6 +361,7 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
             repos: ["project3"],
             minify: true,
             tagFilter: null,
+            buildNumber: 'local',
             watchBuilds: true,
             reloadOnly: false
         }
@@ -327,14 +369,14 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
         var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
-
-            expect(assets).to.have.keys('html/compiled.js.html',
-                                    'html/compiled.css.html',
-                                    'js/compiled.js.map',
-                                    'js/compiled.12915d7.js',
-                                    'css/compiled.bfbcf06.css',
-                                    'manifest/compiled.js.txt',
-                                    'manifest/compiled.css.txt');
+            var assetKeys = Object.keys(assets);
+            expect(assetKeys).to.contain('project3/local/html/compiled.js.html',
+                                    'project3/local/html/compiled.css.html',
+                                    'project3/local/js/compiled.js.map',
+                                    'project3/local/js/compiled.12915d7.js',
+                                    'project3/local/css/compiled.bfbcf06.css',
+                                    'project3/local/manifest/compiled.js.txt',
+                                    'project3/local/manifest/compiled.css.txt');
             done();
 
         });
@@ -349,6 +391,7 @@ it('should execute bespoke build commands and use output, and execute the watch 
             repos: ["project3"],
             minify: false,
             tagFilter: null,
+            buildNumber: 'local',
             watchBuilds: true,
             reloadOnly: false
         }
@@ -356,9 +399,9 @@ it('should execute bespoke build commands and use output, and execute the watch 
         var utils = StaticUtils(boscoMock());
 
         utils.getStaticAssets(options, function(err, assets) {
-
-            expect(assets).to.have.keys('html/compiled.js.html',
-                                  'html/compiled.css.html',
+            var assetKeys = Object.keys(assets);
+            expect(assets).to.have.keys('project3/local/html/compiled.js.html',
+                                  'project3/local/html/compiled.css.html',
                                   'project3/js/compiled.js',
                                   'project3/css/compiled.css');
             done();

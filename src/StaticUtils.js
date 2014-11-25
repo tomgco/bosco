@@ -15,6 +15,7 @@ module.exports = function(bosco) {
     var attachFormattedRepos = html.attachFormattedRepos;
 
     function getStaticAssets(options, next) {
+
         var repoTag = options.repoTag;
 
         async.mapSeries(options.repos, loadService, function(err, services) {
@@ -26,13 +27,11 @@ module.exports = function(bosco) {
                     (service.assets || service.files);
             });
 
-
-
             async.mapSeries(services, function(service, cb) {
 
                 doBuild(service, options, function(err) {
                     if(err) return cb(err);
-                    createAssetList(service, options.minify, options.tagFilter, cb);
+                    createAssetList(service, options.buildNumber, options.minify, options.tagFilter, cb);
                 });
 
             }, function(err, assetList) {
@@ -69,7 +68,7 @@ module.exports = function(bosco) {
         });
     }
 
-    function createAssetList(boscoRepo, minified, tagFilter, next) {
+    function createAssetList(boscoRepo, buildNumber, minified, tagFilter, next) {
 
         var assetKey, staticAssets = {},
             assetBasePath,
@@ -81,8 +80,8 @@ module.exports = function(bosco) {
                 _.forOwn(assets, function (value, tag) {
                     if (!value) return;
                     _.forEach(value, function (asset) {
-                        assetKey = path.join(boscoRepo.name, asset);
-                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, type, assetBasePath);
+                        assetKey = path.join(boscoRepo.serviceName, asset);
+                        assetHelper.addAsset(staticAssets, buildNumber, assetKey, asset, tag, type, assetBasePath);
                     });
                 });
             });
@@ -94,8 +93,8 @@ module.exports = function(bosco) {
                 _.forEach(_.pick(assetTypes, ['js', 'css', 'img', 'html', 'swf']), function (value, type) {
                     if (!value) return;
                     _.forEach(value, function (asset) {
-                        assetKey = path.join(boscoRepo.name, asset);
-                        assetHelper.addAsset(staticAssets, assetKey, asset, tag, type, assetBasePath);
+                        assetKey = path.join(boscoRepo.serviceName, asset);
+                        assetHelper.addAsset(staticAssets, buildNumber, assetKey, asset, tag, type, assetBasePath);
                     });
                 });
             });
@@ -116,9 +115,8 @@ module.exports = function(bosco) {
 
         if (bosco.exists(boscoRepoConfig)) {
             boscoConfig = JSON.parse(fs.readFileSync(boscoRepoConfig)) || {};
-
             boscoRepo = _.merge(boscoRepo, boscoConfig);
-
+            boscoRepo.serviceName = boscoRepo.service && boscoRepo.service.name ? boscoRepo.service.name : repo;
             if (boscoRepo.assets && boscoRepo.assets.basePath) {
                 boscoRepo.basePath = boscoRepo.assets.basePath;
             }

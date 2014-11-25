@@ -493,10 +493,6 @@ Bosco.prototype.getBaseCdnUrl = function () {
 
     if (!this.isLocalCdn()) {
         baseUrl += '/' + this.options.environment;
-
-        if (this.options.build) {
-            baseUrl += '/' + this.options.build;
-        }
     }
 
     return baseUrl;
