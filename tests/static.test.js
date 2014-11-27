@@ -45,6 +45,40 @@ describe("Bosco Static Asset Handling", function() {
     this.timeout(10000);
     this.slow(5000);
 
+    it('should load static assets in un-minified cdn mode, deduping where necessary with repo tag', function(done) {
+
+        var options = {
+            repos: ["project1","project2"],
+            repoTag: "testy",
+            minify: false,
+            buildNumber: 'local',
+            tagFilter: null,
+            watchBuilds: false,
+            reloadOnly: false
+        }
+
+        var localBosco = boscoMock()
+        var utils = StaticUtils(localBosco);
+
+        utils.getStaticAssets(options, function(err, assets) {
+
+            if (err) {
+                return done(err);
+            }
+
+            expect(assets).to.have.keys('project1/local/html/bottom.js.html',
+                'project1/local/html/top.js.html',
+                'project1/js/bottom1.js',
+                'project1/js/jquery-1.11.0-min.js',
+                'project1/js/top1.js'
+                );
+
+            done();
+
+        });
+
+    });
+
     it('should load static assets in un-minified cdn mode, deduping where necessary', function(done) {
 
         var options = {
