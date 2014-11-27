@@ -69,16 +69,16 @@ describe("Bosco Static Asset Handling", function() {
                 'project2/local/html/bottom.js.html',
                 'project2/local/html/top.js.html',
                 'project2/local/html/top.css.html',
-                'project1/js/bottom1.js',
-                'project1/js/jquery-1.11.0-min.js',
-                'project1/js/top1.js',
-                'project2/js/bottom2.js',
-                'project2/js/top2.js',
-                'project2/css/top2.scss',
-                'project2/img/bab.jpg',
-                'project2/html/html1.html',
-                'project2/html/html2.html',
-                'project2/swf/flash.swf');
+                'project1/local/js/bottom1.js',
+                'project1/local/js/jquery-1.11.0-min.js',
+                'project1/local/js/top1.js',
+                'project2/local/js/bottom2.js',
+                'project2/local/js/top2.js',
+                'project2/local/css/top2.scss',
+                'project2/local/img/bab.jpg',
+                'project2/local/html/html1.html',
+                'project2/local/html/html2.html',
+                'project2/local/swf/flash.swf');
 
             done();
 
@@ -122,9 +122,9 @@ describe("Bosco Static Asset Handling", function() {
               'project2/local/manifest/upload.html.txt',
               'project2/local/manifest/top.swf.txt',
               'project2/local/js/bottom.js.map',
-              'project2/local/js/bottom.73c6205.js',
+              'project2/local/js/bottom.dc2f517.js',
               'project2/local/js/top.js.map',
-              'project2/local/js/top.b9b5b9c.js',
+              'project2/local/js/top.dc0f5f1.js',
               'project2/local/css/top.b1c537b.css',
               'project2/local/img/bab.jpg',
               'project2/local/swf/flash.swf',
@@ -190,8 +190,8 @@ describe("Bosco Static Asset Handling", function() {
         utils.getStaticAssets(options, function(err, assets) {
 
             var assetKeys = Object.keys(assets);
-            expect(assetKeys).to.contain('project2/css/top2.scss');
-            expect(assets['project2/css/top2.scss'].content.toString()).to.not.contain('#main{width:5em}')
+            expect(assetKeys).to.contain('project2/local/css/top2.scss');
+            expect(assets['project2/local/css/top2.scss'].content.toString()).to.not.contain('#main{width:5em}')
             done();
 
         });
@@ -402,8 +402,8 @@ it('should execute bespoke build commands and use output, and execute the watch 
             var assetKeys = Object.keys(assets);
             expect(assets).to.have.keys('project3/local/html/compiled.js.html',
                                   'project3/local/html/compiled.css.html',
-                                  'project3/js/compiled.js',
-                                  'project3/css/compiled.css');
+                                  'project3/local/js/compiled.js',
+                                  'project3/local/css/compiled.css');
             done();
 
         });

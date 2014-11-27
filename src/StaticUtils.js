@@ -38,9 +38,11 @@ module.exports = function(bosco) {
 
                 var staticAssets = {};
 
+                // Flip through
                 assetList.forEach(function(asset) {
-                    _.forOwn(asset, function(value, key) {
-                        staticAssets[key] = value;
+                    _.forOwn(asset, function(value) {
+                        var fileKey = path.join(value.serviceName, value.buildNumber, value.asset);
+                        staticAssets[fileKey] = value;
                     });
                 });
 

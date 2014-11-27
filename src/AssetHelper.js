@@ -27,6 +27,7 @@ module.exports = function(bosco) {
                     newAsset.basePath = path.join(newAsset.repoPath, basePath);
                     newAsset.relativePath = path.join('.', basePath || '', asset);
                     newAsset.path = resolvedPath;
+                    newAsset.fileName = path.basename(asset);
                     newAsset.extname = path.extname(asset);
                     newAsset.bundleKey = boscoRepo.serviceName + '/' + tag;
                     newAsset.tag = tag;

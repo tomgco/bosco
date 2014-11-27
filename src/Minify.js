@@ -234,20 +234,7 @@ module.exports = function(bosco) {
 
    function compileOthers(staticAssets, otherAssets, next) {
 
-      _.forOwn(otherAssets, function(files) {
-
-          _.forOwn(files, function(file, bundleKey) {
-
-                // In this context compilation means 'moving' to the build folder
-                var existingAsset = staticAssets[bundleKey], serviceName = existingAsset.serviceName, buildNumber = existingAsset.buildNumber;
-                var assetKey = bundleKey.replace(serviceName, serviceName + '/' + buildNumber);
-                delete staticAssets[bundleKey];
-                staticAssets[assetKey] = existingAsset;
-
-            });
-
-      });
-
+      // For now do nothing
       next(null);
 
   }
