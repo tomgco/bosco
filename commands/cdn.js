@@ -76,11 +76,11 @@ function cmd(bosco, args) {
 
       var watchSet = {};
       _.forOwn(staticAssets, function(asset, key) {
-          if(asset.repo && !asset.repo.match(options.repoRegex)) {
+          if(asset.repo && !asset.repo.match(repoRegex)) {
             return;
           }
           if(!minify) {
-            watchSet[asset.path] = key;
+            if(asset.path) {  watchSet[asset.path] = key; }
             return;
           }
           if(asset.extname == '.manifest') {
@@ -91,23 +91,31 @@ function cmd(bosco, args) {
           }
       });
 
-      watch.createMonitor(bosco.getOrgPath(), {ignoreDirectoryPattern: /node_modules/, interval: 500}, function (monitor) {
+      var filterFn = function(f, stat) {
+        return f.match(repoRegex) && stat.isDirectory() || watchSet[f];
+      }
+
+      watch.createMonitor(bosco.getOrgPath(), {filter: filterFn, ignoreDotFiles: true, ignoreUnreadableDir: true, ignoreDirectoryPattern: /node_modules|\.git/, interval: 1000}, function (monitor) {
+
+        bosco.log('Watching '+ _.keys(monitor.files).length + ' files ...');
 
         monitor.on('changed', function (f) {
+
           var fileKey = watchSet[f];
+
           if(!minify) {
               if(fileKey) {
-                        fs.readFile(staticAssets[fileKey].path, function (err, data) {
-                            if (err) {
-                                bosco.log('Error reloading '+fileKey);
-                                bosco.log(err.toString());
-                                return;
-                            }
+                  fs.readFile(staticAssets[fileKey].path, function (err, data) {
+                      if (err) {
+                          bosco.log('Error reloading '+fileKey);
+                          bosco.log(err.toString());
+                          return;
+                      }
 
-                            staticAssets[fileKey].data = data;
-                            staticAssets[fileKey].content = data.toString();
-                            bosco.log('Reloaded ' + fileKey);
-                        });
+                      staticAssets[fileKey].data = data;
+                      staticAssets[fileKey].content = data.toString();
+                      bosco.log('Reloaded ' + fileKey);
+                  });
               }
           } else {
               if(fileKey) {
@@ -115,6 +123,7 @@ function cmd(bosco, args) {
                   var options = {
                     repos: repos,
                     minify: minify,
+                    buildNumber: 'local',
                     tagFilter: fileKey,
                     watchBuilds: false,
                     reloadOnly: true
