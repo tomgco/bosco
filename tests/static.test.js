@@ -66,11 +66,13 @@ describe("Bosco Static Asset Handling", function() {
                 return done(err);
             }
 
+            console.dir(_.keys(assets));
+
             expect(assets).to.have.keys('project1/local/html/bottom.js.html',
                 'project1/local/html/top.js.html',
-                'project1/js/bottom1.js',
-                'project1/js/jquery-1.11.0-min.js',
-                'project1/js/top1.js'
+                'project1/local/js/bottom1.js',
+                'project1/local/js/jquery-1.11.0-min.js',
+                'project1/local/js/top1.js'
                 );
 
             done();
