@@ -302,6 +302,7 @@ Bosco.prototype._commands = function() {
         }).filter(function(file) {
             return fs.statSync(file).isFile();
         }).forEach(function(file) {
+            if (path.extname(file) !== '.js') { return null; }
             showCommand(require(file))
         });
         console.log(table.toString());
