@@ -61,7 +61,7 @@
     "node-sass": "^0.9.3",
     "nsp": "^0.4.2",
     "parse-link-header": "^0.2.0",
-    "pm2": "^0.12.1",
+    "pm2": "^0.12.2",
     "prettyjson": "^1.0.0",
     "progress": "^1.1.8",
     "prompt": "^0.2.13",
