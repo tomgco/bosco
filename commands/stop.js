@@ -42,16 +42,6 @@ function cmd(bosco, args, next) {
 
             if (repo.match(repoRegex)) {
 
-                if (bosco.exists(packageJson)) {
-                    pkg = require(packageJson);
-                    if (pkg.scripts && pkg.scripts.start) {
-                        // Assume node
-                        if (_.contains(runningServices, repo)) {
-                            return NodeRunner.stop({name: repo}, cb);
-                        }
-                    }
-                }
-
                 if (bosco.exists(boscoService)) {
                     svc = require(boscoService);
                     if (svc.service) {
@@ -68,6 +58,15 @@ function cmd(bosco, args, next) {
                     }
                 }
 
+                if (bosco.exists(packageJson)) {
+                    pkg = require(packageJson);
+                    if (pkg.scripts && pkg.scripts.start) {
+                        // Assume node
+                        if (_.contains(runningServices, repo)) {
+                            return NodeRunner.stop({name: repo}, cb);
+                        }
+                    }
+                }
             }
 
             cb();
