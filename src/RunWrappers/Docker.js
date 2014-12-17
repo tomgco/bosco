@@ -56,13 +56,12 @@ Runner.prototype.list = function(detailed, next) {
 
 Runner.prototype.stop = function(options, next) {
     var self = this, docker = self.docker;
-    var dockerFqn = self.getFqn(options);
     docker.listContainers({
         all: false
     }, function(err, containers) {
         var toStop = [];
         containers.forEach(function(container) {
-            if (self.matchWithoutVersion(container.Image, dockerFqn)) {
+            if (self.containerNameMatches(container, options.service.name)) {
                 var cnt = docker.getContainer(container.Id);
                 toStop.push(cnt);
             }
@@ -114,6 +113,12 @@ Runner.prototype.matchWithoutVersion = function(a, b) {
     a = a.slice(0, a.lastIndexOf(':'));
     b = b.slice(0, b.lastIndexOf(':'));
     return a === b;
+}
+
+Runner.prototype.containerNameMatches = function(container, name) {
+  return _.any(container.Names, function(val) {
+    return val == '/' + name;
+  });
 }
 
 module.exports = new Runner();
