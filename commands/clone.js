@@ -90,7 +90,11 @@ function cmd(bosco, args, next) {
 
                     var pagination = parse(res.headers.link);
 
-                    url = pagination.next ? pagination.next.url : null;
+                    if (!_.isNull(pagination)) {
+                        url = pagination.next ? pagination.next.url : null;
+                    } else {
+                        url = null;
+                    }
 
                     next();
                 });
