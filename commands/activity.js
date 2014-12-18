@@ -72,7 +72,7 @@ function repoActivity(bosco, orgPath, repo, since, next) {
                 if (!stdout.length) return next();
 
                 figlet(repo, function(err, data) {
-                    if (!err) bosco.log(data);
+                    if (!err) bosco.log('\n' + data);
                     else bosco.log(repo);
 
                     bosco.log('\n' + stdout);
