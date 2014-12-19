@@ -1,4 +1,5 @@
 var ch = require('../src/CmdHelper');
+var _ = require('lodash');
 
 module.exports = {
     name:'exec',
@@ -9,11 +10,17 @@ module.exports = {
 
 function cmd(bosco, args) {
 
-    var execCommand = args.join(' ');
-    bosco.log('Running "' + execCommand.green + '" across all matching repos ...');
+    var command = args[0],
+        cmdArgs = _.rest(args);
+
+    bosco.log('Running "' + args.join(' ').green + '" across all matching repos ...');
 
     var options = ch.createOptions(bosco, {
-        cmd: execCommand
+        cmd: command,
+        args: cmdArgs,
+        stdoutStreamFn: function(buffer) {
+            process.stdout.write(buffer.toString());
+        }
     });
 
     ch.iterate(bosco, options, function() {

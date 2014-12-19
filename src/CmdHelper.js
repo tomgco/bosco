@@ -1,6 +1,7 @@
 var async = require('async');
 var _ = require('lodash');
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
+var hl = require('highland');
 
 /**
  * Helper functions to reduce repetition and boiler plate in commands
@@ -9,6 +10,7 @@ function createOptions(bosco, options) {
 
     return _.defaults(options, {
         cmd: 'echo NO COMMAND DEFINED!',
+        args: [],
         guardFn: function(bosco, repoPath, options, next) {
             next();
         },
@@ -37,7 +39,7 @@ function iterate(bosco, options, next) {
 
       options.guardFn(bosco, repoPath, options, function(err) {
         if(err) return repoCb(err);
-        execute(options.cmd, repoPath, options, repoCb);
+        execute(bosco, options.cmd, options.args, repoPath, options, repoCb);
       });
 
     }, function(err) {
@@ -47,17 +49,35 @@ function iterate(bosco, options, next) {
 
 }
 
-function execute(command, repoPath, options, next) {
+function execute(bosco, command, args, repoPath, options, next) {
 
-    exec(command, {
+    var stderr = '', stdout = '';
+
+    var sc = spawn(command, args, {
       cwd: repoPath
-    }, function(err, stdout, stderr) {
-        if(err) {
-            options.stderrFn(stderr, repoPath);
-        } else {
-            options.stdoutFn(stdout, repoPath);
-        }
-        next(err);
+    });
+
+    if(options.stdoutStreamFn) {
+        bosco.log('Starting output stream for: ' + repoPath.green);
+        hl(sc.stdout).each(function(buffer) { options.stdoutStreamFn(buffer, repoPath) });
+    } else {
+        sc.stdout.on('data', function (data) {
+            stdout += data;
+        });
+    }
+
+    if(options.stderrStreamFn) {
+        hl(sc.stderr).each(function(buffer) { options.stderrStreamFn(buffer, repoPath) });
+    } else {
+        sc.stderr.on('data', function (data) {
+            stderr += data;
+        });
+    }
+
+    sc.on('close', function (code) {
+      if(stderr) { options.stderrFn(stderr, repoPath); }
+      if(stdout) { options.stdoutFn(stdout, repoPath); }
+      next(code === 0 ? null : 'Process exited with status code ' + code);
     });
 
 }
