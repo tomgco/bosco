@@ -8,21 +8,30 @@ var hl = require('highland');
  */
 function createOptions(bosco, options) {
 
-    return _.defaults(options, {
-        cmd: 'echo NO COMMAND DEFINED!',
-        args: [],
+    options = _.defaults(options, {
+        cmd: 'echo',
+        args: ['NO COMMAND DEFINED!'],
         guardFn: function(bosco, repoPath, options, next) {
             next();
-        },
-        stdoutFn: function(stdout, repoPath) {
-            bosco.error(repoPath.green + ' >> ' + stdout);
-        },
-        stderrFn: function(stderr, repoPath) {
-            bosco.error(repoPath.red + ' >> ' + stderr);
         },
         dieOnError: false
     });
 
+    if (!options.init) {
+        if (options.stdoutFn === undefined) {
+            options.stdoutFn = function(stdout, repoPath) {
+                bosco.error(repoPath.green + ' >> ' + stdout);
+            };
+        }
+
+        if (options.stderrFn === undefined) {
+            options.stderrFn = function(stderr, repoPath) {
+                bosco.error(repoPath.red + ' >> ' + stderr);
+            };
+        }
+    }
+
+    return options;
 }
 
 function iterate(bosco, options, next) {
@@ -51,35 +60,65 @@ function iterate(bosco, options, next) {
 
 function execute(bosco, command, args, repoPath, options, next) {
 
-    var stderr = '', stdout = '';
-
-    var sc = spawn(command, args, {
-      cwd: repoPath
-    });
-
-    if(options.stdoutStreamFn) {
-        bosco.log('Starting output stream for: ' + repoPath.green);
-        hl(sc.stdout).each(function(buffer) { options.stdoutStreamFn(buffer, repoPath) });
-    } else {
-        sc.stdout.on('data', function (data) {
-            stdout += data;
-        });
+    if (options.init && (options.stdoutFn || options.stderrFn)) {
+        bosco.error('command init and stdoutFn/stderrFn are not compatible.');
+        return next(Error('Bad command'));
     }
 
-    if(options.stderrStreamFn) {
-        hl(sc.stderr).each(function(buffer) { options.stderrStreamFn(buffer, repoPath) });
-    } else {
-        sc.stderr.on('data', function (data) {
-            stderr += data;
-        });
+    var stdio = ['pipe', 'pipe', 'pipe'];
+
+    if (!options.init) {
+        stdio[0] = 'ignore';
+        if (!options.stdoutFn) {
+            stdio[1] = 'ignore';
+        }
+        if (!options.stderrFn) {
+            stdio[2] = 'ignore';
+        }
+    }
+
+    var sc = spawn(command, args, {
+        cwd: repoPath,
+        stdio: stdio
+    });
+
+    sc.on('error', function(err) {
+        bosco.error('spawn error: ' + err);
+    });
+
+    if (stdio[1] != 'ignore') {
+        sc.stdio[1] = sc.stdout = hl(sc.stdout);
+
+        if (options.stdoutFn) {
+            sc.stdout.toArray(function(stdout) {
+                stdout = stdout.join('');
+                if (stdout.length) {
+                    options.stdoutFn(stdout, repoPath);
+                }
+            });
+        }
+    }
+
+    if (stdio[2] != 'ignore') {
+        sc.stdio[2] = sc.stderr = hl(sc.stderr);
+
+        if (options.stderrFn) {
+            sc.stderr.toArray(function(stderr) {
+                stderr = stderr.join('');
+                if (stderr.length) {
+                    options.stderrFn(stderr, repoPath);
+                }
+            });
+        }
+    }
+
+    if (options.init) {
+        options.init(bosco, sc, repoPath);
     }
 
     sc.on('close', function (code) {
-      if(stderr) { options.stderrFn(stderr, repoPath); }
-      if(stdout) { options.stdoutFn(stdout, repoPath); }
-      next(code === 0 ? null : 'Process exited with status code ' + code);
+        next(code === 0 ? null : 'Process exited with status code ' + code);
     });
-
 }
 
 module.exports = {
