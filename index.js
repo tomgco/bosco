@@ -12,6 +12,7 @@ var path = require('path');
 var progress = require('progress');
 var prompt = require('prompt');
 var request = require('request');
+var semver = require('semver');
 var sf = require('sf');
 var Table = require('cli-table');
 var util = require('util');
@@ -361,8 +362,8 @@ Bosco.prototype._checkVersion = function() {
         if (!error && response.statusCode == 200) {
             var jsonBody = JSON.parse(body);
             var version = jsonBody['dist-tags'].latest;
-            if (self.options.version !== version) {
-                self.error('There is a newer version (Remote: ' + version.green + ' <> Local: ' + self.options.version.yellow + ') of Bosco available, you should upgrade!');
+            if (semver.lt(self.options.version, version)) {
+                self.error('There is a newer version (Local: ' + self.options.version.yellow + ' < Remote: ' + version.green + ') of Bosco available, you should upgrade!');
                 console.log('\r');
             }
         }
