@@ -2,19 +2,19 @@
  * Core bosco libraries
  */
 
-var events = require('events');
 var _ = require('lodash');
-var util = require('util');
+var async = require('async');
+var events = require('events');
 var fs = require('fs');
+var knox = require('knox');
+var mkdirp = require('mkdirp');
 var path = require('path');
 var progress = require('progress');
-var Table = require('cli-table');
 var prompt = require('prompt');
-var async = require('async');
-var mkdirp = require('mkdirp');
-var knox = require('knox');
 var request = require('request');
 var sf = require('sf');
+var Table = require('cli-table');
+var util = require('util');
 
 prompt.message = 'Bosco'.green;
 
