@@ -142,9 +142,9 @@ describe("Bosco Static Asset Handling", function() {
               'project1/local/manifest/bottom.js.txt',
               'project1/local/manifest/top.js.txt',
               'project1/local/js/bottom.js.map',
-              'project1/local/js/bottom.bcf91bb.js',
+              'project1/local/js/bottom.js',
               'project1/local/js/top.js.map',
-              'project1/local/js/top.71900f7.js');
+              'project1/local/js/top.js');
 
             expect(assets).to.have.keys('project2/local/html/bottom.js.html',
               'project2/local/html/top.js.html',
@@ -156,10 +156,10 @@ describe("Bosco Static Asset Handling", function() {
               'project2/local/manifest/upload.html.txt',
               'project2/local/manifest/top.swf.txt',
               'project2/local/js/bottom.js.map',
-              'project2/local/js/bottom.dc2f517.js',
+              'project2/local/js/bottom.js',
               'project2/local/js/top.js.map',
-              'project2/local/js/top.dc0f5f1.js',
-              'project2/local/css/top.b1c537b.css',
+              'project2/local/js/top.js',
+              'project2/local/css/top.css',
               'project2/local/img/bab.jpg',
               'project2/local/swf/flash.swf',
               'project2/local/html/html1.html',
@@ -195,10 +195,10 @@ describe("Bosco Static Asset Handling", function() {
                 'project2/local/manifest/top.img.txt',
                 'project2/local/manifest/top.swf.txt',
                 'project1/local/js/top.js.map',
-                'project1/local/js/top.71900f7.js',
+                'project1/local/js/top.js',
                 'project2/local/js/top.js.map',
-                'project2/local/js/top.dc0f5f1.js',
-                'project2/local/css/top.b1c537b.css',
+                'project2/local/js/top.js',
+                'project2/local/css/top.css',
                 'project2/local/img/bab.jpg',
                 'project2/local/swf/flash.swf' );
 
@@ -247,8 +247,8 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(Object.keys(assets)).to.contain('project2/local/css/top.b1c537b.css');
-            expect(assets['project2/local/css/top.b1c537b.css'].content.toString()).to.contain('#main{width:5em}')
+            expect(Object.keys(assets)).to.contain('project2/local/css/top.css');
+            expect(assets['project2/local/css/top.css'].content.toString()).to.contain('#main{width:5em}')
             done();
 
         });
@@ -323,8 +323,8 @@ describe("Bosco Static Asset Handling", function() {
         utils.getStaticAssets(options, function(err, assets) {
             var assetKeys = Object.keys(assets);
             expect(assetKeys).to.contain('project1/local/js/top.js.map','project2/local/js/top.js.map');
-            expect(assets['project1/local/js/top.71900f7.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
-            expect(assets['project2/local/js/top.dc0f5f1.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
+            expect(assets['project1/local/js/top.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
+            expect(assets['project2/local/js/top.js'].content.toString()).to.contain('//# sourceMappingURL=top.js.map');
             done();
 
         });
@@ -378,8 +378,8 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
             expect(assetKeys).to.contain('project3/local/html/compiled.js.html',
                                     'project3/local/html/compiled.css.html',
                                     'project3/local/js/compiled.js.map',
-                                    'project3/local/js/compiled.12915d7.js',
-                                    'project3/local/css/compiled.bfbcf06.css',
+                                    'project3/local/js/compiled.js',
+                                    'project3/local/css/compiled.css',
                                     'project3/local/manifest/compiled.js.txt',
                                     'project3/local/manifest/compiled.css.txt');
 
@@ -407,8 +407,8 @@ describe("Bosco Static Asset Handling - Custom Building", function() {
             expect(assetKeys).to.contain('project3/local/html/compiled.js.html',
                                     'project3/local/html/compiled.css.html',
                                     'project3/local/js/compiled.js.map',
-                                    'project3/local/js/compiled.12915d7.js',
-                                    'project3/local/css/compiled.bfbcf06.css',
+                                    'project3/local/js/compiled.js',
+                                    'project3/local/css/compiled.css',
                                     'project3/local/manifest/compiled.js.txt',
                                     'project3/local/manifest/compiled.css.txt');
             done();
