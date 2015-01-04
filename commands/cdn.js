@@ -95,11 +95,14 @@ function cmd(bosco, args) {
         return f.match(repoRegex) && stat.isDirectory() || watchSet[f];
       }
 
-      watch.createMonitor(bosco.getOrgPath(), {filter: filterFn, ignoreDotFiles: true, ignoreUnreadableDir: true, ignoreDirectoryPattern: /node_modules|\.git/, interval: 1000}, function (monitor) {
+      watch.createMonitor(bosco.getOrgPath(), {filter: filterFn, ignoreDotFiles: true, ignoreUnreadableDir: true, ignoreDirectoryPattern: /node_modules|\.git|coverage|dist/, interval: 1000}, function (monitor) {
 
         bosco.log('Watching '+ _.keys(monitor.files).length + ' files ...');
+        var reloading = false;
 
         monitor.on('changed', function (f) {
+
+          if(reloading) return; reloading = true; // Ensure only ever doing this once
 
           var fileKey = watchSet[f];
 
@@ -115,6 +118,7 @@ function cmd(bosco, args) {
                       staticAssets[fileKey].data = data;
                       staticAssets[fileKey].content = data.toString();
                       bosco.log('Reloaded ' + fileKey);
+                      reloading = false;
                   });
               }
           } else {
@@ -127,7 +131,7 @@ function cmd(bosco, args) {
                     tagFilter: fileKey,
                     watchBuilds: false,
                     reloadOnly: true
-                }
+                  }
                   bosco.staticUtils.getStaticAssets(options, function(err, updatedAssets) {
                       // Clear old for tag
                       _.forOwn(staticAssets, function(value, key) {
@@ -138,6 +142,7 @@ function cmd(bosco, args) {
                           staticAssets[key] = value;
                       });
                       bosco.log('Reloaded minified assets for tag ' + fileKey.blue);
+                      reloading = false;
                   });
               }
           }

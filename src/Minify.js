@@ -1,6 +1,5 @@
 var _ = require('lodash');
 var fs = require('fs');
-var crypto = require('crypto');
 var path = require('path');
 var UglifyJS = require('uglify-js');
 var sass = require('node-sass');
@@ -79,7 +78,7 @@ module.exports = function(bosco) {
           var assetPath = value.asset || '';
           var relativePath = path.join(repoPath, basePath, assetPath);
 
-          manifests[manifestFile].content += relativePath + ', Hash: ' + createHash(value.content) + ', Last commit: ' + value.commit;
+          manifests[manifestFile].content += relativePath + ', Last commit: ' + value.commit;
           manifests[manifestFile].files.push({
               key: createKey(value.serviceName, value.buildNumber, relativePath, '', 'src', ''),
               relativePath: relativePath,
@@ -143,8 +142,7 @@ module.exports = function(bosco) {
           staticAssets[mapKey].mimeType = 'application/javascript';
           staticAssets[mapKey].content = compiled.map;
 
-          var hash = createHash(compiled.code);
-          var minKey = createKey(serviceName, buildNumber, tag, hash, 'js', 'js');
+          var minKey = createKey(serviceName, buildNumber, tag, null, 'js', 'js');
           staticAssets[minKey] = staticAssets[minKey] || {};
           staticAssets[minKey].serviceName = serviceName;
           staticAssets[minKey].buildNumber = buildNumber;
@@ -152,7 +150,6 @@ module.exports = function(bosco) {
           staticAssets[minKey].extname = '.js';
           staticAssets[minKey].tag = tag;
           staticAssets[minKey].type = 'js';
-          staticAssets[minKey].hash = hash;
           staticAssets[minKey].mimeType = 'application/javascript';
           staticAssets[minKey].content = compiled.code;
 
@@ -197,6 +194,8 @@ module.exports = function(bosco) {
 
           sassRender({key: css.assetKey, content: css.scss}, function(err, code) {
 
+            if(err) return next(err);
+
             var cssContent = css.css + code.content, serviceName = css.serviceName, buildNumber = css.buildNumber;
 
             var cleanCssConfig = bosco.config.get('css:clean');
@@ -209,8 +208,7 @@ module.exports = function(bosco) {
                   message: 'No css for tag ' + css.tag
               });
 
-              var hash = createHash(cssContent);
-              var assetKey = createKey(serviceName, buildNumber, css.tag, hash, 'css', 'css');
+              var assetKey = createKey(serviceName, buildNumber, css.tag, null, 'css', 'css');
               staticAssets[assetKey] = staticAssets[assetKey] || {};
               staticAssets[assetKey].serviceName = serviceName;
               staticAssets[assetKey].buildNumber = buildNumber;
@@ -218,7 +216,6 @@ module.exports = function(bosco) {
               staticAssets[assetKey].extname = '.css';
               staticAssets[assetKey].tag = css.tag;
               staticAssets[assetKey].type = 'css';
-              staticAssets[assetKey].hash = hash + '.' + buildNumber;
               staticAssets[assetKey].mimeType = 'text/css';
               staticAssets[assetKey].content = cssContent;
 
@@ -237,16 +234,6 @@ module.exports = function(bosco) {
       // For now do nothing
       next(null);
 
-  }
-
-  function createHash(code) {
-      var hash = crypto.createHash('sha1').update(code).digest('hex').slice(0, 7);
-      hash = hash.replace(/a/g,'b');
-      hash = hash.replace(/e/g,'f');
-      hash = hash.replace(/i/g,'j');
-      hash = hash.replace(/o/g,'p');
-      hash = hash.replace(/u/g,'v');
-      return hash;
   }
 
   function  sassRender(scss, callback) {
