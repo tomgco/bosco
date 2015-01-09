@@ -24,7 +24,7 @@ function cmd(bosco) {
         stdoutFn: function(stdout, path) {
             if(stdout) {
                 if(stdout.indexOf('Changes not staged') > 0) {
-                    bosco.log(stdout);
+                    bosco.log(orgPath.blue + ':\n' + stdout);
                 } else if(stdout.indexOf('Your branch is ahead') > 0) {
                     bosco.log(path.blue + ':\n' + stdout);
                 } else {
