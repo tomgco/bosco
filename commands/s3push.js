@@ -28,7 +28,7 @@ function cmd(bosco, args) {
 
     bosco.log('Compile front end assets across services ' + (tag ? 'for tag: ' + tag.blue : ''));
 
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
     if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
     var pushAllToS3 = function(staticAssets, confirmation, next) {

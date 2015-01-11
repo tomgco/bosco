@@ -14,7 +14,7 @@ module.exports = {
 
 function cmd(bosco) {
 
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
     if (!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
     var regex = bosco.options.repo;

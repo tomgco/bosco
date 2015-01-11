@@ -14,8 +14,6 @@ npm install bosco -g
 bosco setup
 ```
 
-Run this command in a folder where you want all of your projects to live.  It will prompt you for some information, and then save this configuration in this based folder, in future always run bosco from here - this is your new work folder when working in this team.
-
 ## Configuration
 
 It will ask initially for:
@@ -23,41 +21,41 @@ It will ask initially for:
 |Configuration|Description|
 |:-----------------|-----------|
 |Github name|Your username|
-|Github Organization|The organization it will query for repos, e.g. tes.|
 |Github Auth Key|A key that gives read access to the repositories in the organization (you can set this up here: https://github.com/blog/1509-personal-api-tokens).|
-|Github Team|This is the team that it will query to get the repository list.  If you don't enter it, it will default to Owners|
 
-This is then saved in a configuration file locally on disk, default is in .bosco/bosco.json, so all subsequent commands use it.  In addition to this data Bosco stores some default configuration for CleanCSS and Uglify.
+This is then saved in a configuration file locally on disk, default is in ~/.bosco/bosco.json, so all subsequent commands use it.
 
-```json
-{
-  "progress":"bar",
-  "css":{
-    "clean":{
-          "enabled":true,
-          "options":{
-              "keepBreaks":false,
-              "processImport":true
-          }
-      }
-  },
-  "js":{
-      "uglify":{
-          "mangle":false,
-          "outputOptions":{},
-          "compressorOptions":{}
-      }
-  }
-  "github": {
-    "organization": "tes",
-    "authToken": "2266b8xxxxxxxxxxxxxxxxxxxxxa84a5f9",
-    "team": "southampton-buildings",
-    "user": "cliftonc"
-  }
-}
+Bosco will also include any configuration in a file in the .bosco folder of your workspace (see below) with the environment specified via the -e parameter, along with global defaults in a file called 'defaults.json'.  This allows you to manage things like AWS keys for publication of assets into different environments, or configuration for uglify or cleancss.
+
+## Workspaces
+
+Bosco is built around the idea that you use github teams to manage groups of repositories.  So, when you first run setup, Bosco will connect to Github, grab all of the teams that you belong to - across all organisations - and cache them locally.
+
+It will then ask you to link a team to a workspace folder - this folder can be anywhere, but it just lets Bosco know that this is the place where that team lives, this then appears in the output of the command 'bosco team ls'.
+
+```
+[07:09:26] Bosco: I'm glad I didn't know you when I was a kid.
+[07:09:26] Bosco: Initialised using [/Users/cliftonc/.bosco/bosco.json] in environment [local] with team [service]
+[07:09:26] Bosco: Your current github organisations and teams
+[07:09:26] Bosco:  - tes/southampton-buildings > /Users/cliftonc/work/resources
+[07:09:26] Bosco:  - tes/staff > Not linked
+[07:09:26] Bosco:  - tes/cms > Not linked
+[07:09:26] Bosco:  - tes/twigkit > Not linked
+[07:09:26] Bosco:  - tes/example > Not linked
+[07:09:26] Bosco:  - tes/engineering > Not linked
+[07:09:26] Bosco:  - tes/world-university-rankings > Not linked
+[07:09:26] Bosco:  - tes/profiles > /Users/cliftonc/work/profiles
+[07:09:26] Bosco:  - Calipso/owners > Not linked
+[07:09:26] Bosco:  - tes/owners > Not linked
 ```
 
-Bosco will also include any configuration in a file in the .bosco folder with the environment specified via the -e parameter, along with global defaults in a file called 'defaults.json'.  This allows you to manage things like AWS keys for publication of assets into different environments, or configuration for uglify or cleancss.
+To link a workspace, simply:
+
+```
+bosco team ln tes/example .
+```
+
+This will link the team 'tes/example' into the current folder as its workspace.
 
 ## Command List
 
@@ -68,6 +66,8 @@ To get a list of installed commands in your installation just type 'bosco':
 ```
 ┌────────────┬────────────────────────────────────────────────────────────┐
 │ Core       │ Example                                                    │
+├────────────┼────────────────────────────────────────────────────────────┤
+│ team       │ bosco team sync | bosco team ls | bosco team ln <team> <dr>│
 ├────────────┼────────────────────────────────────────────────────────────┤
 │ cdn        │ bosco cdn <minify>                                         │
 ├────────────┼────────────────────────────────────────────────────────────┤
@@ -125,7 +125,8 @@ You can use a number of parameters to control the behaviour of Bosco.  Parameter
 |---------|-----------|-------|--------|
 |-e, --environment|Environment name|bosco -e development s3push|local|
 |-b, --build|Build number or tag|bosco -e production -b 66 s3push|default|
-|-c, --configFile|Config file|bosco -c config.json clone|.bosco/bosco.json|
+|-c, --configFile|Config file|bosco -c config.json clone|~/.bosco/bosco.json|
+|-, --configPath|Config path|bosco -p /usr/config clone|~/.bosco/bosco.json|
 |-n, --noprompt|Do not prompt for confirmation|bosco -e staging -b 67 -n s3push|false|
 |-f, --force|Force over ride of any files|bosco -e production -b 66 -f s3push|false|
 
@@ -147,7 +148,7 @@ The default command, this sets you up.
 bosco setup
 ```
 
-This will clone all the repositories in your team, and then run npm install on all of them.  If the repository already exists locally it will skip it.  Typically you only use this command once, and use the other pull, install, morning commands on a daily basis.
+This will sync with github, ask you for a default team and workspace folder, clone all the repositories in that team, and then run npm install on all of them.  If any repository already exists locally it will skip it.  Typically you only use this command once, and use the other pull, install, morning commands on a daily basis.
 
 ## Service Configuration
 
@@ -248,13 +249,13 @@ You can view all assets that are being tracked by `bosco cdn` by going to any ur
 
 ### S3 Push
 
-This will create bundles for front end assets (JS, CSS, Templates).
+This will create bundles for front end assets (JS, CSS, Templates), this command can be run *across* repositories in a workspace, but it is typically run within a single service (hence the -s parameter below) by a build server that dynamically assigns a build number.
 
 ```
-bosco s3push -e <environment> -b <buildname> <tagname>
+bosco s3push -s -e <environment> -b <buildnumber>
 ```
 
-This command requires that you have configured your AWS details for S3.  Best to put these into your .bosco folder in a per environment config, e.g. .bosco/development.json.
+This command requires that you have configured your AWS details for S3.  Best to put these into a .bosco folder in the project workspace a per environment config, e.g. .bosco/tes.json.
 
 ```json
 {
@@ -272,38 +273,14 @@ This command requires that you have configured your AWS details for S3.  Best to
 To then access the html fragments for [compoxure](https://github.com/tes/compoxure), it follows a simple convention:
 
 ```
-<cdn>/<environment>/<build>/<type>/<tag>.<fragmentType>.<js|css|html|map|txt>
+<cdn>/<environment>/<build>/<type>/<bundle>.<fragmentType>.<js|css|html|map|txt>
 ```
 
 For example:
 
-- [https://dudu89lpwit3y.cloudfront.net/development/cliftonc/html/bottom.js.html](https://dudu89lpwit3y.cloudfront.net/development/cliftonc/html/bottom.js.html)
+- [https://dudu89lpwit3y.cloudfront.net/tes/55/html/bottom.js.html](https://dudu89lpwit3y.cloudfront.net/tes/55/html/bottom.js.html)
 
-This would contain a fragment that has script tag for all of the minified JS tagged in the bottom group.
-
-It is recommended that you also add a temporary (or permanent) build tag via the -b parameter, e.g.
-
-```
-bosco s3push -e development -b mybuild21 <tagname optional>
-```
-
-- [https://dudu89lpwit3y.cloudfront.net/development/mybuild21/html/bottom.js.html](https://dudu89lpwit3y.cloudfront.net/development/mybuild21/html/bottom.js.html)
-
-### Managing Pushes to S3
-
-Every time you do a push to S3 Bosco will keep track of it in a per environment configuration file, allowing you to clean up after yourself via two additional s3 commands:
-
-```
-bosco -e development s3list
-```
-
-This will list the current builds you have pushed to S3.
-
-```
-bosco -e development s3delete mybuild21
-```
-
-This will delete a specific build from an environment.  Note that the build name is not supplied by the -b parameter in this instance.
+This would contain a fragment that has script a tag for all of the minified JS tagged in the bottom group.
 
 ## Manifest Files
 

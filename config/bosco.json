@@ -1,5 +1,5 @@
 {
-	"progress":"bar",
+	"progress":"verbose",
 	"css":{
     	"clean":{
         	"enabled":true,

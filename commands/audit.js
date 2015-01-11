@@ -15,7 +15,7 @@ function cmd(bosco, args, next) {
     var repoPattern = bosco.options.repo;
     var repoRegex = new RegExp(repoPattern);
 
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
     if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco fly\'.');
 
     var auditRepos = function (done) {

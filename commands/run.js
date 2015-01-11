@@ -36,7 +36,7 @@ function cmd(bosco, args, cb) {
     if(bosco.options.list) {
         repos = bosco.options.list.split(',');
     } else {
-        repos = bosco.config.get('github:repos');
+        repos = bosco.getRepos();
     }
 
     var initialiseRunners = function(next) {
