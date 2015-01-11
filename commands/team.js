@@ -13,7 +13,7 @@ module.exports = {
 
 function cmd(bosco, args, next) {
   var action = args.shift();
-  if(action == 'sync') { return sync(bosco, next); }
+  if(action == 'sync') { return syncTeams(bosco, next); }
   if(action == 'ls') { return showTeams(bosco); }
   if(action == 'ln') { return linkTeam(bosco, args.shift(), args.shift(), next); }
   if(action == 'setup') { return setupInitialLink(bosco, next); }
@@ -28,12 +28,6 @@ function showTeams(bosco) {
   bosco.log('Your current github organisations and teams');
   _.each(teams, function(team) {
     bosco.log(' - ' + team.green + ' > ' + (teamConfig[team].path ? teamConfig[team].path.cyan : 'Not linked'.grey));
-  });
-}
-
-function sync(bosco, next) {
-  syncTeams(bosco, function() {
-    if(next) { next(); }
   });
 }
 
