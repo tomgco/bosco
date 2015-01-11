@@ -390,13 +390,13 @@ Bosco.prototype.getTeam = function() {
             currentTeam = team;
         }
     });
-    return currentTeam || 'service';
+    return currentTeam || 'no-team';
 }
 
 Bosco.prototype.getRepos = function() {
     var self = this;
     var team = self.getTeam();
-    if(team == 'service') {
+    if(team == 'no-team') {
         return [path.relative('..','.')]
     } else {
         return self.config.get('teams:' + team).repos;

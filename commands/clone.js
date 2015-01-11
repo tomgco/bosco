@@ -62,9 +62,16 @@ function cmd(bosco, args, next) {
 
 function getRepos(client, teamConfig, page, next) {
 
-    client.get('/teams/' + teamConfig.id + '/repos', {per_page: 20, page: page}, function (err, status, body, headers) {
-        next(err, _.pluck(body, 'name'), _.contains(headers.link, 'rel="next"'));
-    });
+    if(teamConfig.isUser) {
+        client.get('/user/repos', {per_page: 20, page: page}, function (err, status, body, headers) {
+            next(err, _.pluck(body, 'name'), _.contains(headers.link, 'rel="next"'));
+        });
+    } else {
+        client.get('/teams/' + teamConfig.id + '/repos', {per_page: 20, page: page}, function (err, status, body, headers) {
+            next(err, _.pluck(body, 'name'), _.contains(headers.link, 'rel="next"'));
+        });
+    }
+
 }
 
 function fetch(bosco, team, repos, repoRegex, args, next) {

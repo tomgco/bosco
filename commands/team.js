@@ -50,6 +50,12 @@ function syncTeams(bosco, next) {
         }
     });
 
+    // Add personal repo
+    var user = bosco.config.get('github:user');
+    if(!currentTeams[user]) {
+      bosco.config.set('teams:' + user, {id:user, isUser: true});
+    }
+
     bosco.config.save(function() {
       bosco.log('Synchronisation with Github complete, added ' + (added ? added : 'no new') + ' teams.');
       if(next) { next(); }
