@@ -11,10 +11,14 @@ function cmd(bosco, args) {
     var clone = require('./clone');
     var install = require('./install');
     var team = require('./team');
+    var link = require('./link');
+
     team.cmd(bosco, ['sync'], function() {
       team.cmd(bosco, ['setup'], function() {
         clone.cmd(bosco, [], function() {
-            install.cmd(bosco, args);
+            link.cmd(bosco, [], function() {
+                install.cmd(bosco, args);
+            });
         });
       });
     });

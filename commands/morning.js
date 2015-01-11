@@ -13,6 +13,7 @@ function cmd(bosco, args) {
     var clone = require('./clone');
     var pull = require('./pull');
     var install = require('./install');
+    var link = require('./link');
     var activity = require('./activity');
 
     var lastMorningRunConfigKey = 'events:last-morning-run';
@@ -29,6 +30,10 @@ function cmd(bosco, args) {
         install.cmd(bosco, args, next);
     };
 
+    var executeLink = function(next) {
+        link.cmd(bosco, args, next);
+    };
+
     var showActivitySummary = function(next) {
         args.since = bosco.config.get(lastMorningRunConfigKey); // If it is not set it will default to some value on the activity command
 
@@ -40,7 +45,7 @@ function cmd(bosco, args) {
         bosco.config.save(next);
     };
 
-    async.series([executeClone, executePull, executeInstall, showActivitySummary, setConfigKeyForLastMorningRun], function(){
+    async.series([executeClone, executePull, executeLink, executeInstall, showActivitySummary, setConfigKeyForLastMorningRun], function(){
         bosco.log('Morning completed');
     });
 }

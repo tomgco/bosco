@@ -27,6 +27,7 @@ This is then saved in a configuration file locally on disk, default is in ~/.bos
 
 Bosco will also include any configuration in a file in the .bosco folder of your workspace (see below) with the environment specified via the -e parameter, along with global defaults in a file called 'defaults.json'.  This allows you to manage things like AWS keys for publication of assets into different environments, or configuration for uglify or cleancss.
 
+
 ## Workspaces
 
 Bosco is built around the idea that you use github teams to manage groups of repositories.  So, when you first run setup, Bosco will connect to Github, grab all of the teams that you belong to - across all organisations - and cache them locally.
@@ -148,7 +149,9 @@ The default command, this sets you up.
 bosco setup
 ```
 
-This will sync with github, ask you for a default team and workspace folder, clone all the repositories in that team, and then run npm install on all of them.  If any repository already exists locally it will skip it.  Typically you only use this command once, and use the other pull, install, morning commands on a daily basis.
+This will sync with github, ask you for a default team and workspace folder, clone all the repositories in that team, auto link any dependent modules together (saving lots of 'npm link ../module', and then finally run npm install on all of them.  This literally will save you hours of work on a larger project.
+
+If any repository already exists locally it will skip it.  Typically you only use this command once, and use the other pull, install, morning commands on a daily basis.
 
 ## Service Configuration
 

@@ -46,7 +46,7 @@ function cmd(bosco, args, next) {
     }
 
     installRepos(function() {
-        bosco.log('Complete');
+        bosco.log('npm install complete');
         if(next) next();
     });
 
