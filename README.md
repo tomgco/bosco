@@ -25,8 +25,30 @@ It will ask initially for:
 
 This is then saved in a configuration file locally on disk, default is in ~/.bosco/bosco.json, so all subsequent commands use it.
 
-Bosco will also include any configuration in a file in the .bosco folder of your workspace (see below) with the environment specified via the -e parameter, along with global defaults in a file called 'defaults.json'.  This allows you to manage things like AWS keys for publication of assets into different environments, or configuration for uglify or cleancss.
+It will then ask for a team to start with, and a folder (referred to below as <folder>) to link the team to (it will create it if it doesn't exist).
 
+After this, do the following:
+
+```
+cd <folder>
+bosco morning
+```
+
+At the end of this sequence of steps you will have:
+
+* All of the projects checked out into your project folder.
+* Any dependent modules linked between projects (e.g. if one repo is actually a module depended on by another).
+* All projects fully npm installed.
+
+## To join a new team
+
+```
+bosco team setup
+<select team>
+<select folder>
+cd <folder>
+bosco morning
+```
 
 ## Workspaces
 
