@@ -46,6 +46,11 @@ Bosco.prototype.init = function(options) {
     self.prompt = prompt;
     self.progress = progress;
 
+    self.concurrency = {
+        network: self.options.cpus * 4, // network constrained
+        cpu: self.options.cpus // cpu constrained
+    }
+
     events.EventEmitter.call(this);
 
     self.run();
@@ -198,10 +203,10 @@ Bosco.prototype._initialiseConfig = function(next) {
     prompt.get({
         properties: {
             githubUser: {
-                description: 'Enter your github user name:'.white
+                description: 'Enter your github user name'.white
             },
             authToken: {
-                description: 'Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens):'.white
+                description: 'Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens)'.white
             }
         }
     }, function(err, result) {

@@ -20,7 +20,7 @@ function cmd(bosco, args, next) {
 
   var grepRepos = function(callback) {
 
-    async.mapLimit(repos, bosco.options.cpus, function(repo, grepCallback) {
+    async.mapLimit(repos, bosco.concurrency.network, function(repo, grepCallback) {
 
       if(!repo.match(repoRegex)) return grepCallback();
 

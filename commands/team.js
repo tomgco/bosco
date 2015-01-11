@@ -25,10 +25,12 @@ function showTeams(bosco) {
   var teamConfig = bosco.config.get('teams'),
       teams = _.keys(teamConfig);
 
-  bosco.log('Your current github organisations and teams');
+  bosco.log('Your current github organisations and teams:');
   _.each(teams, function(team) {
     bosco.log(' - ' + team.green + ' > ' + (teamConfig[team].path ? teamConfig[team].path.cyan : 'Not linked'.grey));
   });
+
+  bosco.log('Use the command: ' + 'bosco team sync'.green + ' to update your team list.')
 }
 
 function syncTeams(bosco, next) {

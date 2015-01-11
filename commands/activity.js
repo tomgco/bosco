@@ -32,7 +32,7 @@ function cmd(bosco, args, next) {
 
     var activityForRepos = function(cb) {
 
-        async.mapLimit(repos, bosco.options.cpus, function(repo, repoCb) {
+        async.mapLimit(repos, bosco.concurrency.network, function(repo, repoCb) {
 
           if(!repo.match(repoRegex)) return repoCb();
 

@@ -20,7 +20,7 @@ function cmd(bosco, args, next) {
 
     var auditRepos = function (done) {
 
-        async.mapLimit(repos, bosco.options.cpus, function iterateRepos(repo, cb) {
+        async.mapLimit(repos, bosco.concurrency.cpu, function iterateRepos(repo, cb) {
             var repoPath = bosco.getRepoPath(repo);
             nsp(bosco, repo, repoPath, cb);
         }, function () {

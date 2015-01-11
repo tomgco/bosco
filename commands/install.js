@@ -32,7 +32,7 @@ function cmd(bosco, args, next) {
             total: total
         }) : null;
 
-        async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {
+        async.mapLimit(repos, bosco.concurrency.cpu, function repoStash(repo, repoCb) {
 
           if(!repo.match(repoRegex)) return repoCb();
 

@@ -39,7 +39,7 @@ function cmd(bosco) {
 
     // Check if modules are already 'npm link' first to speed it up
     var checkModules = function(next) {
-        async.mapSeries(toLink, checkModule, next);
+        async.map(toLink, checkModule, next);
     }
 
     var checkModule = function(module, next) {
@@ -50,7 +50,7 @@ function cmd(bosco) {
         next();
     }
 
-    // Globally link module
+    // Globally link module - must be series due to npm locking
     var linkModules = function(next) {
         async.mapSeries(toLink, linkModule, next);
     }
@@ -61,13 +61,13 @@ function cmd(bosco) {
 
     // Check if modules are already 'npm link module' into a repo first to speed it up
     var checkModuleRepos = function(next) {
-        async.mapSeries(repos, checkModuleRepo, next);
+        async.map(repos, checkModuleRepo, next);
     }
 
     var checkModuleRepo = function(repo, next) {
         var toLinkInRepo = _.intersection(modules, dependencyGraph[repo]),
             repoPath = bosco.getRepoPath(repo);
-        async.mapSeries(toLinkInRepo, function(module, cb) {
+        async.map(toLinkInRepo, function(module, cb) {
             var checkPath = path.join(repoPath, 'node_modules', module);
             var globalModulePath = path.join(globalRoot, module);
             fs.readlink(checkPath, function(err, link) {
@@ -90,7 +90,7 @@ function cmd(bosco) {
         if(toLinkInRepo.length) {
             bosco.log('Linking ' + (toLinkInRepo.length + '').cyan + ' modules to ' + repo.green)
         }
-        async.mapSeries(toLinkInRepo, function(module, cb) {
+        async.mapLimit(toLinkInRepo, bosco.concurrency.cpu, function(module, cb) {
             execCmd(bosco, 'npm link ' + module, bosco.getRepoPath(repo), cb);
         }, next);
     }

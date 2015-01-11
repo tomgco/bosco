@@ -117,7 +117,7 @@ function fetch(bosco, team, repos, repoRegex, args, next) {
             total: total
         }) : null;
 
-        async.mapLimit(repos, bosco.options.cpus, function repoGet(repo, repoCb) {
+        async.mapLimit(repos, bosco.concurrency.network, function repoGet(repo, repoCb) {
 
           if(!repo.match(repoRegex)) return repoCb();
 
