@@ -60,6 +60,7 @@
     "multimeter": "^0.1.1",
     "nconf": "^0.7.1",
     "node-sass": "^0.9.3",
+    "nplugm": "^1.0.1",
     "nsp": "^0.4.2",
     "parse-link-header": "^0.2.0",
     "pm2": "^0.12.1",
