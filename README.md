@@ -347,6 +347,10 @@ To create your own Bosco commands for your project (ones that you don't want to 
 
 At TES we have a github project that is a 'default' Bosco workspace that contains local commands and configuration that teams use as their workspace.
 
+## Npm Commands
+
+You can create bosco commands as npm packages and install it via npm (local or global). These commands must be named bosco-command-*command* such as bosco-command-ports. Bosco will try to find such commands as long as they match the naming pattern. This was inspired by [Yeoman generators](http://yeoman.io/authoring/)
+
 ### Options and Args in new commands
 
 There are two ways of passing input through to a command: options and args.
