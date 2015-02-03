@@ -16,6 +16,9 @@ var semver = require('semver');
 var sf = require('sf');
 var Table = require('cli-table');
 var util = require('util');
+var nplugm = require('nplugm');
+
+var boscoCommandsPrefix = 'bosco-command-';
 
 prompt.message = 'Bosco'.green;
 
@@ -230,19 +233,27 @@ Bosco.prototype._cmd = function() {
         localCommandModule = [self.getLocalCommandFolder(), command, '.js'].join('');
 
     if (self.exists(commandModule)) {
-        require(commandModule).cmd(self, commands);
-    } else {
-        if (self.exists(localCommandModule)) {
-            require(localCommandModule).cmd(self, commands);
-        } else {
-            if (self.options.shellCommands) {
-                self._shellCommands();
-            } else {
-                self._commands();
-            }
-
-        }
+        return require(commandModule).cmd(self, commands);
     }
+
+    if (self.exists(localCommandModule)) {
+        return require(localCommandModule).cmd(self, commands);
+    }
+
+    // Let's try to get the commands from npm
+    nplugm.load(boscoCommandsPrefix + command, function(err, plugin) {
+        plugin.require().cmd(self, commands);
+    }, function(err, loadedPlugins) {
+        if (loadedPlugins.length) {
+            return;
+        }
+
+        if (self.options.shellCommands) {
+            self._shellCommands();
+        } else {
+            self._commands();
+        }
+    });
 }
 
 Bosco.prototype._shellCommands = function() {
@@ -269,8 +280,18 @@ Bosco.prototype._shellCommands = function() {
             function(next) {
                 fs.readdir(localPath, function(err, files) {
                     if (!files || files.length === 0) return next();
-                    showCommands(localPath, files, next)
+                    showCommands(localPath, files, next);
                 })
+            },
+            function(next) {
+                nplugm.load(boscoCommandsPrefix + '*', function(plugin) {
+                    var npmCommands = [];
+
+                    var requiredPlugin = plugin.require();
+                    npmCommands.push(requiredPlugin.name);
+
+                    next(null, npmCommands);
+                });
             }
         ],
         function(err, files) {
@@ -298,14 +319,21 @@ Bosco.prototype._commands = function() {
             table.push([cmd.name, cmd.example || '']);
         }
 
-        files.map(function(file) {
+        if (cPath) {
+            files = files.map(function(file) {
             return path.join(cPath, file);
-        }).filter(function(file) {
-            return fs.statSync(file).isFile();
-        }).forEach(function(file) {
-            if (path.extname(file) !== '.js') { return null; }
-            showCommand(require(file))
-        });
+            }).filter(function(file) {
+                return fs.statSync(file).isFile();
+            }).forEach(function(file) {
+                if (path.extname(file) !== '.js') { return null; }
+                showCommand(require(file));
+            });
+        } else {
+            files.forEach(function(file) {
+                showCommand(file);
+            });
+        }
+
         console.log(table.toString());
         console.log('\r');
         next();
@@ -326,6 +354,21 @@ Bosco.prototype._commands = function() {
                     if (!files || files.length === 0) return next();
                     showTable('Local', localPath, files, next)
                 })
+            },
+            function(next) {
+                var npmCommands = [];
+
+                nplugm.load(boscoCommandsPrefix + '*', function(err, plugin) {
+                    if (err) return next(err);
+                    
+                    npmCommands.push(plugin.require());
+
+                    if (npmCommands.length) {
+                        showTable('Npm', null, npmCommands, next);
+                    } else {
+                        next();
+                    }
+                });
             },
             function(next) {
                 var wait = function() {
