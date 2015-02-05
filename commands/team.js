@@ -36,7 +36,7 @@ function showTeams(bosco) {
 function syncTeams(bosco, next) {
 
   var client = github.client(bosco.config.get('github:authToken')),
-      currentTeams = bosco.config.get('teams'),
+      currentTeams = bosco.config.get('teams') || {},
       added = 0;
 
   client.get('/user/teams', {}, function (err, status, body) {
