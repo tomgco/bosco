@@ -11,7 +11,7 @@ module.exports = {
     cmd: cmd
 }
 
-function cmd(bosco) {
+function cmd(bosco, args, next) {
 
     var repos = bosco.getRepos(),
         dependencies = [],
@@ -105,6 +105,7 @@ function cmd(bosco) {
         linkModulesToRepos
     ], function() {
         bosco.log('Completed linking modules.');
+        if(next) { next(); }
     })
 
 }

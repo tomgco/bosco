@@ -95,9 +95,6 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
-            expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
-
             expect(assets).to.have.keys('project1/local/html/bottom.js.html',
                 'project1/local/html/top.js.html',
                 'project2/local/html/bottom.js.html',
@@ -133,9 +130,6 @@ describe("Bosco Static Asset Handling", function() {
         var localBosco = boscoMock()
         var utils = StaticUtils(localBosco);
         utils.getStaticAssets(options, function(err, assets) {
-
-            expect(localBosco._warn).to.contain("Skipping duplicate file: project1/js/bottom1.js <> project2/js/bottom2dupe.js");
-            expect(localBosco._warn).to.contain("Duplicate library with different version: project1/js/jquery-1.11.0-min.js <> project2/js/jquery-1.12.0-min.js");
 
             expect(assets).to.have.keys('project1/local/html/bottom.js.html',
               'project1/local/html/top.js.html',

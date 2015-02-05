@@ -7,7 +7,6 @@ module.exports = function(bosco) {
 
     var AssetHelper = require('./AssetHelper')(bosco);
     var minify = require('./Minify')(bosco).minify;
-    var removeDuplicates = require('./Duplicates')(bosco).removeDuplicates;
     var doBuild = require('./ExternalBuild')(bosco).doBuild;
     var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
     var html = require('./Html')(bosco);
@@ -46,19 +45,16 @@ module.exports = function(bosco) {
                     });
                 });
 
-                // Dedupe
-                removeDuplicates(staticAssets, function(err, staticAssets) {
-                    // Now go and minify
-                    if (options.minify) {
-                        getLastCommitForAssets(staticAssets, function(err, staticAssets) {
-                            minify(staticAssets, function(err, staticAssets) {
-                                createAssetHtmlFiles(staticAssets, next);
-                            });
+                // Now go and minify
+                if (options.minify) {
+                    getLastCommitForAssets(staticAssets, function(err, staticAssets) {
+                        minify(staticAssets, function(err, staticAssets) {
+                            createAssetHtmlFiles(staticAssets, next);
                         });
-                    } else {
-                      createAssetHtmlFiles(staticAssets, next);
-                    }
-                });
+                    });
+                } else {
+                  createAssetHtmlFiles(staticAssets, next);
+                }
 
             });
         });

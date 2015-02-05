@@ -153,6 +153,8 @@ You can use a number of parameters to control the behaviour of Bosco.  Parameter
 |-n, --noprompt|Do not prompt for confirmation|bosco -e staging -b 67 -n s3push|false|
 |-f, --force|Force over ride of any files|bosco -e production -b 66 -f s3push|false|
 
+To see all possible parameters, just type 'bosco'.
+
 ## Bash completion
 
 To enable bash <tab> completion for bosco, add the following line to your ~/.bashrc file:
