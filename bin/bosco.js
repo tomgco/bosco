@@ -14,6 +14,8 @@ var fs = require('fs');
 var path = require('path');
 require('colors'); // No need to define elsewhere
 
+var bosco = new Bosco();
+
 // Go over every command in the global and local commands folder and add the options
 program.boscoOptionsArray = function(boscoOptionsArray) {
   if (!boscoOptionsArray || !boscoOptionsArray.length) { return this; }
@@ -39,7 +41,13 @@ var getOptionsForCommandsOnPath = function(folderPath) {
   var wrappedCommandsArray = wrappedFiles.map(function(filename) {
     if (path.extname(filename) !== '.js') { return null; }
     var file = folderPath + filename;
-    var commandFile = require(file);
+    var commandFile;
+    try {
+      commandFile = require(file);
+    } catch (err) {
+      bosco.error('Error requiring command file: ' + file + ': ' + err);
+      return [];
+    }
     return commandFile.options;
   });
 
@@ -88,8 +96,6 @@ var globalOptions = [
     syntax: ['--shellCommands','Generate commands for shell completion mode [used internally]']
   }
 ];
-
-var bosco = new Bosco();
 
 var localCommandsOptions = getOptionsForCommandsOnPath(bosco.getLocalCommandFolder());
 var commandOptions = getOptionsForCommandsOnPath(bosco.getGlobalCommandFolder());
