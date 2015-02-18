@@ -3,6 +3,7 @@ var _ = require('lodash'),
     jsdiff = require('diff'),
     http = require('http'),
     url = require('url'),
+    zlib = require('zlib'),
     mime = require('mime');
 
 module.exports = {
@@ -76,25 +77,30 @@ function cmd(bosco, args) {
         async.mapSeries(toPush, pushToS3, next);
     }
 
-    var pushToS3 = function(file, next) {
+    var gzip = function(content, next) {
+        zlib.gzip(content, next);
+    }
 
+    var pushToS3 = function(file, next) {
         if(!bosco.knox) return bosco.warn('Knox AWS not configured for environment ' + bosco.options.envrionment + ' - so not pushing ' + file.path + ' to S3.');
-        var buffer = file.content;
-        var headers = {
-          'Content-Type': file.mimeType,
-          'Cache-Control': ('max-age=' + (maxAge === 0 ? '0, must-revalidate' : maxAge))
-        };
-        bosco.knox.putBuffer(buffer, file.path, headers, function(err, res){
-          if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
-          bosco.log('Pushed to S3: ' + cdnUrl + file.path);
-          if(compoxureUrl && file.type == 'html') {
-            primeCompoxure(cdnUrl + file.path, file.content.toString(), function(err) {
-                if(err) bosco.error('Error flushing compoxure: ' + err.message);
+        gzip(file.content, function(err, buffer) {
+            var headers = {
+              'Content-Type':file.mimeType,
+              'Content-Encoding':'gzip',
+              'Cache-Control': ('max-age=' + (maxAge === 0 ? '0, must-revalidate' : maxAge))
+            };
+            bosco.knox.putBuffer(buffer, file.path, headers, function(err, res) {
+              if(res.statusCode != 200 && !err) err = {message:'S3 error, code ' + res.statusCode};
+              bosco.log('Pushed to S3: ' + cdnUrl + file.path);
+              if(compoxureUrl && file.type == 'html') {
+                primeCompoxure(cdnUrl + file.path, file.content.toString(), function(err) {
+                    if(err) bosco.error('Error flushing compoxure: ' + err.message);
+                    next(err, {file: file});
+                });
+              } else {
                 next(err, {file: file});
+              }
             });
-          } else {
-            next(err, {file: file});
-          }
         });
     }
 

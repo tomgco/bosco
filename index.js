@@ -134,7 +134,7 @@ Bosco.prototype._init = function(next) {
         } else {
             if (!self.config.get('github:organization')) {
                 self.error('It looks like you are in a micro service folder or something is wrong with your config?\n');
-                next('error');
+                next('Exiting - no available github configuration.');
             } else {
                 next();
             }
@@ -360,7 +360,7 @@ Bosco.prototype._commands = function() {
 
                 nplugm.load(boscoCommandsPrefix + '*', function(err, plugin) {
                     if (err) return next(err);
-                    
+
                     npmCommands.push(plugin.require());
 
                     if (npmCommands.length) {
