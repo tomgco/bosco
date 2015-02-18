@@ -7,6 +7,8 @@
 
 Bosco is a utility knife to help manage the complexity that using microservices, which naturally results in a large number of code repositories, brings with it.  Inspired by the Github 'setup', e.g. can a developer run one simple command and get up and running?
 
+Docs: https://bosco.readme.io/v0.4.0/docs/what-is-bosco
+
 ## Get Started
 
 ```
@@ -348,6 +350,10 @@ Note that if you use the external build option then the files inside this projec
 To create your own Bosco commands for your project (ones that you don't want to submit back to core via a pull request), simply create a 'commands' folder in the root of your Bosco workspace and add commands to it.  You can use any of the core commands as a starting point.
 
 At TES we have a github project that is a 'default' Bosco workspace that contains local commands and configuration that teams use as their workspace.
+
+## Npm Commands
+
+You can create bosco commands as npm packages and install it via npm (local or global). These commands must be named bosco-command-*command* such as bosco-command-ports. Bosco will try to find such commands as long as they match the naming pattern. This was inspired by [Yeoman generators](http://yeoman.io/authoring/)
 
 ### Options and Args in new commands
 
