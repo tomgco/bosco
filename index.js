@@ -139,11 +139,7 @@ Bosco.prototype._init = function(next) {
         } else {
             if (!self.config.get('github:user')) {
                 self.error('It looks like you are in a micro service folder or something is wrong with your config?\n');
-<<<<<<< HEAD
-                next('Exiting bosco ...');
-=======
                 next('Exiting - no available github configuration.');
->>>>>>> master
             } else {
                 next();
             }
