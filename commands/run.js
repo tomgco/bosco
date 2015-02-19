@@ -117,7 +117,7 @@ function cmd(bosco, args, cb) {
         while (repoList.length > 0) {
             var currentRepo = repoList.shift();
             var svcConfig = depTree[currentRepo];
-            if (svcConfig.service) {
+            if (svcConfig && svcConfig.service) {
                 runList.push(svcConfig);
                 if (svcConfig.service.dependsOn) {
                     addDependencies(svcConfig.service.dependsOn);
