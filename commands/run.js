@@ -96,11 +96,15 @@ function cmd(bosco, args, cb) {
     var getRunList = function(next) {
 
         var depTree = {};
+        var revDepTree = {};
         var repoList = [];
         var runList = [];
-        var addDependencies = function(dependsOn) {
+        var addDependencies = function(dependent, dependsOn) {
             dependsOn.forEach(function(dependency) {
                 if(!_.contains(repoList, dependency)) repoList.push(dependency); // Ensures we then check the dependcies of depencies
+
+                revDepTree[dependency] = revDepTree[dependency] || [];
+                revDepTree[dependency].push(dependent);
             });
         }
 
@@ -117,10 +121,12 @@ function cmd(bosco, args, cb) {
         while (repoList.length > 0) {
             var currentRepo = repoList.shift();
             var svcConfig = depTree[currentRepo];
-            if (svcConfig && svcConfig.service) {
+            if (!svcConfig) return next(new Error('Trying to run ' + currentRepo + ' which does not exist on the list of repos. This is a dependency for ' + revDepTree[currentRepo]));
+
+            if (svcConfig.service) {
                 runList.push(svcConfig);
                 if (svcConfig.service.dependsOn) {
-                    addDependencies(svcConfig.service.dependsOn);
+                    addDependencies(currentRepo, svcConfig.service.dependsOn);
                 }
             }
         }
@@ -140,6 +146,8 @@ function cmd(bosco, args, cb) {
     var startRunnableServices = function(next) {
 
         getRunList(function(err, runList) {
+            if (err) return next(err);
+
             async.mapSeries(runList, function(runConfig, cb) {
                 if (runConfig.service && runConfig.service.type == 'docker') {
                     if (_.contains(runningServices, runConfig.name)) {
@@ -210,8 +218,12 @@ function cmd(bosco, args, cb) {
 
     async.series([ensurePM2, initialiseRunners, getRunningServices, getStoppedServices, stopNotRunningServices, startRunnableServices, disconnectRunners], function(err) {
         if (err) {
-            return bosco.error(err);
+            bosco.error(err);
+            if (cb) cb();
+
+            return;
         }
+
         bosco.log('All services started.');
         if(_.contains(args, 'cdn')) {
             var cdn = require('./cdn');
