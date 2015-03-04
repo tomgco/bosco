@@ -17,6 +17,7 @@ var sf = require('sf');
 var Table = require('cli-table');
 var util = require('util');
 var nplugm = require('nplugm');
+var osenv = require('osenv');
 
 var boscoCommandsPrefix = 'bosco-command-';
 
@@ -414,7 +415,7 @@ Bosco.prototype._checkVersion = function() {
 }
 
 Bosco.prototype.findHomeFolder = function() {
-    return process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
+    return osenv.home() || process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
 }
 
 Bosco.prototype.findWorkspace = function() {

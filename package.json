@@ -64,6 +64,7 @@
     "nplugm": "^1.0.1",
     "nsp": "^0.4.2",
     "octonode": "^0.6.13",
+    "osenv": "^0.1.0",
     "parse-link-header": "^0.2.0",
     "pm2": "^0.12.1",
     "prettyjson": "^1.0.0",
