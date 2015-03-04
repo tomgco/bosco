@@ -25,7 +25,7 @@ function cmd(bosco, args) {
     noprompt = bosco.options.noprompt;
 
     var maxAge = bosco.config.get('aws:maxage');
-    if(typeof maxAge !== 'number') maxAge = 300;
+    if(typeof maxAge !== 'number') maxAge = 31536000; // Default to one year
 
     bosco.log('Compile front end assets across services ' + (tag ? 'for tag: ' + tag.blue : ''));
 
