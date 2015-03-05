@@ -24,11 +24,6 @@
                 "swf/flash.swf"
             ]
         },
-        "css": {
-            "top":[
-                "css/top2.scss"
-            ]
-        },
         "html": {
             "upload": [
                 "html/html1.html",

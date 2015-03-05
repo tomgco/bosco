@@ -2,7 +2,6 @@ var _ = require('lodash');
 var fs = require('fs');
 var path = require('path');
 var UglifyJS = require('uglify-js');
-var sass = require('node-sass');
 var CleanCSS = require('clean-css');
 var async = require('async');
 
@@ -178,8 +177,6 @@ module.exports = function(bosco) {
               delete staticAssets[key];
               if (path.extname(file) == '.css') {
                   compiled.css += fs.readFileSync(file);
-              } else if (path.extname(file) == '.scss') {
-                  compiled.scss += fs.readFileSync(file);
               }
               compiled.count++;
           });
@@ -192,11 +189,7 @@ module.exports = function(bosco) {
 
           bosco.log('Compiling ' + css.count + ' ' + css.tag.blue + ' CSS assets ...');
 
-          sassRender({key: css.assetKey, content: css.scss}, function(err, code) {
-
-            if(err) return next(err);
-
-            var cssContent = css.css + code.content, serviceName = css.serviceName, buildNumber = css.buildNumber;
+            var cssContent = css.css, serviceName = css.serviceName, buildNumber = css.buildNumber;
 
             var cleanCssConfig = bosco.config.get('css:clean');
 
@@ -204,23 +197,22 @@ module.exports = function(bosco) {
               cssContent = new CleanCSS(cleanCssConfig.options).minify(cssContent);
             }
 
-              if (err || cssContent.length === 0) return next({
-                  message: 'No css for tag ' + css.tag
-              });
+            if (cssContent.length === 0) return next({
+                message: 'No css for tag ' + css.tag
+            });
 
-              var assetKey = createKey(serviceName, buildNumber, css.tag, null, 'css', 'css');
-              staticAssets[assetKey] = staticAssets[assetKey] || {};
-              staticAssets[assetKey].serviceName = serviceName;
-              staticAssets[assetKey].buildNumber = buildNumber;
-              staticAssets[assetKey].path = '';
-              staticAssets[assetKey].extname = '.css';
-              staticAssets[assetKey].tag = css.tag;
-              staticAssets[assetKey].type = 'css';
-              staticAssets[assetKey].mimeType = 'text/css';
-              staticAssets[assetKey].content = cssContent;
+            var assetKey = createKey(serviceName, buildNumber, css.tag, null, 'css', 'css');
+            staticAssets[assetKey] = staticAssets[assetKey] || {};
+            staticAssets[assetKey].serviceName = serviceName;
+            staticAssets[assetKey].buildNumber = buildNumber;
+            staticAssets[assetKey].path = '';
+            staticAssets[assetKey].extname = '.css';
+            staticAssets[assetKey].tag = css.tag;
+            staticAssets[assetKey].type = 'css';
+            staticAssets[assetKey].mimeType = 'text/css';
+            staticAssets[assetKey].content = cssContent;
 
-              next();
-          });
+            next();
 
       }, function(err) {
           if (err) return bosco.warn('No CSS assets: ' + err.message);
@@ -236,11 +228,4 @@ module.exports = function(bosco) {
 
   }
 
-  function  sassRender(scss, callback) {
-
-      sass.render(scss.content, function(err, css) {
-          if (err) return callback(err);
-          return callback(null, {key: scss.key, content: css});
-      });
-  }
 }

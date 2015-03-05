@@ -66,7 +66,7 @@ describe("Bosco Static Asset Handling", function() {
                 return done(err);
             }
 
-            expect(assets).to.have.keys('project1/local/html/bottom.js.html',
+            expect(_.keys(assets)).to.contain('project1/local/html/bottom.js.html',
                 'project1/local/html/top.js.html',
                 'project1/local/js/bottom1.js',
                 'project1/local/js/jquery-1.11.0-min.js',
@@ -95,7 +95,7 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('project1/local/html/bottom.js.html',
+            expect(_.keys(assets)).to.contain('project1/local/html/bottom.js.html',
                 'project1/local/html/top.js.html',
                 'project2/local/html/bottom.js.html',
                 'project2/local/html/top.js.html',
@@ -105,7 +105,6 @@ describe("Bosco Static Asset Handling", function() {
                 'project1/local/js/top1.js',
                 'project2/local/js/bottom2.js',
                 'project2/local/js/top2.js',
-                'project2/local/css/top2.scss',
                 'project2/local/img/bab.jpg',
                 'project2/local/html/html1.html',
                 'project2/local/html/html2.html',
@@ -131,7 +130,7 @@ describe("Bosco Static Asset Handling", function() {
         var utils = StaticUtils(localBosco);
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('project1/local/html/bottom.js.html',
+            expect(_.keys(assets)).to.contain('project1/local/html/bottom.js.html',
               'project1/local/html/top.js.html',
               'project1/local/manifest/bottom.js.txt',
               'project1/local/manifest/top.js.txt',
@@ -140,7 +139,7 @@ describe("Bosco Static Asset Handling", function() {
               'project1/local/js/top.js.map',
               'project1/local/js/top.js');
 
-            expect(assets).to.have.keys('project2/local/html/bottom.js.html',
+            expect(_.keys(assets)).to.contain('project2/local/html/bottom.js.html',
               'project2/local/html/top.js.html',
               'project2/local/html/top.css.html',
               'project2/local/manifest/bottom.js.txt',
@@ -180,7 +179,7 @@ describe("Bosco Static Asset Handling", function() {
 
         utils.getStaticAssets(options, function(err, assets) {
 
-            expect(assets).to.have.keys('project1/local/html/top.js.html',
+            expect(_.keys(assets)).to.contain('project1/local/html/top.js.html',
                 'project2/local/html/top.js.html',
                 'project2/local/html/top.css.html',
                 'project1/local/manifest/top.js.txt',
@@ -196,53 +195,6 @@ describe("Bosco Static Asset Handling", function() {
                 'project2/local/img/bab.jpg',
                 'project2/local/swf/flash.swf' );
 
-            done();
-
-        });
-
-    });
-
-    it('should not parse sass templates when not minifying as this is done in cdn command to allow live reload', function(done) {
-
-        var options = {
-            repos: ["project2"],
-            minify: false,
-            tagFilter: 'top',
-            buildNumber: 'local',
-            watchBuilds: false,
-            reloadOnly: false
-        }
-
-        var utils = StaticUtils(boscoMock());
-
-        utils.getStaticAssets(options, function(err, assets) {
-
-            var assetKeys = Object.keys(assets);
-            expect(assetKeys).to.contain('project2/local/css/top2.scss');
-            expect(assets['project2/local/css/top2.scss'].content.toString()).to.not.contain('#main{width:5em}')
-            done();
-
-        });
-
-    });
-
-   it('should parse sass templates when minifying', function(done) {
-
-        var options = {
-            repos: ["project1","project2"],
-            minify: true,
-            tagFilter: 'top',
-            buildNumber: 'local',
-            watchBuilds: false,
-            reloadOnly: false
-        }
-
-        var utils = StaticUtils(boscoMock());
-
-        utils.getStaticAssets(options, function(err, assets) {
-
-            expect(Object.keys(assets)).to.contain('project2/local/css/top.css');
-            expect(assets['project2/local/css/top.css'].content.toString()).to.contain('#main{width:5em}')
             done();
 
         });
