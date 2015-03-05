@@ -3,7 +3,6 @@ var async = require('async');
 var fs = require('fs');
 var http = require('http');
 var watch = require('watch');
-var sass = require('node-sass');
 
 module.exports = {
     name:'cdn',
@@ -165,11 +164,7 @@ function cmd(bosco, args) {
     }
 
     var getContent = function(asset, next) {
-        if(asset.extname == '.scss') {
-            sass.render(asset.content, next);
-        } else {
-            next(null, asset.data || asset.content);
-        }
+        next(null, asset.data || asset.content);
     }
 
     if(minify) bosco.log('Minifying front end assets, this can take some time ...');
