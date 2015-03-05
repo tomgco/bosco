@@ -1,5 +1,6 @@
 {
-	"progress":"bar",
+	"progress":"verbose",
+  "teams":{},
 	"css":{
     	"clean":{
         	"enabled":true,

@@ -13,14 +13,14 @@ function cmd(bosco, args, next) {
   var repoPattern = bosco.options.repo;
   var repoRegex = new RegExp(repoPattern);
 
-  var repos = bosco.config.get('github:repos');
+  var repos = bosco.getRepos();
   if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
   bosco.log('Running grep across all repos...');
 
   var grepRepos = function(callback) {
 
-    async.mapLimit(repos, bosco.options.cpus, function(repo, grepCallback) {
+    async.mapLimit(repos, bosco.concurrency.network, function(repo, grepCallback) {
 
       if(!repo.match(repoRegex)) return grepCallback();
 

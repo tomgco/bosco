@@ -15,7 +15,7 @@ function cmd(bosco, args, next) {
 
     var repoPattern = bosco.options.repo;
     var repoRegex = new RegExp(repoPattern);
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
 
     var initialiseRunners = function(cb) {
         var runners = [NodeRunner, DockerRunner];

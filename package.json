@@ -1,6 +1,6 @@
 {
   "name": "bosco",
-  "version": "0.3.12",
+  "version": "0.4.0",
   "description": "Bosco will take care of your microservices, just don't try and use him on a plane.",
   "main": "index.js",
   "scripts": {
@@ -51,6 +51,7 @@
     "gulp-mocha": "^2.0.0",
     "handlebars": "^2.0.0-alpha.4",
     "highland": "^2.2.0",
+    "inquirer": "^0.8.0",
     "knox": "^0.9.0",
     "lodash": "^2.4.1",
     "lodash-node": "^2.4.1",
@@ -62,6 +63,8 @@
     "node-sass": "^0.9.3",
     "nplugm": "^1.0.1",
     "nsp": "^0.4.2",
+    "octonode": "^0.6.13",
+    "osenv": "^0.1.0",
     "parse-link-header": "^0.2.0",
     "pm2": "^0.12.1",
     "prettyjson": "^1.0.0",

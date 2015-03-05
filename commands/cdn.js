@@ -30,7 +30,7 @@ function cmd(bosco, args) {
 
     bosco.log('Starting pseudo CDN on port: ' + (port+'').blue);
 
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
     if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
     var startServer = function(staticAssets, staticRepos, serverPort) {

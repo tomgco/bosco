@@ -13,11 +13,11 @@ function cmd(bosco) {
     var repoPattern = bosco.options.repo;
     var repoRegex = new RegExp(repoPattern);
 
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
     if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
     var changedRepos = function(cb) {
-        async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {
+        async.mapLimit(repos, bosco.concurrency.network, function repoStash(repo, repoCb) {
           var repoPath = bosco.getRepoPath(repo);
           if(!repo.match(repoRegex)) return repoCb();
           upstream(bosco, repoPath, repoCb);

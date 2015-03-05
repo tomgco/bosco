@@ -17,6 +17,7 @@ var sf = require('sf');
 var Table = require('cli-table');
 var util = require('util');
 var nplugm = require('nplugm');
+var osenv = require('osenv');
 
 var boscoCommandsPrefix = 'bosco-command-';
 
@@ -36,18 +37,23 @@ Bosco.prototype.init = function(options) {
 
     self.options = _.defaults(_.clone(options), self._defaults);
 
-    self.options.configPath = options.configPath ? path.resolve(options.configPath) : [self.findWorkspace(), '.bosco'].join('/');
-    self.options.workspace = options.configPath ? path.resolve('..') : path.resolve(self.options.configPath, '..');
+    // Load base bosco config from home folder unless over ridden with path
+    self.options.configPathSet = options.configPath ? true : false;
+    self.options.configPath = options.configPath ? path.resolve(options.configPath) : [self.findHomeFolder(), '.bosco'].join('/');
     self.options.configFile = options.configFile ? path.resolve(options.configFile) : [self.options.configPath, 'bosco.json'].join('/');
-
-    self.options.envConfigFile = [self.options.configPath, self.options.environment + '.json'].join('/');
     self.options.defaultsConfigFile = [self.options.configPath, 'defaults.json'].join('/');
+
     self.options.cpus = require('os').cpus().length;
     self.options.inService = false;
 
     self.config = require('nconf');
     self.prompt = prompt;
     self.progress = progress;
+
+    self.concurrency = {
+        network: self.options.cpus * 4, // network constrained
+        cpu: self.options.cpus // cpu constrained
+    }
 
     events.EventEmitter.call(this);
 
@@ -75,6 +81,16 @@ Bosco.prototype.run = function() {
             self.log(quotes[Math.floor(Math.random() * quotes.length)].blue);
         }
 
+        // Workspace found by reverse lookup in config - github team >> workspace.
+        self.options.workspace = self.options.configPathSet ? path.resolve(self.options.configPath,'..') : self.findWorkspace();
+        self.options.workspaceConfigPath = [self.options.workspace, '.bosco'].join('/');
+
+        // Environment config files are only ever part of workspace config
+        self.options.envConfigFile = [self.options.workspaceConfigPath, self.options.environment + '.json'].join('/');
+
+        // Now load the environment specific config
+        self.config.add('env-override', { type: 'file', file: self.options.envConfigFile });
+
         var aws = self.config.get('aws');
         if (aws && aws.key) {
             self.knox = knox.createClient({
@@ -89,7 +105,8 @@ Bosco.prototype.run = function() {
 
         self.checkInService();
 
-        self.log('Initialised using [' + self.options.configFile.magenta + '] in environment [' + self.options.environment.green + ']');
+        var teamDesc = self.getTeam() || 'Outside workspace!';
+        self.log('Initialised using [' + self.options.configFile.magenta + '] in environment [' + self.options.environment.green + '] with team [' + teamDesc.cyan + ']');
         self._cmd();
 
     });
@@ -104,9 +121,6 @@ Bosco.prototype._init = function(next) {
             .file({
                 file: self.options.configFile
             })
-            .file('environment', {
-                file: self.options.envConfigFile
-            })
             .file('defaults', {
                 file: self.options.defaultsConfigFile
             });
@@ -118,21 +132,13 @@ Bosco.prototype._init = function(next) {
 
         loadConfig();
 
-        // Check for issue #12
-        if (self._checkRepoPath()) {
-            return self._moveRepoPath(function(err) {
-                if (err) return self.error(err.message);
-                self.log('Folders all moved - please check the old organization folder and delete manually, once you have done this you can use Bosco normally.');
-            });
-        }
-
         if (initialise) {
             self._initialiseConfig(function(err) {
                 if (err) return;
                 next();
             });
         } else {
-            if (!self.config.get('github:organization')) {
+            if (!self.config.get('github:user')) {
                 self.error('It looks like you are in a micro service folder or something is wrong with your config?\n');
                 next('Exiting - no available github configuration.');
             } else {
@@ -165,7 +171,7 @@ Bosco.prototype._checkConfig = function(next) {
             prompt.get({
                 properties: {
                     confirm: {
-                        description: 'Do you want to create a new configuration file in the current folder (y/N)?'.white
+                        description: 'This looks like the first time you are using Bosco, do you want to create a new configuration file in your home folder (y/N)?'.white
                     }
                 }
             }, function(err, result) {
@@ -201,24 +207,18 @@ Bosco.prototype._initialiseConfig = function(next) {
     prompt.get({
         properties: {
             githubUser: {
-                description: 'Enter your github user name:'.white
+                description: 'Enter your github user name'.white
             },
-            github: {
-                description: 'Enter the name of the github organization you want to use:'.white
-            },
-            auth: {
-                description: 'Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens):'.white
-            },
-            team: {
-                description: 'Enter the team name that will be used to filter the repository list (optional - defaults to Owners):'.white
+            authToken: {
+                description: 'Enter the auth token (see: https://github.com/blog/1509-personal-api-tokens)'.white
             }
         }
     }, function(err, result) {
+        if(err) {
+            return self.error('There was an error during setup: ' + err.message.red);
+        }
         self.config.set('github:user', result.githubUser);
-        self.config.set('github:organization', result.github);
-        self.config.set('github:authToken', result.auth);
-        self.config.set('github:team', result.team || 'Owners');
-        self.config.set('github:ignoredRepos', []);
+        self.config.set('github:authToken', result.authToken);
         console.log('\r');
         self.config.save(next);
     });
@@ -414,49 +414,13 @@ Bosco.prototype._checkVersion = function() {
     });
 }
 
-
-Bosco.prototype._checkRepoPath = function() {
-    // This is a check for the move from the repos being in a path with the organization
-    // to just being in the working folder
-    var self = this;
-
-    // Do we have any repos
-    if (!self.config.get('github:repos')) return false;
-
-    // Check the first repo
-    return self.exists(self.getOldRepoPath(self.config.get('github:repos')[0]));
-}
-
-Bosco.prototype._moveRepoPath = function(next) {
-    var self = this;
-    prompt.start();
-    prompt.get({
-        properties: {
-            confirm: {
-                description: 'I need to move your repositories from the old organisation path to this folder, can I proceed [y/N]?'.white
-            }
-        }
-    }, function(err, result) {
-        if (!result) return next({
-            message: 'Did not confirm'
-        });
-        if (result.confirm == 'Y' || result.confirm == 'y') {
-            self.log('Moving repositories - this may take some time ...');
-            var repos = self.config.get('github:repos');
-            async.map(repos, function(repo, cb) {
-                fs.rename(self.getOldRepoPath(repo), self.getRepoPath(repo), cb)
-            }, next);
-        } else {
-            next({
-                message: 'Did not confirm'
-            });
-        }
-    });
+Bosco.prototype.findHomeFolder = function() {
+    return osenv.home() || process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
 }
 
 Bosco.prototype.findWorkspace = function() {
     for (var p = path.resolve('.');; p = path.resolve(p, '..')) {
-        if (this.exists(path.join(p, '.bosco', 'bosco.json'))) return p;
+        if (this.exists(path.join(p, '.bosco'))) return p;
         if (p === '/') break;
     }
     return path.resolve('.');
@@ -467,8 +431,36 @@ Bosco.prototype.getWorkspacePath = function() {
     return self.options.workspace;
 }
 
+Bosco.prototype.getTeam = function() {
+    var self = this;
+    var teamConfig = self.config.get('teams'), currentTeam;
+    _.keys(teamConfig).forEach(function(team) {
+        if(teamConfig[team].path === self.options.workspace) {
+            currentTeam = team;
+        }
+    });
+    return currentTeam || 'no-team';
+}
+
+Bosco.prototype.getRepos = function() {
+    var self = this;
+    var team = self.getTeam();
+    if(team == 'no-team') {
+        return [path.relative('..','.')]
+    } else {
+        return self.config.get('teams:' + team).repos;
+    }
+}
+
 Bosco.prototype.getOrg = function() {
-    return this.config.get('github:organization');
+    var self = this;
+    var teamConfig = self.config.get('teams'), currentOrg = '';
+    _.keys(teamConfig).forEach(function(team) {
+        if(teamConfig[team].path === self.options.workspace) {
+            currentOrg = team.split('/')[0];
+        }
+    });
+    return currentOrg;
 }
 
 Bosco.prototype.getOrgPath = function() {
@@ -484,15 +476,6 @@ Bosco.prototype.getRepoPath = function(repo) {
         repoName = repo.split('/')[1];
     }
     return [path.resolve(this.getWorkspacePath()), repoName].join('/');
-}
-
-// To support change outlined in issue #12
-Bosco.prototype.getOldOrgPath = function() {
-    return [path.resolve(this.getWorkspacePath()), this.getOrg()].join('/');
-}
-
-Bosco.prototype.getOldRepoPath = function(repo) {
-    return [this.getOldOrgPath(), repo].join('/');
 }
 
 // Additional exports
@@ -557,7 +540,11 @@ Bosco.prototype.checkInService = function() {
     var self = this, cwd = path.resolve('bosco-service.json');
     if(self.exists(cwd) && self.options.service) {
         self.options.inService = true;
-        self.config.set('github:repos', [path.relative('..','.')]);
+        self.options.workspace = path.resolve('..');
+        // Replace getRepos
+        self.getRepos = function() {
+            return [path.relative('..','.')];
+        }
     }
 }
 

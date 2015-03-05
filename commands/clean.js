@@ -15,7 +15,7 @@ function cmd(bosco, args, next) {
     var repoPattern = bosco.options.repo;
     var repoRegex = new RegExp(repoPattern);
 
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
     if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
     bosco.log('Clearing out node modules and re-running npm install across all repos ...');
@@ -32,7 +32,7 @@ function cmd(bosco, args, next) {
             total: total
         }) : null;
 
-        async.mapLimit(repos, bosco.options.cpus, function repoStash(repo, repoCb) {
+        async.mapLimit(repos, bosco.concurrency.network, function repoStash(repo, repoCb) {
 
           if(!repo.match(repoRegex)) return repoCb();
 
@@ -60,9 +60,7 @@ function clean(bosco, progressbar, bar, repoPath, next) {
         return next();
     }
 
-    if(!progressbar) bosco.log('Cleaning out ' + repoPath.blue);
-
-    exec('rm -rf ./node_modules; npm install;', {
+    exec('rm -rf ./node_modules', {
       cwd: repoPath
     }, function(err, stdout, stderr) {
         if(progressbar) bar.tick();
@@ -71,12 +69,7 @@ function clean(bosco, progressbar, bar, repoPath, next) {
             bosco.error(repoPath.blue + ' >> ' + stderr);
         } else {
             if(!progressbar) {
-                if(!stdout) {
-                    bosco.log('Clean NPM install for ' + repoPath.blue + ': ' + 'No changes'.green);
-                } else {
-                    bosco.log('Clean NPM install for ' + repoPath.blue);
-                    console.log(stdout);
-                }
+                bosco.log('Cleaned node modules for ' + repoPath.blue);
             }
         }
         next();

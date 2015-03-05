@@ -27,12 +27,12 @@ function cmd(bosco, args, next) {
         since = moment().subtract(1, 'day').format();
     }
 
-    var repos = bosco.config.get('github:repos');
+    var repos = bosco.getRepos();
     if(!repos) return bosco.error('You are repo-less :( You need to initialise bosco first, try \'bosco clone\'.');
 
     var activityForRepos = function(cb) {
 
-        async.mapLimit(repos, bosco.options.cpus, function(repo, repoCb) {
+        async.mapLimit(repos, bosco.concurrency.network, function(repo, repoCb) {
 
           if(!repo.match(repoRegex)) return repoCb();
 
