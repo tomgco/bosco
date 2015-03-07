@@ -65,7 +65,13 @@ function execute(bosco, command, args, repoPath, options, next) {
         return next(Error('Bad command'));
     }
 
-    var stdio = ['pipe', 'pipe', 'pipe'];
+    var stdio = ['pipe', 'pipe', 'pipe'], count = 1, returnCode;
+
+    var tryNext = function() {
+        if (!(--count)) {
+            next(returnCode === 0 ? null : 'Process exited with status code ' + returnCode);
+        }
+    }
 
     if (!options.init) {
         stdio[0] = 'ignore';
@@ -90,11 +96,13 @@ function execute(bosco, command, args, repoPath, options, next) {
         sc.stdio[1] = sc.stdout = hl(sc.stdout);
 
         if (options.stdoutFn) {
+            count++;
             sc.stdout.toArray(function(stdout) {
                 stdout = stdout.join('');
                 if (stdout.length) {
                     options.stdoutFn(stdout, repoPath);
                 }
+                tryNext();
             });
         }
     }
@@ -103,11 +111,13 @@ function execute(bosco, command, args, repoPath, options, next) {
         sc.stdio[2] = sc.stderr = hl(sc.stderr);
 
         if (options.stderrFn) {
+            count++;
             sc.stderr.toArray(function(stderr) {
                 stderr = stderr.join('');
                 if (stderr.length) {
                     options.stderrFn(stderr, repoPath);
                 }
+                tryNext();
             });
         }
     }
@@ -117,7 +127,8 @@ function execute(bosco, command, args, repoPath, options, next) {
     }
 
     sc.on('close', function (code) {
-        next(code === 0 ? null : 'Process exited with status code ' + code);
+        returnCode = code;
+        tryNext();
     });
 }
 
