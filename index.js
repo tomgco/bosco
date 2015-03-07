@@ -158,45 +158,36 @@ Bosco.prototype._checkConfig = function(next) {
         configFile = self.options.configFile;
 
     var checkConfigPath = function(cb) {
-        if (!self.exists(configPath)) {
-            mkdirp(configPath, cb);
-        } else {
-            cb();
-        }
+        if (self.exists(configPath)) return cb();
+        mkdirp(configPath, cb);
     }
 
     var checkConfig = function(cb) {
-        if (!self.exists(configFile)) {
-            prompt.start();
-            prompt.get({
-                properties: {
-                    confirm: {
-                        description: 'This looks like the first time you are using Bosco, do you want to create a new configuration file in your home folder (y/N)?'.white
-                    }
+        if (self.exists(configFile)) return cb();
+
+        prompt.start();
+        prompt.get({
+            properties: {
+                confirm: {
+                    description: 'This looks like the first time you are using Bosco, do you want to create a new configuration file in your home folder (y/N)?'.white
                 }
-            }, function(err, result) {
-                if (!result) return cb({
+            }
+        }, function(err, result) {
+            if (!result || (result.confirm != 'Y' && result.confirm != 'y')) {
+                return cb({
                     message: 'Did not confirm'
                 });
-                if (result.confirm == 'Y' || result.confirm == 'y') {
-                    var content = fs.readFileSync(defaultConfig);
-                    fs.writeFileSync(configFile, content);
-                    cb(null, true);
-                } else {
-                    cb({
-                        message: 'Did not confirm'
-                    });
-                }
-            });
-        } else {
-            cb();
-        }
+            }
+
+            var content = fs.readFileSync(defaultConfig);
+            fs.writeFileSync(configFile, content);
+            cb(null, true);
+        });
     }
 
     async.series([checkConfigPath, checkConfig], function(err, result) {
         next(err, result[1]);
     });
-
 }
 
 Bosco.prototype._initialiseConfig = function(next) {
