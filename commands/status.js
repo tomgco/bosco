@@ -13,23 +13,15 @@ function cmd(bosco) {
 
     var options = ch.createOptions(bosco, {
         cmd: 'git',
-        args: ['status'],
+        args: ['-c', 'color.status=always', 'status'],
         guardFn: function(bosco, repoPath, options, next) {
-            if(!bosco.exists([repoPath,'.git'].join('/'))) {
-                return next(new Error('Doesn\'t seem to be a git repo: '+ repoPath.blue));
-            } else {
-                next();
-            }
+            if(bosco.exists([repoPath,'.git'].join('/'))) return next();
+            next(new Error('Doesn\'t seem to be a git repo: '+ repoPath.blue));
         },
         stdoutFn: function(stdout, path) {
-            if(stdout) {
-                if(stdout.indexOf('Changes not staged') > 0) {
-                    bosco.log(path.blue + ':\n' + stdout);
-                } else if(stdout.indexOf('Your branch is ahead') > 0) {
-                    bosco.log(path.blue + ':\n' + stdout);
-                } else {
-                    bosco.log(path.blue + ': ' + 'OK'.green);
-                }
+            if(stdout && (stdout.indexOf('Changes not staged') >= 0 ||
+                    stdout.indexOf('Your branch is ahead') >= 0)) {
+                bosco.log(path.blue + ':\n' + stdout);
             }
         }
     });
@@ -37,5 +29,4 @@ function cmd(bosco) {
     ch.iterate(bosco, options, function() {
         bosco.log('Complete');
     });
-
 }
