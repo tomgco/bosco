@@ -151,7 +151,7 @@ You can use a number of parameters to control the behaviour of Bosco.  Parameter
 |-e, --environment|Environment name|bosco -e development s3push|local|
 |-b, --build|Build number or tag|bosco -e production -b 66 s3push|default|
 |-c, --configFile|Config file|bosco -c config.json clone|~/.bosco/bosco.json|
-|-, --configPath|Config path|bosco -p /usr/config clone|~/.bosco/bosco.json|
+|-p, --configPath|Config path|bosco -p /usr/config clone|~/.bosco/bosco.json|
 |-n, --noprompt|Do not prompt for confirmation|bosco -e staging -b 67 -n s3push|false|
 |-f, --force|Force over ride of any files|bosco -e production -b 66 -f s3push|false|
 
