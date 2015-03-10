@@ -87,7 +87,7 @@
     "gulp-util": "^3.0.1",
     "istanbul": "^0.3.2",
     "jshint": "^2.5.6",
-    "mocha": "^1.21.4",
+    "mocha": "^2.2.1",
     "mocha-lcov-reporter": "0.0.1",
     "precommit-hook": "^1.0.7",
     "through2": "^0.6.2"
