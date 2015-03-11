@@ -79,12 +79,22 @@ Runner.prototype.start = function(options, next) {
 		executeCommand = true;
 	}
 
-	if(!self.bosco.exists(options.cwd + '/' + start)) {
-		self.bosco.warn('Can\'t start ' + options.name.red + ', as I can\'t find script: ' + start.red);
+  // If the command has a -- in it then we know it is passing parameters
+  // to pm2
+  var argumentPos = start.indexOf(' -- ');
+  var location = start;
+  var scriptArgs = [];
+  if (argumentPos > -1) {
+    scriptArgs = start.substring(argumentPos + 4, start.length).split(' ');
+    location = start.substring(0, argumentPos);
+  }
+
+	if(!self.bosco.exists(options.cwd + '/' + location)) {
+		self.bosco.warn('Can\'t start ' + options.name.red + ', as I can\'t find script: ' + location.red);
 		return next();
 	}
     self.bosco.log('Starting ' + options.name + ' ...');
-	pm2.start(start, { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand, force: true }, next);
+	pm2.start(location, { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand, force: true, scriptArgs: scriptArgs }, next);
 }
 
 /**

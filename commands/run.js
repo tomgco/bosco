@@ -22,7 +22,12 @@ module.exports = {
     {
         option: 'list',
         syntax: ['-l, --list [list]', 'Start a list of repos (comma separated).']
-    }]
+    },
+    {
+        option: 'cdn',
+        syntax: ['-c, --cdn', 'Run bosco cdn as a service']
+    }
+    ]
 }
 
 function cmd(bosco, args, cb) {
@@ -101,6 +106,7 @@ function cmd(bosco, args, cb) {
         var revDepTree = {};
         var repoList = [];
         var runList = [];
+        var svcConfig;
         var addDependencies = function(dependent, dependsOn) {
             dependsOn.forEach(function(dependency) {
                 if(!_.contains(repoList, dependency)) repoList.push(dependency); // Ensures we then check the dependcies of depencies
@@ -112,17 +118,31 @@ function cmd(bosco, args, cb) {
 
         // First build the tree and filtered core list
         repos.forEach(function(repo) {
-            var svcConfig = getRunConfig(repo);
+            svcConfig = getRunConfig(repo);
             depTree[svcConfig.name] = svcConfig;
             if ((!repoTag && repo.match(repoRegex)) || (repoTag && _.contains(svcConfig.tags, repoTag))) {
                 repoList.push(repo);
             }
         });
 
+        // If we are running the cdn at the same time.
+        if (bosco.options.cdn) {
+          svcConfig = {
+            name: 'bosco-cdn',
+            cwd: __dirname.substring(0, __dirname.indexOf('/commands')),
+            watch: false,
+            service: {
+              type: 'node',
+              start: 'node bin/bosco.js -- cdn'
+            }
+          }
+          runList.push(svcConfig);
+        }
+
         // Now iterate, but use the dependency tree to build the run list
         while (repoList.length > 0) {
             var currentRepo = repoList.shift();
-            var svcConfig = depTree[currentRepo];
+            svcConfig = depTree[currentRepo];
             if (!svcConfig) return next(new Error('Trying to run ' + currentRepo + ' which does not exist on the list of repos. This is a dependency for ' + revDepTree[currentRepo]));
 
             if (svcConfig.service) {

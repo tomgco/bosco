@@ -72,7 +72,13 @@ function cmd(bosco, args, next) {
             cb();
 
         }, function() {
-            scb();
+            // Special case for bosco-cdn, room for improvement to make this
+            // generic for all custom bosco services.
+            if (_.contains(runningServices, 'bosco-cdn')) {
+                return NodeRunner.stop({name: 'bosco-cdn'}, scb);
+            } else {
+                scb();
+            }
         });
 
     }
