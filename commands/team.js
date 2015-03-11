@@ -3,6 +3,8 @@ var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var path = require('path');
 var inquirer = require('inquirer');
+var parseLinkHeader = require('parse-link-header');
+var async = require('async');
 
 module.exports = {
     name:'team',
@@ -39,11 +41,10 @@ function syncTeams(bosco, next) {
       currentTeams = bosco.config.get('teams') || {},
       added = 0;
 
-  client.get('/user/teams', {}, function (err, status, body) {
-
+  getTeams(client, function(err, teams) {
     if(err) { return bosco.error('Unable to access github with given authKey: ' + err.message); }
 
-    _.each(body, function(team) {
+    _.each(teams, function(team) {
         var teamKey = team.organization.login + '/' + team.slug;
         if(!currentTeams || !currentTeams[teamKey]) {
           bosco.config.set('teams:' + teamKey, {id:team.id});
@@ -64,7 +65,38 @@ function syncTeams(bosco, next) {
     });
 
   });
+}
 
+function getTeams(client, cb) {
+
+  client.get('/user/teams', {}, function(err, status, teams, headers) {
+    if(err) { return cb(err); }
+
+    var links = parseLinkHeader(headers.link);
+
+    if(!links) { return cb(null, teams); }
+
+    var lastPage = parseInt(links.last.page);
+
+    // If the last page is this first page, we're done
+    if(lastPage == 1) { return cb(null, teams); }
+
+    // Create tasks to get the remaining pages of teams
+    var tasks = _.range(2, lastPage + 1).map(createTeamPageRequestTask);
+
+    async.parallel(tasks, function(err, results) {
+      if(err) { return cb(err); }
+      cb(null, teams.concat(_.flatten(results)));
+    });
+  });
+
+  function createTeamPageRequestTask(page) {
+    return function(cb) {
+      client.get('/user/teams', {page: page}, function(err, status, body) {
+        cb(err, body);
+      });
+    }
+  }
 }
 
 function setupInitialLink(bosco, next) {
