@@ -87,8 +87,9 @@ function startContainer(bosco, docker, fqn, options, container, next) {
             bosco.error('Failed to start Docker image: ' + err.message);
             return next(err);
         }
+
         var checkPort;
-        _.forOwn(options.service.docker.HostConfig.PortBindings, function(value) {
+        _.forOwn(optsStart.PortBindings, function(value) {
             if(!checkPort && value[0].HostPort) checkPort = value[0].HostPort; // Check first port
         });
 
