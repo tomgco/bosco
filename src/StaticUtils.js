@@ -22,8 +22,8 @@ module.exports = function(bosco) {
             // Remove any service that doesnt have an assets child
             // or doesn't match repo tag
             services = _.filter(services, function(service) {
-                return (!repoTag  || _.contains(service.tags, repoTag)) &&
-                    (service.assets || service.files);
+                return (!repoTag || _.contains(service.tags, repoTag)) &&
+                    (service.assets || service.files) && service.name.match(options.repoRegex);
             });
 
             async.mapSeries(services, function(service, cb) {

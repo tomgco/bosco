@@ -26,13 +26,13 @@ module.exports = function(bosco) {
             };
 
             if (isJavascript(asset)) {
-                htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n', {
+                htmlAssets[htmlFile].content += _.template('<script src="<%= url %>"></script>\n')({
                     'url': bosco.getAssetCdnUrl(key)
                 });
             }
 
             if (isStylesheet(asset)) {
-                htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n', {
+                htmlAssets[htmlFile].content += _.template('<link rel="stylesheet" href="<%=url %>" type="text/css" media="screen" />\n')({
                     'url': bosco.getAssetCdnUrl(key)
                 });
             }

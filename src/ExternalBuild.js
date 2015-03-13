@@ -24,7 +24,7 @@ module.exports = function(bosco) {
 
 	    }
 
-	    if (watchBuilds && service.name.match(options.repoRegex)) {
+	    if (watchBuilds && service.name.match(options.watchRegex)) {
 
 	    		command = service.build.watch ? service.build.watch.command : service.build.command;
 				  command = reloadOnly ? 'echo "Not running build as change triggered by external build tool"' : command;

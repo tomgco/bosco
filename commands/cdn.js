@@ -23,8 +23,10 @@ function cmd(bosco, args) {
 
     var minify = _.contains(args,'minify');
     var port = bosco.config.get('cdn:port') || 7334;
-    var repoPattern = bosco.options.watch || '$^';
+    var repoPattern = bosco.options.repo;
     var repoRegex = new RegExp(repoPattern);
+    var watchPattern = bosco.options.watch || '$a';
+    var watchRegex = new RegExp(watchPattern);
     var repoTag = bosco.options.tag;
 
     bosco.log('Starting pseudo CDN on port: ' + (port+'').blue);
@@ -76,7 +78,7 @@ function cmd(bosco, args) {
       var watchSet = {}, reloading = {};
 
       _.forOwn(staticAssets, function(asset, key) {
-          if(asset.repo && !asset.repo.match(repoRegex)) {
+          if(asset.repo && !asset.repo.match(watchRegex)) {
             return;
           }
           if(!minify) {
@@ -96,7 +98,7 @@ function cmd(bosco, args) {
       });
 
       var filterFn = function(f, stat) {
-        return f.match(repoRegex) && stat.isDirectory() || watchSet[f];
+        return f.match(watchRegex) && stat.isDirectory() || watchSet[f];
       }
 
       var reloadFile = function(fileKey) {
@@ -176,6 +178,7 @@ function cmd(bosco, args) {
         tagFilter: null,
         watchBuilds: true,
         reloadOnly: false,
+        watchRegex: watchRegex,
         repoRegex: repoRegex,
         repoTag: repoTag
     }
