@@ -82,7 +82,7 @@ Bosco.prototype.run = function() {
         }
 
         // Workspace found by reverse lookup in config - github team >> workspace.
-        self.options.workspace = self.options.configPathSet ? path.resolve(self.options.configPath,'..') : self.findWorkspace();
+        self.options.workspace = self.findWorkspace();
         self.options.workspaceConfigPath = [self.options.workspace, '.bosco'].join('/');
 
         // Environment config files are only ever part of workspace config
