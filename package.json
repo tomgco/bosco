@@ -40,7 +40,7 @@
     "clean-css": "^2.2.13",
     "cli-table": "^0.3.0",
     "colors": "^1.0.3",
-    "commander": "^2.3.0",
+    "commander": "2.7.0",
     "dateformat": "^1.0.8-1.2.3",
     "diff": "^1.0.8",
     "dockerode": "^2.0.3",
