@@ -37,16 +37,6 @@ module.exports = {
       dependentsMap[dependent].push(dependency);
     }
 
-    var discardNonWorkspaceDependencies = function () {
-      var discard = _.difference(Object.keys(dependencyMap), Object.keys(packageRepos));
-
-      discard.forEach(function (packageName) {
-        delete dependencyMap[packageName];
-      });
-
-    };
-
-    // The dependency tree is gathered asyncronously
     async.map(repos, function (repo, next) {
       var repoPath = bosco.getRepoPath(repo);
       var repoPackage = path.join(repoPath, 'package.json');
@@ -71,8 +61,8 @@ module.exports = {
           addDependency(dependency, packageJson.name);
         }
 
-        for (var dependency in packageJson.devDependencies) {
-          addDependency(dependency, packageJson.name);
+        for (var devDependency in packageJson.devDependencies) {
+          addDependency(devDependency, packageJson.name);
         }
 
         return next();
@@ -100,6 +90,23 @@ module.exports = {
         return repoRegex.test(repo);
       }
 
+      var removeDependents = function (install, dependency) {
+        var index = dependencyMap[dependency].indexOf(packageName);
+
+        if (index === -1) {
+          return install;
+        }
+
+        dependencyMap[dependency].splice(index, 1);
+
+        if (isSelected(dependency)) {
+          commands.push([packageName, util.format('npm unlink %s', dependency), {cwd: repoPath}]);
+          return true;
+        }
+
+        return install;
+      };
+
       while (packageDiff !== 0 && packageCount > 0) {
         bosco.log(util.format('%s packages remain', packageCount));
 
@@ -118,22 +125,7 @@ module.exports = {
           }
 
           if (packageName in dependentsMap) {
-            var isInstallRequired = false;
-
-            dependentsMap[packageName].forEach(function (dependency) {
-              var index = dependencyMap[dependency].indexOf(packageName);
-
-              if (index === -1) {
-                return;
-              }
-
-              dependencyMap[dependency].splice(index, 1);
-
-              if (isSelected(dependency)) {
-                isInstallRequired = true;
-                commands.push([packageName, util.format('npm unlink %s', dependency), {cwd: repoPath}]);
-              }
-            });
+            var isInstallRequired = _.reduce(dependentsMap[packageName], removeDependents, false);
 
             if (isInstallRequired) {
               commands.push([packageName, 'npm install', {cwd: repoPath}]);
@@ -155,8 +147,6 @@ module.exports = {
         if (bosco.options.program.dryRun) {
           return next();
         }
-
-        return next();
 
         exec(command, options, function (err, stdout, stderr) {
           if (err) {
