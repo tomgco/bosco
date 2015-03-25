@@ -164,6 +164,35 @@ describe("Bosco Static Asset Handling", function() {
 
     });
 
+    it('should load static assets via globs', function(done) {
+
+        var options = {
+            repos: ["project4"],
+            minify: false,
+            buildNumber: 'local',
+            tagFilter: null,
+            watchBuilds: false,
+            reloadOnly: false
+        }
+
+        var localBosco = boscoMock()
+        var utils = StaticUtils(localBosco);
+
+        utils.getStaticAssets(options, function(err, assets) {
+
+            expect(_.keys(assets)).to.contain(
+                'project4/local/html/glob.js.html',
+                'project4/local/js/bottom1.js',
+                'project4/local/js/jquery-1.11.0-min.js',
+                'project4/local/js/top1.js'
+            );
+
+            done();
+
+        });
+
+    });
+
    it('should load static assets in minified cdn mode, filtering by tag if specified', function(done) {
 
         var options = {
