@@ -155,7 +155,7 @@ describe("Bosco Static Asset Handling", function() {
               'project2/local/html/bottom.js.html',
               'project2/local/html/top.js.html',
               'project2/local/manifest/bottom.js.txt',
-              'project2/local/manifest/top.js.txt',              ,
+              'project2/local/manifest/top.js.txt',
               'project2/local/manifest/top.img.txt',
               'project2/local/manifest/upload.html.txt',
               'project2/local/manifest/top.swf.txt',
