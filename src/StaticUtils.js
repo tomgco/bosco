@@ -41,7 +41,12 @@ module.exports = function(bosco) {
                 // Flip through
                 assetList.forEach(function(asset) {
                     _.forOwn(asset, function(value) {
-                        var fileKey = path.join(value.serviceName, value.buildNumber, value.asset);
+                        var fileKey;
+                        if(isMinifiable(value)) {
+                            fileKey = path.join(value.serviceName, value.tag, value.buildNumber, value.asset);
+                        } else {
+                            fileKey = path.join(value.serviceName, value.buildNumber, value.asset);
+                        }
                         staticAssets[fileKey] = value;
                     });
                 });
@@ -59,6 +64,10 @@ module.exports = function(bosco) {
 
             });
         });
+    }
+
+    function isMinifiable(asset) {
+        return asset.type === 'js' || asset.type === 'css';
     }
 
     function getStaticRepos(options, next) {
@@ -110,6 +119,7 @@ module.exports = function(bosco) {
     }
 
     function loadService(repo, next) {
+
         var boscoRepo = {}, repoPath = bosco.getRepoPath(repo), boscoConfig,
             boscoRepoConfig = path.join(repoPath, 'bosco-service.json'),
             repoPackageFile = path.join(repoPath, 'package.json');
@@ -128,7 +138,6 @@ module.exports = function(bosco) {
         }
 
         if (bosco.exists(repoPackageFile)) {
-            // Add the info from the package file to the service and return it
             boscoRepo.info = JSON.parse(fs.readFileSync(repoPackageFile) || {});
         }
 

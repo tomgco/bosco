@@ -36,7 +36,8 @@ module.exports = function(bosco) {
                     newAsset.data = fs.readFileSync(newAsset.path);
                     newAsset.content = newAsset.data.toString();
                     newAsset.checksum = checksum(newAsset.content, 'sha1', 'hex');
-                    staticAssets[assetKey] = newAsset;
+                    newAsset.uniqueKey = newAsset.bundleKey + ':' + assetKey;
+                    staticAssets[newAsset.uniqueKey] = newAsset;
                 }
             }
 
