@@ -2,7 +2,7 @@ var _ = require('lodash');
 var path = require('path');
 var fs = require('fs');
 var async = require('async');
-var exec = require('child_process').exec;
+var execFile = require('child_process').execFile;
 var hb = require('handlebars');
 
 module.exports = {
@@ -55,14 +55,18 @@ function newServiceFromTemplate(bosco, args, next) {
 
     bosco.log('Creating new service: ' + targetServiceName.green + ' from template: ' + template.green);
 
-    var gitCmd = 'git clone git@github.com:' + template + ' ' + targetServiceName;
+    var gitCmd = 'git';
+    var gitOptions = ['clone','--depth=1','git@github.com:' + template, targetServiceName];
+
     var serviceDirectory = path.resolve('.', targetServiceName);
 
     async.series([
-      async.apply(execCmd, bosco, gitCmd, path.resolve('.')),
-      async.apply(execCmd, bosco, 'rm -rf .git', serviceDirectory),
-      async.apply(execCmd, bosco, 'git init', serviceDirectory),
-      async.apply(copyTemplateFiles, bosco, targetServiceName, targetServicePort, serviceDirectory)
+      async.apply(execCmd, bosco, gitCmd, gitOptions, path.resolve('.')),
+      async.apply(execCmd, bosco, 'rm',['-rf','.git'], serviceDirectory),
+      async.apply(execCmd, bosco, 'git',['init'], serviceDirectory),
+      async.apply(copyTemplateFiles, bosco, targetServiceName, targetServicePort, serviceDirectory),
+      async.apply(execCmd, bosco, 'git',['add','--all','.'], serviceDirectory),
+      async.apply(execCmd, bosco, 'git',['commit','-am','"First commit"'], serviceDirectory)
     ], function(err) {
       if(err) {
         return bosco.error(err.message);
@@ -142,8 +146,8 @@ function removeTemplate(bosco, args, next) {
 
 }
 
-function execCmd(bosco, cmd, cwd, next) {
-  exec(cmd, {
+function execCmd(bosco, cmd, params, cwd, next) {
+  execFile(cmd, params, {
     cwd: cwd
   }, function(err, stdout, stderr) {
       next(err, stdout + stderr);
