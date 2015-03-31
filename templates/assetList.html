@@ -139,6 +139,25 @@ ul
     </table>
 </div>
 <div class='col'>
+    <h2>Fonts</h2>
+    <table class='assets'>
+    <tr>
+      <td>Asset</td>
+      <td>Tag</td>
+      <td>Service</td>
+      <td>Path</td>
+    </tr>
+    {{#each fonts}}
+      <tr>
+       <td class='asset'><a href="{{url}}">{{asset}}</td>
+        <td class='tag'>{{tag}}</td>
+        <td class='repo'>{{repo}}</td>
+        <td class='path'>{{path}}</td>
+      </tr>
+    {{/each}}
+    </table>
+</div>
+<div class='col'>
     <h2>Images</h2>
     <table class='assets'>
     <tr>
