@@ -65,8 +65,10 @@ function newServiceFromTemplate(bosco, args, next) {
       async.apply(execCmd, bosco, 'rm',['-rf','.git'], serviceDirectory),
       async.apply(execCmd, bosco, 'git',['init'], serviceDirectory),
       async.apply(copyTemplateFiles, bosco, targetServiceName, targetServicePort, serviceDirectory),
+      async.apply(execCmd, bosco, 'rm',['-rf','templates'], serviceDirectory),
+      async.apply(execCmd, bosco, 'rm',['-f','bosco-templates.json'], serviceDirectory),
       async.apply(execCmd, bosco, 'git',['add','--all','.'], serviceDirectory),
-      async.apply(execCmd, bosco, 'git',['commit','-am','"First commit"'], serviceDirectory)
+      async.apply(execCmd, bosco, 'git',['commit','-m','First commit'], serviceDirectory)
     ], function(err) {
       if(err) {
         return bosco.error(err.message);
