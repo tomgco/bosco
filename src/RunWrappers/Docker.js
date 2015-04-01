@@ -87,6 +87,12 @@ Runner.prototype.start = function(options, next) {
     });
 }
 
+Runner.prototype.update = function(options, next) {
+    var self = this, docker = self.docker;
+    var dockerFqn = self.getFqn(options);
+    DockerUtils.pullImage(self.bosco, docker, dockerFqn, next);
+}
+
 Runner.prototype.getFqn = function(options) {
     var dockerFqn = '', service = options.service;
     if (service.docker) {

@@ -1,5 +1,6 @@
 var async = require('async');
 var exec = require('child_process').exec;
+var DockerRunner = require('../src/RunWrappers/Docker');
 var green = '\u001b[42m \u001b[0m';
 var red = '\u001b[41m \u001b[0m';
 
@@ -45,13 +46,49 @@ function cmd(bosco, args, next) {
 
     }
 
-    pullRepos(function() {
-        bosco.log('Complete');
+    var pullDockerImages = function(cb) {
+
+        bosco.log('Checking for docker images to pull ...');
+
+        var progressbar = bosco.config.get('progress') == 'bar',
+            total = repos.length;
+
+        var bar = progressbar ? new bosco.progress('Doing docker pull [:bar] :percent :etas', {
+              complete: green,
+              incomplete: red,
+            width: 50,
+            total: total
+        }) : null;
+
+        async.mapSeries(repos, function doDockerPull(repo, repoCb) {
+          if(!repo.match(repoRegex)) return repoCb();
+          var repoPath = bosco.getRepoPath(repo);
+          dockerPull(bosco, progressbar, bar, repoPath, repoCb);
+        }, function() {
+            cb();
+        });
+
+    }
+
+    var initialiseRunners = function(cb) {
+        DockerRunner.init(bosco, cb);
+    }
+
+     var disconnectRunners = function(cb) {
+        DockerRunner.disconnect(cb);
+    }
+
+    async.series([
+        initialiseRunners,
+        pullRepos,
+        pullDockerImages,
+        disconnectRunners
+    ], function() {
+        bosco.log('Complete!');
         if(next) next();
     });
 
 }
-
 
 function pull(bosco, progressbar, bar, repoPath, next) {
 
@@ -79,3 +116,20 @@ function pull(bosco, progressbar, bar, repoPath, next) {
         next();
     });
 }
+
+function dockerPull(bosco, progressbar, bar, repoPath, next) {
+
+    var boscoService = [repoPath, 'bosco-service.json'].join('/');
+    if (bosco.exists(boscoService)) {
+        var definition = require(boscoService);
+        if(definition.service && definition.service.type === 'docker') {
+            DockerRunner.update(definition, next);
+        } else {
+            return next();
+        }
+    } else {
+        return next();
+    }
+
+}
+
