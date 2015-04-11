@@ -164,7 +164,7 @@ function cmd(bosco, args, cb) {
                 }
 
                 if (runConfig.service && runConfig.service.type == 'docker-compose') {
-                    bosco.log('Running docker service ' + runConfig.name.green + ' ...');
+                    bosco.log('Running docker-compose ' + runConfig.name.green + ' ...');
                     return DockerComposeRunner.start(runConfig, cb);
                 }
 
