@@ -2,6 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
+var DockerComposeRunner = require('../src/RunWrappers/DockerCompose');
 var mkdirp = require('mkdirp');
 var runningServices = [];
 var notRunningServices = [];
@@ -42,7 +43,7 @@ function cmd(bosco, args, cb) {
     }
 
     var initialiseRunners = function(next) {
-        var runners = [NodeRunner, DockerRunner];
+        var runners = [NodeRunner, DockerRunner, DockerComposeRunner];
         async.map(runners, function loadRunner(runner, cb) {
             runner.init(bosco, cb);
         }, next);
@@ -140,7 +141,7 @@ function cmd(bosco, args, cb) {
             .uniq(function(item) { return item.name; })
             .sortBy(function(item) {
                 if (item.order) return item.order;
-                return item.service.type === 'docker' ? 100 : 500
+                return (item.service.type === 'docker' || item.service.type === 'docker-compose') ? 100 : 500
             }).value();
 
         next(null, runList);
@@ -160,6 +161,11 @@ function cmd(bosco, args, cb) {
                     }
                     bosco.log('Running docker service ' + runConfig.name.green + ' ...');
                     return DockerRunner.start(runConfig, cb);
+                }
+
+                if (runConfig.service && runConfig.service.type == 'docker-compose') {
+                    bosco.log('Running docker-compose ' + runConfig.name.green + ' ...');
+                    return DockerComposeRunner.start(runConfig, cb);
                 }
 
                 if (runConfig.service && runConfig.service.type == 'node') {

@@ -2,6 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
+var DockerComposeRunner = require('../src/RunWrappers/DockerCompose');
 var runningServices = [];
 
 module.exports = {
@@ -18,7 +19,7 @@ function cmd(bosco, args, next) {
     var repos = bosco.getRepos();
 
     var initialiseRunners = function(cb) {
-        var runners = [NodeRunner, DockerRunner];
+        var runners = [NodeRunner, DockerRunner, DockerComposeRunner];
         async.map(runners, function loadRunner(runner, lcb) {
             runner.init(bosco, lcb);
         }, cb);
@@ -44,10 +45,15 @@ function cmd(bosco, args, next) {
 
                 if (bosco.exists(boscoService)) {
                     svc = require(boscoService);
+                    svc.cwd = repoPath
                     if (svc.service) {
                         if (svc.service.type == 'docker') {
                             if (_.contains(runningServices, repo)) {
                                 return DockerRunner.stop(svc, cb);
+                            }
+                        } else if (svc.service.type == 'docker-compose') {
+                            if (_.contains(runningServices, 'docker-compose')) {
+                                return DockerComposeRunner.stop(svc, cb);
                             }
                         } else {
                             // Assume node
@@ -87,8 +93,10 @@ function cmd(bosco, args, next) {
         NodeRunner.listRunning(false, function(err, nodeRunning) {
             DockerRunner.list(false, function(err, dockerRunning) {
                 dockerRunning = _.map(_.flatten(dockerRunning), function(item) { return item.replace('/',''); });
-                runningServices = _.union(nodeRunning, dockerRunning);
-                cb();
+                DockerComposeRunner.list(false, function(err, dockerComposeRunning) {
+                    runningServices = _.union(nodeRunning, dockerRunning, dockerComposeRunning);
+                    cb()
+                })
             })
         })
     }
