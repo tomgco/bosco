@@ -275,6 +275,17 @@ This would contain a fragment that has script tags for all of the JS tagged in t
 
 You can view all assets that are being tracked by `bosco cdn` by going to any url once the `bosco cdn` command is running and using the cdn port (i.e: 127.0.0.1:7334). You can also see a list of repos by going to /repos on the `bosco cdn` server (i.e: 127.0.0.1:7334/repos).
 
+#### Example of bosco CDN with watch.
+You can use any part of the service name. For example if we have ```service1, service2, service3```
+
+To watch all 3 services:
+```
+bosco cdn -w "service"
+```
+and to watch **service1** and **service2** only:
+```
+bosco cdn -w "service1|service2"
+```
 
 ### S3 Push
 
