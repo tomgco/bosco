@@ -16,10 +16,7 @@ var semver = require('semver');
 var sf = require('sf');
 var Table = require('cli-table');
 var util = require('util');
-var nplugm = require('nplugm');
 var osenv = require('osenv');
-
-var boscoCommandsPrefix = 'bosco-command-';
 
 prompt.message = 'Bosco'.green;
 
@@ -231,20 +228,12 @@ Bosco.prototype._cmd = function() {
         return require(localCommandModule).cmd(self, commands);
     }
 
-    // Let's try to get the commands from npm
-    nplugm.load(boscoCommandsPrefix + command, function(err, plugin) {
-        plugin.require().cmd(self, commands);
-    }, function(err, loadedPlugins) {
-        if (loadedPlugins.length) {
-            return;
-        }
+    if (self.options.shellCommands) {
+        self._shellCommands();
+    } else {
+        self._commands();
+    }
 
-        if (self.options.shellCommands) {
-            self._shellCommands();
-        } else {
-            self._commands();
-        }
-    });
 }
 
 Bosco.prototype._shellCommands = function() {
@@ -273,16 +262,6 @@ Bosco.prototype._shellCommands = function() {
                     if (!files || files.length === 0) return next();
                     showCommands(localPath, files, next);
                 })
-            },
-            function(next) {
-                nplugm.load(boscoCommandsPrefix + '*', function(plugin) {
-                    var npmCommands = [];
-
-                    var requiredPlugin = plugin.require();
-                    npmCommands.push(requiredPlugin.name);
-
-                    next(null, npmCommands);
-                });
             }
         ],
         function(err, files) {
@@ -345,21 +324,6 @@ Bosco.prototype._commands = function() {
                     if (!files || files.length === 0) return next();
                     showTable('Local', localPath, files, next)
                 })
-            },
-            function(next) {
-                var npmCommands = [];
-
-                nplugm.load(boscoCommandsPrefix + '*', function(err, plugin) {
-                    if (err) return next(err);
-
-                    npmCommands.push(plugin.require());
-
-                    if (npmCommands.length) {
-                        showTable('Npm', null, npmCommands, next);
-                    } else {
-                        next();
-                    }
-                });
             },
             function(next) {
                 var wait = function() {
