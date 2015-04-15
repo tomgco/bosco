@@ -9,12 +9,13 @@ Runner.prototype.init = function(bosco, next) {
 }
 
 Runner.prototype.list = function(options, next) {
-    var installed = true
+    var installed = true;
     spawn('docker-compose', ['--version'], { stdio: 'ignore' })
     .on('error', function() {
-        installed = false
+        installed = false;
+        return next(null, []);
     }).on('exit', function() {
-        return next(null, installed ? ['docker-compose'] : [])
+        if(installed) { return next(null, ['docker-compose']); }
     })
 }
 
