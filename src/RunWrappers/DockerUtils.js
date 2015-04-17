@@ -152,13 +152,6 @@ function prepareImage(bosco, docker, fqn, options, next) {
     if (options.service.docker && options.service.docker.build) {
         return buildImage(bosco, docker, fqn, options, next);
     }
-
-    if (options.service.alwaysPull) {
-        bosco.warn('Ignoring alwaysPull'.red +
-            ', if you want current docker images, use ' + 'bosco pull'.blue +
-            ' or ' + 'bosco morning'.blue + '.');
-    }
-
     locateImage(docker, fqn, function(err, image) {
         if (err || image) return next(err, image);
 
