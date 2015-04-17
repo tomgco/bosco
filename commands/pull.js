@@ -97,7 +97,7 @@ function pull(bosco, progressbar, bar, repoPath, next) {
         return next();
     }
 
-    exec('git pull --rebase origin master', {
+    exec('git pull --rebase', {
       cwd: repoPath
     }, function(err, stdout, stderr) {
         if(progressbar) bar.tick();
