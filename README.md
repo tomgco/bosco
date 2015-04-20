@@ -404,3 +404,25 @@ To use in a command, you typically scan the array for their presence and set a v
 ```
 var minify = _.contains(args,'minify');
 ```
+
+## Troubleshooting
+
+### Docker services don't start
+
+If you run bosco start and then docker service(s) don't start eg.
+
+```
+[09:50:50] Bosco: Running docker service infra-nginx-gateway ...
+```
+
+Then boot2docker has stopped running. Confirm this with 
+
+```
+boot2docker status
+```
+
+then restart with 
+
+```
+boot2docker start
+```
