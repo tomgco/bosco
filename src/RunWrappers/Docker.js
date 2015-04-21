@@ -89,6 +89,9 @@ Runner.prototype.start = function(options, next) {
 
 Runner.prototype.update = function(options, next) {
     var self = this, docker = self.docker;
+
+    if (options.service.docker && options.service.docker.build) return next();
+
     var dockerFqn = self.getFqn(options);
     DockerUtils.pullImage(self.bosco, docker, dockerFqn, next);
 }
