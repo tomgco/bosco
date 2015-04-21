@@ -5,11 +5,15 @@ module.exports = {
   name: 'grep',
   description: 'runs git grep across your repos, use -- to separate bosco options from git grep options',
   example: 'bosco grep <git grep args>',
-  cmd: cmd
+  cmd: cmd,
+  options: [{
+    option: 'insensitive',
+    syntax: ['-i', 'Make grep case insensitive'],
+  }]
 }
 
 function cmd(bosco, args, next) {
-
+  console.log('first args',args);
   var repoPattern = bosco.options.repo;
   var repoRegex = new RegExp(repoPattern);
 
@@ -45,7 +49,9 @@ function cmd(bosco, args, next) {
 
 var grepRepo = function(bosco, args, repo, repoPath, callback) {
 
-  var gitArgs = ['grep', '--color=always', '-n'].concat(args);
+  var gitArgs = ['grep', '--color=always', '-n']
+  if (bosco.options.program.I) gitArgs.push('-i')
+  gitArgs = gitArgs.concat(args);
 
   execFile('git', gitArgs, {
     cwd: repoPath
