@@ -1,91 +1,99 @@
+'use strict';
 
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 
 module.exports = function(bosco) {
+    function doBuild(service, options, next) {
+        if(!service.build) return next(null, false);
 
-	function doBuild(service, options, next) {
+        var watchBuilds = options.watchBuilds,
+            command = service.build.command,
+            cwd = {cwd: service.repoPath};
 
-		if(!service.build) return next(null, false);
+        var buildFinished = function(err, stdout, stderr) {
+            var log = 'Finished build command for ' + service.name.blue;
+            if (err || stderr) {
+                log += ':';
+            }
 
-		var watchBuilds = options.watchBuilds,
-			reloadOnly = options.reloadOnly,
-			command;
+            bosco.log(log);
+            if (err || stderr) {
+              if (stdout) console.log(stdout);
+              if (stderr) bosco.error(stderr);
+            }
 
-	    var buildFinished = function(err, stdout, stderr) {
+            next(null, true);
+        };
 
-	        if (err) {
-	            bosco.error(stderr);
-	        }
+        if (!watchBuilds || !service.name.match(options.watchRegex)) {
+            bosco.log('Running build command for ' + service.name.blue + ': ' + command);
+            return exec(command, cwd, buildFinished);
+        }
 
-	        console.log(stdout);
+        if (options.reloadOnly) {
+            return bosco.warn('Not spawning watch command for ' + service.name.blue + ': change is triggered by external build tool');
+        }
 
-	        next(null, true);
+        if (service.build.watch) command = service.build.watch.command;
 
-	    }
+        bosco.log('Spawning ' + 'watch'.red + ' command for ' + service.name.blue + ': ' + command);
 
-	    if (watchBuilds && service.name.match(options.watchRegex)) {
+        var args = command.split(' ');
+        command = args.shift();
+        var wc = spawn(command, args, cwd);
+        var readyText = service.build.watch.ready || 'finished';
+        var output = '', hadError = false, calledReady = false;
+        var checkDelay = 500; // delay before checking for any stdout
+        var timeout = checkDelay * 50; // Seems reasonable for build cycle
+        var timer = 0;
 
-	    		command = service.build.watch ? service.build.watch.command : service.build.command;
-				  command = reloadOnly ? 'echo "Not running build as change triggered by external build tool"' : command;
+        buildFinished = (function(buildFinished) {
+            return function() {
+                clearTimeout(checkFinished);
+                calledReady = true;
+                output = '';
+                buildFinished.apply(this, arguments);
+            };
+        })(buildFinished);
 
-	        bosco.warn('Spawning watch command for ' + service.name.blue + ': ' + command);
+        wc.on('exit', function(code) {
+            bosco.error('Watch'.red + ' command for ' + service.name.blue + ' died with code ' + code);
+        });
 
-	        var cmdArray = command.split(' ');
-	        command = cmdArray.shift();
-	        var wc = spawn(command, cmdArray, {
-	            cwd: service.repoPath
-	        });
-	        var readyText = service.build.watch.ready || 'finished';
-	        var stdout = '', stderr = '',
-	            calledReady = false;
-	        var checkDelay = 500; // Seems reasonable for build check cycle
-	        var timeout = checkDelay * 50; // Before it starts checkign for any stdout
-	        var timer = 0;
+        wc.stdout.on('data', function(data) {
+            if (!calledReady) {
+                output += data.toString();
+            }
+        });
 
-	        wc.stdout.on('data', function(data) {
-	            stdout += data.toString();
-	        });
+        wc.stderr.on('data', function(data) {
+            hadError = true;
+            if (calledReady) {
+                bosco.error('Watch'.red + ' command for ' + service.name.blue + ' stderr:\n' + data.toString());
+            } else {
+                output += data.toString();
+            }
+        });
 
-	        wc.stderr.on('data', function(data) {
-	            stderr += data.toString();
-	        });
+        var checkFinished = function() {
+            if (calledReady) return;
 
-	        var checkFinished = function() {
-	            if (stdout.indexOf(readyText) >= 0 && !calledReady) {
-	                calledReady = true;
-	                buildFinished(null, stdout, null);
-	            } else if (stderr && !calledReady) {
-	            	// This doesn't really get called, most build tools output to stdout
-	            	calledReady = true;
-	                buildFinished(stderr);
-	            } else {
-	            	timer = timer + checkDelay;
-	                if(timer < timeout) {
-	                	setTimeout(checkFinished, checkDelay);
-	                } else {
-	                	bosco.error('Build timed out beyond ' + timeout/1000 + ' seconds, likely an issue with the project build - you may need to check locally.');
-	                	console.error(stdout);
-	                }
-	            }
-	        }
+            if (output.indexOf(readyText) >= 0) {
+                return buildFinished(hadError, output);
+            }
 
-	        checkFinished();
+            timer = timer + checkDelay;
+            if (timer < timeout) return setTimeout(checkFinished, checkDelay);
 
-	    } else {
+            bosco.error('Build timed out beyond ' + timeout/1000 + ' seconds, likely an issue with the project build - you may need to check locally. Was looking for: ' + readyText);
+            console.error(output);
+        };
 
-					command = service.build.command;
-	        bosco.log('Running build command for ' + service.name.blue + ': ' + command);
-	        exec(command, {
-	            cwd: service.repoPath
-	        }, buildFinished);
-
-	    }
-
-	}
+        checkFinished();
+    }
 
     return {
         doBuild: doBuild
     }
-
 }
