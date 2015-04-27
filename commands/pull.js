@@ -63,7 +63,7 @@ function cmd(bosco, args, next) {
         async.mapSeries(repos, function doDockerPull(repo, repoCb) {
           if(!repo.match(repoRegex)) return repoCb();
           var repoPath = bosco.getRepoPath(repo);
-          dockerPull(bosco, progressbar, bar, repoPath, repoCb);
+          dockerPull(bosco, progressbar, bar, repoPath, repo, repoCb);
         }, function() {
             cb();
         });
@@ -117,13 +117,19 @@ function pull(bosco, progressbar, bar, repoPath, next) {
     });
 }
 
-function dockerPull(bosco, progressbar, bar, repoPath, next) {
+function dockerPull(bosco, progressbar, bar, repoPath, repo, next) {
 
     var boscoService = [repoPath, 'bosco-service.json'].join('/');
     if (bosco.exists(boscoService)) {
         var definition = require(boscoService);
         if(definition.service && definition.service.type === 'docker') {
-            DockerRunner.update(definition, next);
+            DockerRunner.update(definition, function(err) {
+                if(err) {
+                    var errMessage = err.reason ? err.reason : err;
+                    bosco.error('Error pulling ' + repo.green + ', reason: ' + errMessage.red);
+                }
+                next()
+            });
         } else {
             return next();
         }

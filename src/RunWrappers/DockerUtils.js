@@ -161,7 +161,9 @@ function prepareImage(bosco, docker, fqn, options, next) {
 }
 
 function buildImage(bosco, docker, fqn, options, next) {
+
     var path = sf(options.service.docker.build, {PATH: options.cwd});
+
     // TODO(geophree): obey .dockerignore
     var tarStream = tar.pack(path);
     tarStream.once('error', next);
@@ -179,12 +181,13 @@ function buildImage(bosco, docker, fqn, options, next) {
                 return;
             } else if (json.stream) {
                 lastStream = json.stream;
-                bosco.log(lastStream.trim());
+                process.stdout.write('.');
             }
         });
         stream.once('end', function() {
             var id = lastStream.match(/Successfully built ([a-f0-9]+)/);
             if (id && id[1]) {
+                process.stdout.write('\n');
                 return next(null, docker.getImage(id[1]));
             }
             next(new Error('Id not found in final log line: ' . lastStream));
