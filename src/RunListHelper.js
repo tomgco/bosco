@@ -1,0 +1,128 @@
+
+var _ = require('lodash');
+var github = require('octonode');
+
+module.exports = {
+  getRunList: getRunList,
+  getServiceConfigFromGithub: getServiceConfigFromGithub
+}
+
+function getRunConfig(bosco, repo, repoRegex, watchRegex) {
+
+    var pkg, svc,
+        repoPath = bosco.getRepoPath(repo),
+        watch = repo.match(watchRegex) ? true : false,
+        packageJson = [repoPath, 'package.json'].join('/'),
+        boscoService = [repoPath, 'bosco-service.json'].join('/'),
+        svcConfig = {
+            name: repo,
+            cwd: repoPath,
+            watch: watch,
+            order: 50,
+            service: {}
+        };
+
+    if (bosco.exists(packageJson)) {
+        pkg = require(packageJson);
+        if (pkg.scripts && pkg.scripts.start) {
+            svcConfig = _.extend(svcConfig, {
+                service: {
+                    type: 'node',
+                    start: pkg.scripts.start
+                }
+            });
+        }
+    }
+
+    if (bosco.exists(boscoService)) {
+        svc = require(boscoService);
+        svcConfig = _.extend(svcConfig, {
+            tags: svc.tags,
+            order: svc.order
+        });
+        if (svc.service) {
+            svcConfig.service = _.extend(svcConfig.service, svc.service);
+        }
+    }
+
+    return svcConfig;
+
+}
+
+function getRunList(bosco, repos, repoRegex, watchRegex, repoTag, next) {
+
+    var depTree = {};
+    var revDepTree = {};
+    var repoList = [];
+    var runList = [];
+    var svcConfig;
+
+    var addDependencies = function(dependent, dependsOn) {
+        dependsOn.forEach(function(dependency) {
+            if(!_.contains(repoList, dependency)) { repoList.push(dependency); } // Ensures we then check the dependcies of depencies
+            revDepTree[dependency] = revDepTree[dependency] || [];
+            revDepTree[dependency].push(dependent);
+        });
+    }
+
+    // First build the tree and filtered core list
+    repos.forEach(function(repo) {
+        svcConfig = getRunConfig(bosco, repo, repoRegex, watchRegex);
+        depTree[svcConfig.name] = svcConfig;
+        var matchesRegexOrTag = (!repoTag && repo.match(repoRegex)) || (repoTag && _.contains(svcConfig.tags, repoTag));
+        if (svcConfig.service.type && matchesRegexOrTag) {
+            repoList.push(repo);
+        }
+    });
+
+    // Now iterate, but use the dependency tree to build the run list
+    while (repoList.length > 0) {
+        var currentRepo = repoList.shift();
+        svcConfig = depTree[currentRepo];
+        if (svcConfig && svcConfig.service) {
+            runList.push(svcConfig);
+            if (svcConfig.service.dependsOn) {
+                addDependencies(currentRepo, svcConfig.service.dependsOn);
+            }
+        }
+    }
+
+    // Uniq and sort
+    runList = _.chain(runList)
+        .uniq(function(item) { return item.name; })
+        .sortBy(function(item) {
+            if (item.order) return item.order;
+            return (item.service.type === 'docker' || item.service.type === 'docker-compose') ? 100 : 500
+        }).value();
+
+    next(null, runList);
+
+}
+
+function getServiceConfigFromGithub(bosco, repo, next) {
+
+    var team = bosco.getTeam();
+    var organisation = team.split('/')[0];
+    var client = github.client(bosco.config.get('github:authToken'));
+    var githubRepo = organisation + '/' + repo;
+    var configKey = 'cache:github:' + githubRepo;
+    var cachedConfig = bosco.config.get(configKey);
+
+    if(cachedConfig) {
+      bosco.log('Using cached ' + 'bosco-service.json'.green + ' config from github @ ' + githubRepo.cyan);
+      next(null, cachedConfig);
+    } else {
+      var ghrepo = client.repo(githubRepo);
+      bosco.log('Retrieving ' + 'bosco-service.json'.green + ' config from github @ ' + githubRepo.cyan);
+      ghrepo.contents('bosco-service.json', function(err, contents) {
+          if(err) { return next(err); }
+          var content = new Buffer(contents.content, 'base64');
+          var config = JSON.parse(content.toString());
+          bosco.config.set(configKey, config);
+          bosco.config.save(function() {
+              next(null, config);
+          });
+      });
+    }
+
+}

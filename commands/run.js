@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var async = require('async');
+var RunListHelper = require('../src/RunListHelper');
 var NodeRunner = require('../src/RunWrappers/Node');
 var DockerRunner = require('../src/RunWrappers/Docker');
 var DockerComposeRunner = require('../src/RunWrappers/DockerCompose');
@@ -56,126 +57,60 @@ function cmd(bosco, args, cb) {
         }, next);
     }
 
-    var getRunConfig = function(repo) {
-
-        var pkg, svc,
-            repoPath = bosco.getRepoPath(repo),
-            watch = repo.match(watchRegex) ? true : false,
-            packageJson = [repoPath, 'package.json'].join('/'),
-            boscoService = [repoPath, 'bosco-service.json'].join('/'),
-            svcConfig = {
-                name: repo,
-                cwd: repoPath,
-                watch: watch,
-                service: {}
-            };
-
-        if (bosco.exists(packageJson)) {
-            pkg = require(packageJson);
-            if (pkg.scripts && pkg.scripts.start) {
-                svcConfig = _.extend(svcConfig, {
-                    service: {
-                        type: 'node',
-                        start: pkg.scripts.start
-                    }
-                });
-            }
-        }
-
-        if (bosco.exists(boscoService)) {
-            svc = require(boscoService);
-            svcConfig = _.extend(svcConfig, {
-                tags: svc.tags,
-                order: svc.order
-            });
-            if (svc.service) {
-                svcConfig.service = _.extend(svcConfig.service, svc.service);
-            }
-        }
-
-        return svcConfig;
-
-    }
-
     var getRunList = function(next) {
-
-        var depTree = {};
-        var revDepTree = {};
-        var repoList = [];
-        var runList = [];
-        var svcConfig;
-        var addDependencies = function(dependent, dependsOn) {
-            dependsOn.forEach(function(dependency) {
-                if(!_.contains(repoList, dependency)) repoList.push(dependency); // Ensures we then check the dependcies of depencies
-
-                revDepTree[dependency] = revDepTree[dependency] || [];
-                revDepTree[dependency].push(dependent);
-            });
-        }
-
-        // First build the tree and filtered core list
-        repos.forEach(function(repo) {
-            svcConfig = getRunConfig(repo);
-            depTree[svcConfig.name] = svcConfig;
-            if ((!repoTag && repo.match(repoRegex)) || (repoTag && _.contains(svcConfig.tags, repoTag))) {
-                repoList.push(repo);
-            }
-        });
-
-        // Now iterate, but use the dependency tree to build the run list
-        while (repoList.length > 0) {
-            var currentRepo = repoList.shift();
-            svcConfig = depTree[currentRepo];
-            if (!svcConfig) return next(new Error('Trying to run ' + currentRepo + ' which does not exist on the list of repos. This is a dependency for ' + revDepTree[currentRepo]));
-
-            if (svcConfig.service) {
-                runList.push(svcConfig);
-                if (svcConfig.service.dependsOn) {
-                    addDependencies(currentRepo, svcConfig.service.dependsOn);
-                }
-            }
-        }
-
-        // Uniq and sort
-        runList = _.chain(runList)
-            .uniq(function(item) { return item.name; })
-            .sortBy(function(item) {
-                if (item.order) return item.order;
-                return (item.service.type === 'docker' || item.service.type === 'docker-compose') ? 100 : 500
-            }).value();
-
-        next(null, runList);
-
+        RunListHelper.getRunList(bosco, repos, repoRegex, watchRegex, repoTag, next);
     }
 
     var startRunnableServices = function(next) {
 
+        var runService = function(runConfig, cb) {
+
+            if (runConfig.service && runConfig.service.type == 'docker') {
+                if (_.contains(runningServices, runConfig.name)) {
+                    bosco.warn('Service ' + runConfig.name.green + ' is already running ...');
+                    return cb();
+                }
+                bosco.log('Running docker service ' + runConfig.name.green + ' ...');
+                return DockerRunner.start(runConfig, cb);
+            }
+
+            if (runConfig.service && runConfig.service.type == 'docker-compose') {
+                bosco.log('Running docker-compose ' + runConfig.name.green + ' ...');
+                return DockerComposeRunner.start(runConfig, cb);
+            }
+
+            if (runConfig.service && runConfig.service.type == 'node') {
+                if (_.contains(runningServices, runConfig.name)) {
+                    bosco.warn('Service ' + runConfig.name.green + ' is already running ...');
+                    return cb();
+                }
+                return NodeRunner.start(runConfig, cb);
+            }
+            return cb();
+        }
+
         getRunList(function(err, runList) {
+
             if (err) return next(err);
 
             async.mapSeries(runList, function(runConfig, cb) {
-                if (runConfig.service && runConfig.service.type == 'docker') {
-                    if (_.contains(runningServices, runConfig.name)) {
-                        bosco.warn('Service ' + runConfig.name.green + ' is already running ...');
-                        return cb();
-                    }
-                    bosco.log('Running docker service ' + runConfig.name.green + ' ...');
-                    return DockerRunner.start(runConfig, cb);
+                if(!runConfig.service.type) {
+                    RunListHelper.getServiceConfigFromGithub(bosco, runConfig.name, function(err, svcConfig) {
+                        if(err) { return cb(); }
+                        if(svcConfig.type === 'docker') { return cb(); }
+                        // Do not allow build in this mode, so default to run
+                        if(svcConfig.service && svcConfig.service.build) {
+                            delete svcConfig.service.build;
+                        }
+                        if(!svcConfig.name) {
+                            svcConfig.name = runConfig.name;
+                        }
+                        runService(svcConfig, cb);
+                    })
+                } else {
+                    runService(runConfig, cb);
                 }
 
-                if (runConfig.service && runConfig.service.type == 'docker-compose') {
-                    bosco.log('Running docker-compose ' + runConfig.name.green + ' ...');
-                    return DockerComposeRunner.start(runConfig, cb);
-                }
-
-                if (runConfig.service && runConfig.service.type == 'node') {
-                    if (_.contains(runningServices, runConfig.name)) {
-                        bosco.warn('Service ' + runConfig.name.green + ' is already running ...');
-                        return cb();
-                    }
-                    return NodeRunner.start(runConfig, cb);
-                }
-                cb();
             }, next);
         })
 
@@ -183,7 +118,6 @@ function cmd(bosco, args, cb) {
 
     var stopNotRunningServices = function(next) {
         bosco.log('Removing stopped/dead services');
-
         async.each(notRunningServices, function(service, cb){
             NodeRunner.stop({name: service}, cb);
         }, next);
@@ -244,3 +178,4 @@ function cmd(bosco, args, cb) {
     })
 
 }
+

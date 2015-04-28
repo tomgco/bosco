@@ -93,7 +93,7 @@ Runner.prototype.start = function(options, next) {
 		self.bosco.warn('Can\'t start ' + options.name.red + ', as I can\'t find script: ' + location.red);
 		return next();
 	}
-    self.bosco.log('Starting ' + options.name + ' ...');
+    self.bosco.log('Starting ' + options.name.cyan + ' ...');
 	pm2.start(location, { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand, force: true, scriptArgs: scriptArgs }, next);
 }
 
@@ -102,7 +102,7 @@ Runner.prototype.start = function(options, next) {
  */
 Runner.prototype.stop = function(options, next) {
     var self = this;
-	self.bosco.log('Stopping ' + options.name);
+	self.bosco.log('Stopping ' + options.name.cyan);
 	pm2.stop(options.name, function(err) {
         if(err) return next(err);
  		pm2.delete(options.name, function(err) {

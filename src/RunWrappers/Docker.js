@@ -63,6 +63,7 @@ Runner.prototype.stop = function(options, next) {
         containers.forEach(function(container) {
             if (self.containerNameMatches(container, options.service.name)) {
                 var cnt = docker.getContainer(container.Id);
+                self.bosco.log('Stopping ' + options.service.name.green);
                 toStop.push(cnt);
             }
         });
