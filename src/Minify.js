@@ -182,7 +182,7 @@ module.exports = function(bosco) {
 
           var cleanCssConfig = bosco.config.get('css:clean');
           if(cleanCssConfig && cleanCssConfig.enabled) {
-            cssContent = new CleanCSS(cleanCssConfig.options).minify(cssContent);
+            cssContent = new CleanCSS(cleanCssConfig.options).minify(cssContent).styles;
           }
           if (cssContent.length === 0) return next({
               message: 'No css for tag ' + tag
