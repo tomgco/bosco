@@ -70,6 +70,12 @@ function cmd(bosco, args, next) {
 
     }
 
+    var clearGithubCache = function(cb) {
+        var configKey = 'cache:github';
+        bosco.config.set(configKey, {});
+        bosco.config.save(cb);
+    }
+
     var initialiseRunners = function(cb) {
         DockerRunner.init(bosco, cb);
     }
@@ -82,6 +88,7 @@ function cmd(bosco, args, next) {
         initialiseRunners,
         pullRepos,
         pullDockerImages,
+        clearGithubCache,
         disconnectRunners
     ], function() {
         bosco.log('Complete!');

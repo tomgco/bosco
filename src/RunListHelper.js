@@ -59,7 +59,9 @@ function getRunList(bosco, repos, repoRegex, watchRegex, repoTag, next) {
 
     var addDependencies = function(dependent, dependsOn) {
         dependsOn.forEach(function(dependency) {
-            if(!_.contains(repoList, dependency)) { repoList.push(dependency); } // Ensures we then check the dependcies of depencies
+            if(!_.contains(repoList, dependency)) {
+              repoList.push(dependency);
+            }
             revDepTree[dependency] = revDepTree[dependency] || [];
             revDepTree[dependency].push(dependent);
         });
@@ -84,6 +86,10 @@ function getRunList(bosco, repos, repoRegex, watchRegex, repoTag, next) {
             if (svcConfig.service.dependsOn) {
                 addDependencies(currentRepo, svcConfig.service.dependsOn);
             }
+        } else {
+          // This is likely to be a remote infra dependency, so lets create a dummy one.
+          svcConfig = getRunConfig(bosco, currentRepo, null, '$^');
+          runList.push(svcConfig);
         }
     }
 
@@ -94,6 +100,7 @@ function getRunList(bosco, repos, repoRegex, watchRegex, repoTag, next) {
             if (item.order) return item.order;
             return (item.service.type === 'docker' || item.service.type === 'docker-compose') ? 100 : 500
         }).value();
+
 
     next(null, runList);
 
