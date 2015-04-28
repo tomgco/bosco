@@ -116,7 +116,6 @@ function getServiceConfigFromGithub(bosco, repo, next) {
     var cachedConfig = bosco.config.get(configKey);
 
     if(cachedConfig) {
-      bosco.log('Using cached ' + 'bosco-service.json'.green + ' config from github @ ' + githubRepo.cyan);
       next(null, cachedConfig);
     } else {
       var ghrepo = client.repo(githubRepo);
