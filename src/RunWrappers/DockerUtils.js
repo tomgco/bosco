@@ -1,5 +1,7 @@
 var _ = require('lodash');
 var os = require('os');
+var path = require('path');
+var fs = require('fs');
 var sf = require('sf');
 var tar = require('tar-fs');
 var green = '\u001b[42m \u001b[0m';
@@ -164,6 +166,8 @@ function buildImage(bosco, docker, fqn, options, next) {
 
     var path = sf(options.service.docker.build, {PATH: options.cwd});
 
+    ensureManifest(bosco, options.service.name, options.cwd);
+
     // TODO(geophree): obey .dockerignore
     var tarStream = tar.pack(path);
     tarStream.once('error', next);
@@ -268,6 +272,14 @@ function pullImage(bosco, docker, repoTag, next) {
         stream.once('end', handler);
     });
 
+}
+
+function ensureManifest(bosco, name, cwd) {
+    var manifest = path.join(cwd,'manifest.json');
+    if(fs.existsSync(manifest)) { return; }
+    bosco.log('Adding default manifest file for docker build ...')
+    var manifestContent = { 'service': name, 'build': 'local' };
+    fs.writeFileSync(manifest,JSON.stringify(manifestContent));
 }
 
 function getHostIp() {
