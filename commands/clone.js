@@ -2,6 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var fs = require('fs');
 var github = require('octonode');
+var rimraf = require('rimraf');
 var path = require('path');
 var exec = require('child_process').exec;
 var green = '\u001b[42m \u001b[0m';
@@ -12,7 +13,11 @@ module.exports = {
     description:'Gets an list of all repos in your team and runs git clone for each',
     example: 'bosco clone',
     help: getHelp(),
-    cmd:cmd
+    cmd:cmd,
+    options: [{
+        option: 'clean',
+        syntax: ['--clean', 'Remove any repositories in the workspace that are no longer in the github team']
+    }]
 }
 
 function cmd(bosco, args, next) {
@@ -94,11 +99,23 @@ function fetch(bosco, team, repos, repoRegex, args, next) {
                             .difference(repos)
                             .value()
 
-            orphans.forEach(function(orphan) {
-                bosco.warn('I am concerned that you still have the repo ' + orphan.red + ' as it is no longer in the github team, you should probably remove it?');
-            });
-
-            cb();
+            async.map(orphans, function(orphan, cb2) {
+                if(bosco.options.clean) {
+                    var orphanPath = bosco.getRepoPath(orphan);
+                    checkStatus(bosco, orphanPath, function(err, status) {
+                        if(status.indexOf('working directory clean') > 0) {
+                            bosco.log('Deleted project ' + orphan.green + ' as it is no longer in the github team and you have no local changes.');
+                            rimraf(orphanPath, cb2)
+                        } else {
+                            bosco.warn('Wont delete project' + orphan.red + ' as you have uncommited local changes.');
+                            cb2();
+                        }
+                    });
+                } else {
+                    bosco.warn('I am concerned that you still have the repo ' + orphan.red + ' as it is no longer in the github team, run "bosco clone --clean" to remove them.');
+                    cb2();
+                }
+            }, cb);
 
         });
 
@@ -157,6 +174,14 @@ function fetch(bosco, team, repos, repoRegex, args, next) {
         if(next) next();
     });
 
+}
+
+function checkStatus(bosco, repoPath, next) {
+    exec('git status', {
+      cwd: repoPath
+    }, function(err, stdout) {
+        return next(err, stdout);
+    });
 }
 
 function clone(bosco, progressbar, bar, repoUrl, orgPath, next) {
