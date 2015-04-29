@@ -101,8 +101,7 @@ function fetch(bosco, team, repos, repoRegex, args, next) {
             async.map(orphans, function(orphan, cb2) {
                 if(bosco.options.clean) {
                     var orphanPath = bosco.getRepoPath(orphan);
-                    checkStatus(bosco, orphanPath, function(err, status) {
-                        var canDelete = status.indexOf('Your branch is up-to-date') >= 0 && status.indexOf('nothing to commit') >= 0;
+                    checkCanDelete(bosco, orphanPath, function(err, canDelete) {
                         if(canDelete) {
                             bosco.log('Deleted project ' + orphan.green + ' as it is no longer in the github team and you have no local changes.');
                             rimraf(orphanPath, cb2)
@@ -176,12 +175,26 @@ function fetch(bosco, team, repos, repoRegex, args, next) {
 
 }
 
-function checkStatus(bosco, repoPath, next) {
-    exec('git status', {
-      cwd: repoPath
-    }, function(err, stdout) {
-        return next(err, stdout);
+
+
+function checkCanDelete(bosco, repoPath, next) {
+
+    var reducer = function(memo, cmd, cb) {
+        exec(cmd, {
+            cwd: repoPath
+        }, function(err, stdout) {
+            return cb(err, memo && !stdout);
+        });
+    }
+
+    async.reduce([
+        'git stash list',
+        'git branch --no-merged origin/master',
+        'git status --porcelain'
+    ], true, reducer, function(err, result) {
+        next(err, result)
     });
+
 }
 
 function clone(bosco, progressbar, bar, repoUrl, orgPath, next) {
