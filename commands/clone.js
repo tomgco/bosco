@@ -12,7 +12,6 @@ module.exports = {
     name:'clone',
     description:'Gets an list of all repos in your team and runs git clone for each',
     example: 'bosco clone',
-    help: getHelp(),
     cmd:cmd,
     options: [{
         option: 'clean',
@@ -200,6 +199,3 @@ function clone(bosco, progressbar, bar, repoUrl, orgPath, next) {
     });
 }
 
-function getHelp() {
-    return 'This is some example help for the go command.'
-}
