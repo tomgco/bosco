@@ -183,7 +183,7 @@ function checkCanDelete(bosco, repoPath, next) {
         exec(cmd, {
             cwd: repoPath
         }, function(err, stdout) {
-            return cb(err, memo && !stdout);
+            return cb(err, memo && !err && !stdout);
         });
     }
 
