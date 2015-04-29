@@ -102,11 +102,12 @@ function fetch(bosco, team, repos, repoRegex, args, next) {
                 if(bosco.options.clean) {
                     var orphanPath = bosco.getRepoPath(orphan);
                     checkStatus(bosco, orphanPath, function(err, status) {
-                        if(status.indexOf('working directory clean') > 0) {
+                        var canDelete = status.indexOf('Your branch is up-to-date') >= 0 && status.indexOf('nothing to commit') >= 0;
+                        if(canDelete) {
                             bosco.log('Deleted project ' + orphan.green + ' as it is no longer in the github team and you have no local changes.');
                             rimraf(orphanPath, cb2)
                         } else {
-                            bosco.warn('Wont delete project' + orphan.red + ' as you have uncommited local changes.');
+                            bosco.warn('Wont delete project' + orphan.red + ' as you have uncommited or unpushed local changes.');
                             cb2();
                         }
                     });
