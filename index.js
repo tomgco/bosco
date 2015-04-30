@@ -440,7 +440,7 @@ Bosco.prototype.getGlobalCommandFolder = function() {
 
 Bosco.prototype.getLocalCommandFolder = function() {
     var self = this,
-        workspace = self.options && self.options.workspace ?self.options.workspace : self.findWorkspace();
+        workspace = self.options && self.options.workspace ? self.options.workspace : self.findWorkspace();
     return [workspace, '/', 'commands', '/'].join('');
 }
 

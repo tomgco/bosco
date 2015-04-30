@@ -72,7 +72,7 @@
     "tail": "^0.4.0",
     "tar-fs": "^1.2.0",
     "uglify-js": "^2.4.19",
-    "watch": "^0.15.0"
+    "watch": "^0.16.0"
   },
   "devDependencies": {
     "blanket": "^1.1.6",
