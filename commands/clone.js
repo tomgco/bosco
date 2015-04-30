@@ -88,36 +88,39 @@ function fetch(bosco, team, repos, repoRegex, args, next) {
     }
 
     var checkOrphans = function(cb) {
+        function warnOrphan(orphan, cb2) {
+            bosco.warn('I am concerned that you still have the repo ' + orphan.red + ' as it is no longer in the github team, run "bosco clone --clean" to remove them.');
+            cb2();
+        }
+
+        function removeOrphan(orphan, cb2) {
+            var orphanPath = bosco.getRepoPath(orphan);
+            checkCanDelete(bosco, orphanPath, function(err, canDelete) {
+                if (err || !canDelete) {
+                    bosco.warn('Not deleting project ' + orphan.red + ' as you have uncommited or unpushed local changes.');
+                    return cb2();
+                }
+
+                bosco.log('Deleted project ' + orphan.green + ' as it is no longer in the github team and you have no local changes.');
+                rimraf(orphanPath, cb2)
+            });
+        }
+
+        var orphanAction = warnOrphan;
+        if (bosco.options.clean) {
+            orphanAction = removeOrphan;
+        }
 
         fs.readdir(bosco.getOrgPath(), function(err, files) {
-
             var orphans = _.chain(files)
-                            .map(function(file) { return path.join(bosco.getOrgPath(),file) })
-                            .filter(function(file) { return fs.statSync(file).isDirectory() && bosco.exists(path.join(file, '.git')) })
-                            .map(function(file) { return path.relative(bosco.getOrgPath(), file); })
-                            .difference(repos)
-                            .value()
+                .map(function(file) { return path.join(bosco.getOrgPath(),file) })
+                .filter(function(file) { return fs.statSync(file).isDirectory() && bosco.exists(path.join(file, '.git')) })
+                .map(function(file) { return path.relative(bosco.getOrgPath(), file); })
+                .difference(repos)
+                .value()
 
-            async.map(orphans, function(orphan, cb2) {
-                if(bosco.options.clean) {
-                    var orphanPath = bosco.getRepoPath(orphan);
-                    checkCanDelete(bosco, orphanPath, function(err, canDelete) {
-                        if(canDelete) {
-                            bosco.log('Deleted project ' + orphan.green + ' as it is no longer in the github team and you have no local changes.');
-                            rimraf(orphanPath, cb2)
-                        } else {
-                            bosco.warn('Wont delete project' + orphan.red + ' as you have uncommited or unpushed local changes.');
-                            cb2();
-                        }
-                    });
-                } else {
-                    bosco.warn('I am concerned that you still have the repo ' + orphan.red + ' as it is no longer in the github team, run "bosco clone --clean" to remove them.');
-                    cb2();
-                }
-            }, cb);
-
+            async.map(orphans, orphanAction, cb);
         });
-
     }
 
     var getRepos = function(cb) {
