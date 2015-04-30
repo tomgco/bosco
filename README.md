@@ -171,6 +171,70 @@ e.g.
 }
 ```
 
+## Using Bosco to start Docker projects
+
+If you add a bosco-service.json at the base of your docker projects, you can take advantage of Bosco knowing how to build, pull and run them as dependencies of your services:
+
+```
+{
+    "service": {
+        "type":"docker",
+        "name":"infra-redis",
+        "registry":"docker-registry.tescloud.com",
+        "username": "tescloud",
+        "version": "latest",
+        "alwaysPull": true,
+        "docker":{
+            "HostConfig": {
+                "PortBindings": {
+                    "6379/tcp": [{
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "6379"
+                     }]
+                }
+            }
+        }
+    }
+}
+```
+
+## Remote dependencies
+
+If you have defined your infrastructure docker files as projects like the one above, pushed to your organisations repo, you can then take advantage of another feature.
+
+You can define a dependency:
+
+```
+{
+    "service": {
+        "name": "app-resource",
+        "dependsOn": [
+          "infra-nginx-gateway",
+          "service-page-composer",
+          "infra-redis"
+        ]
+    }
+}
+```
+
+And if Bosco can't find the project in the current team, it will go to your github repository, grab the definition file and run it for you anyway.  Very helpful.
+
+## Docker Compose
+
+You can also define a project as containing a docker-compose definition file:
+
+```
+{
+    "tags": [],
+    "service": {
+        "name": "jobs-containers",
+        "type": "docker-compose"
+    }
+}
+```
+
+This expects then a ```docker-compose.yml``` in the root of the project.
+
 ## Using project specific build tools
 
 Some projects will want (or need) something more sophisticated than a simple concatenation / minification step for assets.  To support this, Bosco allows you to define a build configuration on a per project basis in the bosco-service.json file.
@@ -377,13 +441,13 @@ If you run bosco start and then docker service(s) don't start eg.
 [09:50:50] Bosco: Running docker service infra-nginx-gateway ...
 ```
 
-Then boot2docker has stopped running. Confirm this with 
+Then boot2docker has stopped running. Confirm this with
 
 ```
 boot2docker status
 ```
 
-then restart with 
+then restart with
 
 ```
 boot2docker start
