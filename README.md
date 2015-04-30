@@ -86,76 +86,27 @@ This will link the team 'tes/example' into the current folder as its workspace.
 
 Commands in Bosco are defined via specific command files within the 'commands' folder: [https://github.com/tes/bosco/tree/master/commands](commands).
 
-To get a list of installed commands in your installation just type 'bosco':
-
-```
-┌────────────┬────────────────────────────────────────────────────────────┐
-│ Core       │ Example                                                    │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ team       │ bosco team sync | bosco team ls | bosco team ln <team> <dr>│
-├────────────┼────────────────────────────────────────────────────────────┤
-│ cdn        │ bosco cdn <minify>                                         │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ clean      │ bosco clean -r <repoPattern>                               │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ clone      │ bosco clone                                                │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ commit     │ bosco commit -r <repoPattern> 'Commit Message'             │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ config     │ bosco config set <key> <value> | bosco config show <key>   │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ grep       │ bosco grep <patternToSearch>                               │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ help       │ bosco help <command>                                       │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ install    │ bosco install -r <repoPattern>                             │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ setup      │ bosco setup                                                │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ pull       │ bosco pull -r <repoPattern>                                │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ pushall    │ bosco pushall -r <repoPattern>                             │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ run        │ bosco run -r <repoPattern>                                 │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ s3delete   │ bosco -e <environmment> s3delete <build>                   │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ s3list     │ bosco -e <environment> s3list                              │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ s3push     │ bosco -e <environment> -b <build> s3push <tag>             │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ setup      │ bosco setup                                                │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ stash      │ bosco stash -r <repoPattern>                               │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ status     │ bosco status -r <repoPattern>                              │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ stop       │ bosco stop -r <repoPattern>                                │
-├────────────┼────────────────────────────────────────────────────────────┤
-│ upstream   │ bosco upstream -r <repoPattern>                            │
-└────────────┴────────────────────────────────────────────────────────────┘
-```
-
 To get help on any command just type;
 
 ```
-bosco help s3push
+bosco help clone
 ```
 
 ## Parameters
 
 You can use a number of parameters to control the behaviour of Bosco.  Parameters are configuration options that can be used across commands.
 
-|parameter|description|example|default|
-|---------|-----------|-------|--------|
-|-e, --environment|Environment name|bosco -e development s3push|local|
-|-b, --build|Build number or tag|bosco -e production -b 66 s3push|default|
-|-c, --configFile|Config file|bosco -c config.json clone|~/.bosco/bosco.json|
-|-p, --configPath|Config path|bosco -p /usr/config clone|~/.bosco/bosco.json|
-|-n, --noprompt|Do not prompt for confirmation|bosco -e staging -b 67 -n s3push|false|
-|-f, --force|Force over ride of any files|bosco -e production -b 66 -f s3push|false|
+|parameter|description|default|
+|---------|-----------|--------|
+|-e, --environment|Environment name|local|
+|-b, --build|Build number or tag|default|
+|-c, --configFile|Config file|~/.bosco/bosco.json|
+|-p, --configPath|Config path|~/.bosco/bosco.json|
+|-n, --noprompt|Do not prompt for confirmation|false|
+|-f, --force|Force over ride of any files|false|
+|-s, --service|Inside single service|false|
 
-To see all possible parameters, just type 'bosco'.
+To see all possible commands and parameters, just type 'bosco'.
 
 ## Bash completion
 
@@ -165,7 +116,7 @@ To enable bash <tab> completion for bosco, add the following line to your ~/.bas
 eval "$(bosco --completion=bash)"
 ```
 
-## Commands
+## Key Commands
 
 ### Setup
 
@@ -183,12 +134,23 @@ If any repository already exists locally it will skip it.  Typically you only us
 
 ### bosco-service.json
 
-If services want to take part in the static asset part, they need a bosco-service.json config file.
+If services want to take part in the static asset pipeline that Bosco provides, as well as allow bosco to start and stop them, then they need a bosco-service.json config file.
 
 e.g.
 
 ```json
 {
+    "service": {
+        "name": "app-resource",
+        "dependsOn": [
+          "infra-nginx-gateway",
+          "service-page-composer",
+          "service-site-assets",
+          "service-resource-reviews",
+          "service-refdata-api"
+        ]
+    },
+    "tags": ["upload", "resource"],
     "assets": {
         "basePath": "/src/public",
         "js": {
