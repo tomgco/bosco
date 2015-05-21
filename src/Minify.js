@@ -1,6 +1,5 @@
 var _ = require('lodash');
 var fs = require('fs');
-var path = require('path');
 var UglifyJS = require('uglify-js');
 var CleanCSS = require('clean-css');
 
@@ -12,18 +11,11 @@ module.exports = function(bosco) {
 
       var jsAssets = _.where(staticAssets, {type:'js'});
       var cssAssets = _.where(staticAssets, {type:'css'});
-      var otherAssets = _.filter(staticAssets, function(item) {
+      var remainingAssets = _.filter(staticAssets, function(item) {
         return item.type !== 'js' && item.type !== 'css';
       });
 
-      // Start minification by adding the manifests
-      var minifiedStaticAssets = createManifest(staticAssets);
-
-      // Now add the other assets
-      minifiedStaticAssets = _.union(minifiedStaticAssets, otherAssets);
-
-      // Now do the CSS and JS
-      compileJs(minifiedStaticAssets, jsAssets, function(err, minifiedStaticAssets) {
+      compileJs(remainingAssets, jsAssets, function(err, minifiedStaticAssets) {
         compileCss(minifiedStaticAssets, cssAssets, next);
       });
 
@@ -31,50 +23,6 @@ module.exports = function(bosco) {
 
   return {
       minify: minify
-  }
-
-  function createManifest(staticAssets) {
-
-      // Use a map as we normalise down to bundle.
-      var manifests = {};
-
-      _.forEach(staticAssets, function(value) {
-
-          var manifestFile = createKey(value.serviceName, value.buildNumber, value.tag, value.type, 'manifest', 'txt');
-
-          manifests[manifestFile] = manifests[manifestFile] || {
-              content: '',
-              assetKey: manifestFile,
-              serviceName: value.serviceName,
-              buildNumber: value.buildNumber,
-              type: 'plain',
-              mimeType: 'text/plain',
-              assetType: value.type,
-              tag: value.tag,
-              isMinifiedFragment: true,
-              path: 'manifest',
-              relativePath: 'manifest',
-              extname: '.manifest',
-              files: []
-          };
-
-          var repoPath = value.repo || '';
-          var basePath = value.basePath || '';
-          var assetPath = value.asset || '';
-          var relativePath = path.join(repoPath, basePath, assetPath);
-
-          manifests[manifestFile].content += relativePath + ', Last commit: ' + value.commit;
-          manifests[manifestFile].files.push({
-              key: createKey(value.serviceName, value.buildNumber, relativePath, '', 'src', ''),
-              relativePath: relativePath,
-              content: value.content,
-              path: value.path,
-              type: value.type
-          });
-      });
-
-      return _.values(manifests);
-
   }
 
   function compileJs(staticAssets, jsAssets, next) {

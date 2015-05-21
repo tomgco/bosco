@@ -9,7 +9,6 @@ module.exports = function(bosco) {
     var AssetHelper = require('./AssetHelper')(bosco);
     var minify = require('./Minify')(bosco).minify;
     var doBuild = require('./ExternalBuild')(bosco).doBuild;
-    var getLastCommitForAssets = require('./Git')(bosco).getLastCommitForAssets;
     var html = require('./Html')(bosco);
     var createAssetHtmlFiles = html.createAssetHtmlFiles;
     var attachFormattedRepos = html.attachFormattedRepos;
@@ -40,10 +39,8 @@ module.exports = function(bosco) {
 
                 // Now go and minify
                 if (options.minify) {
-                    getLastCommitForAssets(staticAssets, function(err, assetsWithCommits) {
-                        minify(assetsWithCommits, function(err, minifiedAssets) {
-                            createAssetHtmlFiles(minifiedAssets, next);
-                        });
+                    minify(staticAssets, function(err, minifiedAssets) {
+                        createAssetHtmlFiles(minifiedAssets, next);
                     });
                 } else {
                   createAssetHtmlFiles(staticAssets, next);
