@@ -24,14 +24,15 @@ function getRunConfig(bosco, repo, repoRegex, watchRegex) {
 
     if (bosco.exists(packageJson)) {
         pkg = require(packageJson);
+        var packageConfig = {};
         if (pkg.scripts && pkg.scripts.start) {
-            svcConfig = _.extend(svcConfig, {
-                service: {
-                    type: 'node',
-                    start: pkg.scripts.start
-                }
-            });
+            packageConfig.type = 'node';
+            packageConfig.start = pkg.scripts.start;
         }
+        if(pkg.engines && pkg.engines.node) {
+            packageConfig.nodeVersion = pkg.engines.node;
+        }
+        svcConfig.service = packageConfig;
     }
 
     if (bosco.exists(boscoService)) {
@@ -100,7 +101,6 @@ function getRunList(bosco, repos, repoRegex, watchRegex, repoTag, next) {
             if (item.order) return item.order;
             return (item.service.type === 'docker' || item.service.type === 'docker-compose') ? 100 : 500
         }).value();
-
 
     next(null, runList);
 

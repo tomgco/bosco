@@ -4,6 +4,7 @@
 var _ = require('lodash');
 var path = require('path');
 var pm2 = require('pm2');
+var semver = require('semver');
 require('colors');
 
 function Runner() {
@@ -50,6 +51,7 @@ Runner.prototype.listNotRunning = function(detailed, next) {
 Runner.prototype.start = function(options, next) {
 
 	var self = this;
+
 	// Remove node from the start script as not req'd for PM2
 	var startCmd = options.service.start, startArr, start, ext;
 
@@ -68,16 +70,8 @@ Runner.prototype.start = function(options, next) {
 		start = startCmd;
 	}
 
-	var executeCommand = false;
-
-	if (ext != '.js') {
-		executeCommand = true;
-	}
-
-	// Node 0.10.x has a problem with cluster mode
-	if (process.version.match(/0.10/)) {
-		executeCommand = true;
-	}
+  // Always execute as a forked process to allow node version selection
+	var executeCommand = true;
 
   // If the command has a -- in it then we know it is passing parameters
   // to pm2
@@ -93,8 +87,23 @@ Runner.prototype.start = function(options, next) {
 		self.bosco.warn('Can\'t start ' + options.name.red + ', as I can\'t find script: ' + location.red);
 		return next();
 	}
-    self.bosco.log('Starting ' + options.name.cyan + ' ...');
-	pm2.start(location, { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand, force: true, scriptArgs: scriptArgs }, next);
+
+  var startOptions = { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand, force: true, scriptArgs: scriptArgs };
+
+  var interpreter = path.join(this.bosco.findHomeFolder(), getInterpreter(options.service));
+  if(interpreter) {
+    if(!self.bosco.exists(interpreter)) {
+      self.bosco.warn('Unable to locate node version requested: ' + interpreter.cyan + '.  Reverting to default.');
+    } else {
+      startOptions.interpreter = interpreter;
+      self.bosco.log('Starting ' + options.name.cyan + ' via ' + interpreter + ' ...');
+    }
+  } else {
+    self.bosco.log('Starting ' + options.name.cyan + ' via ...');
+  }
+
+	pm2.start(location, startOptions, next);
+
 }
 
 /**
@@ -109,6 +118,20 @@ Runner.prototype.stop = function(options, next) {
 		  next(err);
 		});
 	});
+}
+
+function getInterpreter(service) {
+
+  if(!service.nodeVersion) {
+    return;
+  }
+
+  if(semver.gt(service.nodeVersion, '0.12.0')) {
+    return path.join('/.nvm/versions/io.js/','v' + service.nodeVersion,'/bin/node');
+  } else {
+    return path.join('/.nvm/versions/node/','v' + service.nodeVersion,'/bin/node');
+  }
+
 }
 
 module.exports = new Runner();
