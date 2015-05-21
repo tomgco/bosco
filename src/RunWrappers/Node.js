@@ -123,7 +123,7 @@ Runner.prototype.stop = function(options, next) {
 function getInterpreter(service) {
 
   if(!service.nodeVersion) {
-    return;
+    return '';
   }
 
   if(semver.gt(service.nodeVersion, '0.12.0')) {
