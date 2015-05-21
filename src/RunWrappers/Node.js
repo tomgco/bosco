@@ -90,7 +90,7 @@ Runner.prototype.start = function(options, next) {
 
   var startOptions = { name: options.name, cwd: options.cwd, watch: options.watch, executeCommand: executeCommand, force: true, scriptArgs: scriptArgs };
 
-  var interpreter = path.join(this.bosco.findHomeFolder(), getInterpreter(options.service));
+  var interpreter = getInterpreter(this.bosco, options.service);
   if(interpreter) {
     if(!self.bosco.exists(interpreter)) {
       self.bosco.warn('Unable to locate node version requested: ' + interpreter.cyan + '.  Reverting to default.');
@@ -120,17 +120,21 @@ Runner.prototype.stop = function(options, next) {
 	});
 }
 
-function getInterpreter(service) {
+function getInterpreter(bosco, service) {
 
   if(!service.nodeVersion) {
     return;
   }
 
+  var homeFolder = bosco.findHomeFolder(), nvmNodePath;
+
   if(semver.gt(service.nodeVersion, '0.12.0')) {
-    return path.join('/.nvm/versions/io.js/','v' + service.nodeVersion,'/bin/node');
+    nvmNodePath = path.join('/.nvm/versions/io.js/','v' + service.nodeVersion,'/bin/node');
   } else {
-    return path.join('/.nvm/versions/node/','v' + service.nodeVersion,'/bin/node');
+    nvmNodePath = path.join('/.nvm/versions/node/','v' + service.nodeVersion,'/bin/node');
   }
+
+  return path.join(homeFolder, nvmNodePath);
 
 }
 
