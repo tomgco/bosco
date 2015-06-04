@@ -128,10 +128,12 @@ function getInterpreter(bosco, service) {
 
   var homeFolder = bosco.findHomeFolder(), nvmNodePath;
 
-  if(semver.gt(service.nodeVersion, '0.12.0')) {
+  if(semver.gte(service.nodeVersion, '1.0.0')) {
     nvmNodePath = path.join('/.nvm/versions/io.js/','v' + service.nodeVersion,'/bin/node');
-  } else {
+  } else if(semver.gte(service.nodeVersion, '0.12.0')) {
     nvmNodePath = path.join('/.nvm/versions/node/','v' + service.nodeVersion,'/bin/node');
+  } else {
+    nvmNodePath = path.join('/.nvm/','v' + service.nodeVersion,'/bin/node');
   }
 
   return path.join(homeFolder, nvmNodePath);
