@@ -130,13 +130,9 @@ function getInterpreter(bosco, service) {
 
   var homeFolder = bosco.findHomeFolder();
   var nvmBase = '.nvm';
-  var runtime = 'node';
+  var runtime = (version.major >= 1) ? 'io.js' : 'node';
 
-  if (version.major >= 1) {
-    runtime = 'io.js';
-  }
-
-  if (runtime === 'io.js' || version.minor >= 12) { 
+  if (runtime === 'io.js' || version.minor >= 12) {
     nvmBase = path.join(nvmBase, 'versions', runtime);
   }
 
