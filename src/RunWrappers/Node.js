@@ -122,19 +122,21 @@ Runner.prototype.stop = function(options, next) {
 
 function getInterpreter(bosco, service) {
 
-  if(!service.nodeVersion) {
-    return;
+  var version = semver.parse(service.nodeVersion);
+
+  if (!version) {
+    return '';
   }
 
-  var homeFolder = bosco.findHomeFolder(), nvmNodePath;
+  var homeFolder = bosco.findHomeFolder();
+  var nvmBase = '.nvm';
+  var runtime = (version.major >= 1) ? 'io.js' : 'node';
 
-  if(semver.gt(service.nodeVersion, '0.12.0')) {
-    nvmNodePath = path.join('/.nvm/versions/io.js/','v' + service.nodeVersion,'/bin/node');
-  } else {
-    nvmNodePath = path.join('/.nvm/versions/node/','v' + service.nodeVersion,'/bin/node');
+  if (runtime === 'io.js' || version.minor >= 12) {
+    nvmBase = path.join(nvmBase, 'versions', runtime);
   }
 
-  return path.join(homeFolder, nvmNodePath);
+  return path.join(homeFolder, nvmBase, 'v' + version, 'bin', 'node');
 
 }
 
